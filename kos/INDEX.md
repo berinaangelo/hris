@@ -31,6 +31,55 @@ structure below. Read this first; open only the files you actually need.
   — thin controllers + single-purpose Interactors composed by an
   Organizer, carried over from the user's own past practice, to apply
   once backend implementation starts
+- [rails-skinny-models-behavior-in-interactors](decisions/rails-skinny-models-behavior-in-interactors.md)
+  — models stay persistence/associations/validations only; behavior
+  lives in Interactors/POROs, not the model
+- [rails-form-objects-for-multi-model-forms](decisions/rails-form-objects-for-multi-model-forms.md)
+  — PORO + ActiveModel::Model for any form touching more than one AR
+  model (e.g. Add Employee)
+- [rails-query-objects-for-reused-queries](decisions/rails-query-objects-for-reused-queries.md)
+  — extract reused or non-trivial `.where` chains into named Query
+  Object classes
+- [rails-presenters-decorators-for-view-formatting](decisions/rails-presenters-decorators-for-view-formatting.md)
+  — view formatting (esp. the badge status→color mapping) lives in a
+  Presenter, not duplicated per view
+- [rails-pundit-for-authorization](decisions/rails-pundit-for-authorization.md)
+  — role-based access goes through Pundit policy classes, not
+  scattered role checks
+- [rails-activejob-solid-queue-for-background-work](decisions/rails-activejob-solid-queue-for-background-work.md)
+  — anything not needed synchronously goes through ActiveJob; adapter
+  is Solid Queue (DB-backed, no Redis), not Sidekiq
+- [rails-callback-objects-for-cache-busting](decisions/rails-callback-objects-for-cache-busting.md)
+  — cache busting via AR callback objects (Laravel-Observer
+  equivalent); business-flow side effects stay explicit Interactor
+  steps
+- [rails-metaprogramming-for-repetitive-methods](decisions/rails-metaprogramming-for-repetitive-methods.md)
+  — define_method-driven macros to avoid hand-written near-duplicate
+  methods (e.g. per-status predicate/bang pairs), not a blanket style
+- [rails-routes-split-into-dedicated-files](decisions/rails-routes-split-into-dedicated-files.md)
+  — keep config/routes.rb short, split into config/routes/*.rb via
+  `draw` once a section grows
+- [code-naming-self-evident-grandma-test](decisions/code-naming-self-evident-grandma-test.md)
+  — variable/method/class names must be self-evident at a glance, no
+  comment needed to explain them
+- [rails-arel-for-complex-queries](decisions/rails-arel-for-complex-queries.md)
+  — use Arel once a query outgrows a plain `.where` hash (OR combos,
+  date-range overlaps)
+- [security-practices-checklist](decisions/security-practices-checklist.md)
+  — strong params, no raw SQL, encrypted PII, secrets handling, CSV
+  injection guard, Brakeman/bundler-audit in CI
+- [rails-orm-performance-n-plus-one-and-indexes](decisions/rails-orm-performance-n-plus-one-and-indexes.md)
+  — guard against N+1 queries, missing indexes, and looped saves
+- [rails-testing-minitest-factorybot-faker](decisions/rails-testing-minitest-factorybot-faker.md)
+  — Minitest, one test type per concern (model/controller/interactor),
+  FactoryBot+Faker for test data
+- [rails-db-transactions-locking-idempotency](decisions/rails-db-transactions-locking-idempotency.md)
+  — transactions via Interactor `.call!` for atomicity, optimistic
+  locking on user edits, pessimistic locking + idempotency for payroll
+  finalization
+- [rails-pagination-and-batch-export-processing](decisions/rails-pagination-and-batch-export-processing.md)
+  — sanitized page/page_size params via Pagy, streaming vs
+  background-job batching for exports depending on size
 - [statutory-deductions-as-editable-data-not-code](decisions/statutory-deductions-as-editable-data-not-code.md)
   — SSS/PhilHealth/Pag-IBIG/BIR rate tables stored as admin-editable
   data, never hardcoded formulas
