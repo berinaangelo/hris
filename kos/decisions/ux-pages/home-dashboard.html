@@ -1,0 +1,552 @@
+<title>HRIS Home Dashboard Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — and dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 66ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  /* role preview switcher — demo-only control, not part of the product */
+  .role-switch {
+    max-width: 1200px; margin: 1rem auto 0; display: flex; align-items: center; gap: 0.6rem;
+    font-size: 0.8125rem; color: #C7CEDE; flex-wrap: wrap;
+  }
+  .role-switch .seg { display: inline-flex; background: rgba(255,255,255,0.08); border-radius: 999px; padding: 0.2rem; }
+  .role-switch label {
+    padding: 0.35rem 0.85rem; border-radius: 999px; cursor: pointer; font-weight: 600; color: #C7CEDE; transition: background var(--t), color var(--t);
+  }
+  #roleEmployee:checked ~ .page .role-switch label[for="roleEmployee"],
+  #roleManager:checked ~ .page .role-switch label[for="roleManager"] { background: var(--white); color: var(--ink); }
+  input.role { position: absolute; opacity: 0; pointer-events: none; }
+
+  .manager-only { display: none; }
+  #roleManager:checked ~ .page .manager-only { display: flex; }
+  #roleManager:checked ~ .page .manager-only.block { display: block; }
+  #roleManager:checked ~ .page .manager-only.inline { display: inline-flex; }
+
+  /* layout tabs */
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Me / Team / Company) ---------- */
+
+  .app-nav {
+    background: var(--ink); color: var(--white); display: flex; align-items: center;
+    gap: 1.25rem; padding: 0 1.25rem; height: 52px; flex: 0 0 auto;
+  }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark {
+    width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex;
+    align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto;
+  }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a {
+    display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px;
+    font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6;
+  }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-count {
+    font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; min-width: 16px; height: 16px;
+    border-radius: 999px; background: var(--badge-caution-bg); color: var(--badge-caution-fg);
+    display: inline-flex; align-items: center; justify-content: center; padding: 0 0.3rem;
+  }
+  .nav-spacer { flex: 1; }
+  .nav-avatar {
+    width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white);
+    display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600;
+  }
+
+  /* ---------- badge pills ---------- */
+
+  .badge {
+    display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px;
+    font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase;
+  }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  .count-pill {
+    display: inline-flex; align-items: center; font-family: var(--font-mono); font-size: 0.75rem; font-weight: 500;
+    background: var(--badge-caution-bg); color: var(--badge-caution-fg); padding: 0.15rem 0.5rem; border-radius: 999px;
+  }
+
+  /* ---------- generic content pieces ---------- */
+
+  .greet-block { padding: 1.75rem 2rem 0.25rem; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.65rem 1rem;
+    font-weight: 600; font-size: 0.875rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.5rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.6rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+  }
+  .btn-ghost:hover { background: var(--surface); }
+
+  .card {
+    background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.35rem;
+  }
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+
+  .meter-track { height: 6px; border-radius: 999px; background: var(--surface); overflow: hidden; margin-top: 0.6rem; }
+  .meter-fill { height: 100%; background: var(--ink-light); border-radius: 999px; }
+
+  .req-row {
+    display: flex; align-items: center; gap: 0.9rem; padding: 0.85rem 0; border-bottom: 1px solid var(--border);
+    font-size: 0.875rem;
+  }
+  .req-row:last-child { border-bottom: none; }
+  .req-row .dates { font-family: var(--font-mono); font-variant-numeric: tabular-nums; color: var(--ink); min-width: 148px; }
+  .req-row .type { color: var(--ink-light); flex: 1; }
+  .req-list-head {
+    display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.25rem;
+  }
+  .req-list-head h3 { font-size: 1rem; font-weight: 700; }
+
+  .empty-state {
+    display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.5rem;
+    padding: 2.5rem 1.5rem; color: var(--neutral);
+  }
+  .empty-state svg { width: 34px; height: 34px; color: var(--neutral); opacity: 0.6; }
+  .empty-state h3 { font-size: 0.9375rem; font-weight: 700; color: var(--ink); }
+  .empty-state p { font-size: 0.8125rem; }
+
+  .manager-card {
+    background: var(--badge-caution-bg); border: 1px solid #F3D9A6; border-radius: var(--radius);
+    padding: 1rem 1.15rem; display: flex; align-items: center; gap: 0.75rem;
+  }
+  .manager-card svg { width: 20px; height: 20px; color: var(--badge-caution-fg); flex: 0 0 auto; }
+  .manager-card .txt { flex: 1; font-size: 0.8125rem; color: var(--badge-caution-fg); line-height: 1.4; }
+  .manager-card .txt b { font-weight: 700; }
+  .manager-banner {
+    background: var(--badge-caution-bg); border-radius: 8px; padding: 0.6rem 0.9rem;
+    display: flex; align-items: center; gap: 0.6rem; font-size: 0.8125rem; color: var(--badge-caution-fg);
+  }
+  .manager-banner svg { width: 16px; height: 16px; flex: 0 0 auto; }
+  .manager-banner a { font-weight: 700; text-decoration: underline; }
+
+  /* ---------- Option 1: stat row + list ---------- */
+
+  .mock1-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1rem 2rem 0; }
+  .mock1-balance-num { font-family: var(--font-mono); font-size: 2rem; font-weight: 500; margin-top: 0.3rem; }
+  .mock1-body { padding: 1.5rem 2rem 2rem; }
+
+  /* ---------- Option 2: balance-led hero ---------- */
+
+  .hero {
+    margin: 1rem 2rem 0; background: var(--ink); background-image: radial-gradient(circle at 85% 0%, rgba(232,99,10,0.18), transparent 50%);
+    color: var(--white); border-radius: var(--radius); padding: 1.75rem 2rem; display: flex; align-items: center;
+    justify-content: space-between; gap: 1.5rem; flex-wrap: wrap;
+  }
+  .hero-num { font-family: var(--font-mono); font-size: 3rem; font-weight: 500; line-height: 1; }
+  .hero-sub { font-size: 0.8125rem; color: #C7CEDE; margin-top: 0.4rem; }
+  .hero .meter-track { background: rgba(255,255,255,0.16); width: 220px; }
+  .hero .meter-fill { background: var(--accent); }
+  .hero-right { display: flex; flex-direction: column; align-items: flex-end; gap: 0.6rem; }
+
+  .mock2-cols { display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; padding: 1.5rem 2rem 2rem; align-items: start; }
+  @media (max-width: 760px) { .mock2-cols { grid-template-columns: 1fr; } }
+  .aside-stack { display: flex; flex-direction: column; gap: 1rem; }
+
+  /* ---------- Option 3: compact feed ---------- */
+
+  .mock3-col { max-width: 560px; margin: 0 auto; padding: 1.5rem 1.5rem 2.5rem; display: flex; flex-direction: column; gap: 1.25rem; }
+  .balance-strip {
+    display: flex; align-items: center; gap: 0.75rem; padding: 0.85rem 1rem; background: var(--surface); border-radius: 8px;
+  }
+  .balance-strip svg { width: 18px; height: 18px; color: var(--ink-light); flex: 0 0 auto; }
+  .balance-strip .txt { flex: 1; font-size: 0.875rem; }
+  .balance-strip .txt b { font-family: var(--font-mono); font-weight: 500; }
+  .feed-head { display: flex; align-items: baseline; justify-content: space-between; }
+  .feed-head h3 { font-size: 0.9375rem; font-weight: 700; }
+
+  @media (max-width: 480px) {
+    .greet-block, .mock1-body, .hero { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .mock1-stats, .mock2-cols { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="role" type="radio" name="role" id="roleEmployee" checked />
+<input class="role" type="radio" name="role" id="roleManager" />
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" checked />
+<input class="tab" type="radio" name="tab" id="tab3" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Home — three recommendations</h1>
+      <p class="sub">
+        The landing screen every role sees under "Me" — see
+        decisions/ui/navigation-me-team-company.md. Same tokens as the
+        login page throughout; what changes across the three is how much
+        weight leave balance gets versus the requests list.
+      </p>
+      <div class="assumptions">
+        <b>Demo-only control below:</b> "Team" only exists in the nav for
+        managers, per the absent-not-filtered rule in the navigation
+        decision — flip the switch to see the manager-only badge count
+        and approvals nudge appear. Balance figures (12.5 of 15 days) are
+        placeholder content, not a policy decision.
+      </div>
+      <div class="role-switch">
+        Viewing as:
+        <span class="seg">
+          <label for="roleEmployee">Employee</label>
+          <label for="roleManager">Manager</label>
+        </span>
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Stat row + list</label>
+      <label for="tab2"><span class="n">02</span> Balance-led hero <span class="chosen-badge">Chosen</span></label>
+      <label for="tab3"><span class="n">03</span> Compact feed</label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — STAT ROW + LIST ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark">
+              <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>
+              HRIS
+            </span>
+            <div class="nav-tabs">
+              <a class="active" href="#">Me</a>
+              <a class="manager-only" href="#">Team <span class="nav-count">3</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>Good morning, Mikaela</h2>
+            <p>You report to Ramon Dela Cruz · Engineering</p>
+          </div>
+
+          <div class="mock1-stats">
+            <div class="card">
+              <p class="card-label">Leave balance</p>
+              <p class="mock1-balance-num">12.5<span style="font-size:1rem;color:var(--neutral);font-family:var(--font-body);"> days</span></p>
+              <div class="meter-track"><div class="meter-fill" style="width:83%"></div></div>
+              <p style="font-size:0.75rem;color:var(--neutral);margin-top:0.5rem;">2.5 of 15 used this year</p>
+            </div>
+            <div class="card">
+              <p class="card-label">My requests</p>
+              <p class="mock1-balance-num">1 <span class="count-pill" style="margin-left:0.4rem;">pending</span></p>
+              <p style="font-size:0.75rem;color:var(--neutral);margin-top:0.85rem;">2 approved, 1 rejected this year</p>
+            </div>
+            <div class="card manager-only block">
+              <p class="card-label">Team approvals</p>
+              <p class="mock1-balance-num">3 <span class="count-pill" style="margin-left:0.4rem;">awaiting you</span></p>
+              <p style="font-size:0.75rem;color:var(--neutral);margin-top:0.85rem;"><a class="link" href="#" style="color:var(--accent);font-weight:600;text-decoration:none;">Review in Team →</a></p>
+            </div>
+          </div>
+
+          <div class="mock1-body">
+            <div class="req-list-head">
+              <h3>My requests</h3>
+              <button class="btn-ghost">+ Request time off</button>
+            </div>
+            <div class="req-row">
+              <span class="dates">Dec 24–26</span>
+              <span class="type">Vacation Leave</span>
+              <span class="badge badge-caution">Pending</span>
+            </div>
+            <div class="req-row">
+              <span class="dates">Nov 1</span>
+              <span class="type">Sick Leave</span>
+              <span class="badge badge-positive">Approved</span>
+            </div>
+            <div class="req-row">
+              <span class="dates">Oct 15</span>
+              <span class="type">Vacation Leave</span>
+              <span class="badge badge-negative">Rejected</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The standard dashboard grid — stat cards scan left to right, and there's room to add a
+              fourth card later (an onboarding checklist, a document reminder) without restructuring
+              the page. Balance and requests get equal visual weight.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>No single fact needs to dominate. Cuts against the plan's specific god moment about
+              balance being the thing that should be unmissable before a leave request — that's what
+              Option 2 is for.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — BALANCE-LED HERO ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark">
+              <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>
+              HRIS
+            </span>
+            <div class="nav-tabs">
+              <a class="active" href="#">Me</a>
+              <a class="manager-only" href="#">Team <span class="nav-count">3</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>Good morning, Mikaela</h2>
+            <p>You report to Ramon Dela Cruz · Engineering</p>
+          </div>
+
+          <div class="hero">
+            <div>
+              <p class="card-label" style="color:#A9B4CB;">Leave balance</p>
+              <p class="hero-num">12.5 <span style="font-size:1.1rem;font-family:var(--font-body);color:#C7CEDE;">days remaining</span></p>
+              <div class="meter-track"><div class="meter-fill" style="width:83%"></div></div>
+              <p class="hero-sub">2.5 of 15 used this year</p>
+            </div>
+            <div class="hero-right">
+              <button class="btn-primary">
+                Request time off
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="mock2-cols">
+            <div>
+              <div class="req-list-head">
+                <h3>My requests</h3>
+              </div>
+              <div class="req-row">
+                <span class="dates">Dec 24–26</span>
+                <span class="type">Vacation Leave</span>
+                <span class="badge badge-caution">Pending</span>
+              </div>
+              <div class="req-row">
+                <span class="dates">Nov 1</span>
+                <span class="type">Sick Leave</span>
+                <span class="badge badge-positive">Approved</span>
+              </div>
+              <div class="req-row">
+                <span class="dates">Oct 15</span>
+                <span class="type">Vacation Leave</span>
+                <span class="badge badge-negative">Rejected</span>
+              </div>
+            </div>
+
+            <div class="aside-stack">
+              <div class="card">
+                <p class="card-label">At a glance</p>
+                <p style="font-size:0.875rem;margin-top:0.6rem;">1 request <span class="count-pill">pending</span></p>
+                <p style="font-size:0.8125rem;color:var(--neutral);margin-top:0.5rem;">2 approved, 1 rejected this year</p>
+              </div>
+              <div class="manager-card manager-only">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>
+                <div class="txt"><b>3 requests</b> awaiting your approval as manager. <a href="#" style="color:inherit;">Review in Team →</a></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Treats balance as the one fact worth spending visual weight on — directly serves "employee
+              sees their real balance before submitting a leave request," the same one-accent-one-job
+              logic already used for the amber CTA color.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Balance really is the fact that matters most on login. Costs more vertical space before
+              the requests list is visible, and needs a real content decision for the hero (a usage bar,
+              an accrual note) that the other two options avoid.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — COMPACT FEED ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark">
+              <span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>
+              HRIS
+            </span>
+            <div class="nav-tabs">
+              <a class="active" href="#">Me</a>
+              <a class="manager-only" href="#">Team <span class="nav-count">3</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="mock3-col">
+            <div class="greet-block" style="padding:0.5rem 0 0;">
+              <h2 style="font-size:1.15rem;">Good morning, Mikaela</h2>
+              <p>You report to Ramon Dela Cruz · Engineering</p>
+            </div>
+
+            <div class="manager-banner manager-only">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>
+              <span>3 requests awaiting your approval — <a href="#">review in Team</a></span>
+            </div>
+
+            <div class="balance-strip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+              <span class="txt"><b>12.5</b> days remaining of 15</span>
+              <a class="link" href="#" style="color:var(--accent);font-weight:600;font-size:0.8125rem;text-decoration:none;">Request →</a>
+            </div>
+
+            <div>
+              <div class="feed-head">
+                <h3>Recent requests</h3>
+              </div>
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>
+                <h3>You're all caught up</h3>
+                <p>No pending requests right now.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Least visual weight, reads fastest on a phone — the most realistic case for "log in,
+              glance at status, get back to work." Balance is present but deliberately quiet, one row
+              among several rather than the focal point.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Most sessions are short check-ins rather than desktop dashboard browsing. Wrong pick if
+              balance is meant to be unmissable per Option 2's reasoning — here it's easy to skim past.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

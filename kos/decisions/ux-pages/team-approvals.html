@@ -1,0 +1,645 @@
+<title>HRIS Team Approvals Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  .demo-strip { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: var(--neutral); flex-wrap: wrap; }
+  .demo-strip label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--white); }
+  .demo-strip input { accent-color: var(--accent); }
+
+  /* ---------- shared app nav (Team active) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-count {
+    font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; min-width: 16px; height: 16px;
+    border-radius: 999px; background: var(--badge-caution-bg); color: var(--badge-caution-fg);
+    display: inline-flex; align-items: center; justify-content: center; padding: 0 0.3rem;
+  }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .btn-danger-ghost {
+    background: var(--white); border: 1px solid #F3C6C6; color: var(--danger); border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: background var(--t), border-color var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-danger-ghost:hover { background: var(--badge-negative-bg); }
+  .btn-danger-ghost svg { width: 14px; height: 14px; }
+
+  .greet-block { padding: 1.75rem 2rem 0; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.8125rem; flex: 0 0 auto; }
+
+  .balance-chip {
+    display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--ink-light);
+    background: var(--surface); border-radius: 999px; padding: 0.25rem 0.6rem;
+  }
+  .balance-chip svg { width: 12px; height: 12px; }
+  .balance-chip b { font-family: var(--font-mono); color: var(--ink); font-weight: 500; }
+  .balance-chip.low { background: var(--badge-caution-bg); color: var(--badge-caution-fg); }
+  .balance-chip.low b { color: var(--badge-caution-fg); }
+
+  .low-note {
+    display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--badge-caution-fg);
+    background: var(--badge-caution-bg); border-radius: 8px; padding: 0.55rem 0.75rem; margin-top: 0.6rem;
+  }
+  .low-note svg { width: 14px; height: 14px; flex: 0 0 auto; }
+
+  /* ---------- guided empty state ---------- */
+
+  .empty-state { display: none; flex-direction: column; align-items: center; text-align: center; gap: 0.5rem; padding: 3rem 1.5rem; color: var(--neutral); }
+  .empty-state svg { width: 34px; height: 34px; color: var(--neutral); opacity: 0.6; }
+  .empty-state h3 { font-size: 0.9375rem; font-weight: 700; color: var(--ink); }
+  .empty-state p { font-size: 0.8125rem; }
+  #empty1:checked ~ .page .frame-shell[data-n="1"] .queue-live { display: none; }
+  #empty1:checked ~ .page .frame-shell[data-n="1"] .empty-state { display: flex; }
+  #empty1:checked ~ .page .demo-strip label[for="empty1"] { background: var(--accent); color: var(--white); border-color: var(--accent); }
+
+  /* ---------- recently decided table (comfortable density) ---------- */
+
+  .table-wrap { overflow-x: auto; }
+  .dectable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 480px; }
+  .dectable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .dectable td { padding: 0 0.75rem; height: 44px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+  .dectable tbody tr:nth-child(even) { background: var(--surface); }
+  .dectable tr:last-child td { border-bottom: none; }
+  .list-head { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem 1rem; gap: 1rem; flex-wrap: wrap; }
+  .list-head h3 { font-size: 1rem; font-weight: 700; }
+
+  /* ---------- Option 1: inbox list, inline actions ---------- */
+
+  .queue-live { display: flex; flex-direction: column; }
+  .req-item {
+    display: flex; align-items: center; gap: 1rem; padding: 1rem 2rem; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .req-item .who h4 { font-size: 0.9375rem; font-weight: 700; }
+  .req-item .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.1rem; }
+  .req-item .mid { flex: 1; min-width: 220px; }
+  .req-item .mid .line1 { font-size: 0.875rem; }
+  .req-item .mid .line1 .type { font-weight: 600; }
+  .req-item .actions { display: flex; gap: 0.5rem; flex: 0 0 auto; }
+
+  /* ---------- Option 2: card feed, expand to decide ---------- */
+
+  .card-feed { padding: 1.5rem 2rem 2rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .req-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .req-card-head { display: flex; align-items: center; gap: 0.9rem; padding: 0.95rem 1.15rem; cursor: pointer; user-select: none; }
+  .req-card-head .who h4 { font-size: 0.9375rem; font-weight: 700; }
+  .req-card-head .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.1rem; }
+  .req-card-head .spacer { flex: 1; }
+  .req-card-head .chevron { width: 16px; height: 16px; color: var(--neutral); transition: transform var(--t); flex: 0 0 auto; }
+  .req-card-body { display: none; padding: 0 1.15rem 1.15rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+  .req-card-body .reason { font-size: 0.875rem; color: var(--ink-light); line-height: 1.5; background: var(--surface); border-radius: 8px; padding: 0.75rem 0.9rem; margin-bottom: 0.9rem; }
+  .req-card-body .reason b { color: var(--ink); font-weight: 600; }
+
+  #card2-1:checked ~ .page .frame-shell[data-n="2"] .req-card-body[data-p="1"] { display: block; }
+  #card2-1:checked ~ .page .frame-shell[data-n="2"] .req-chevron[data-p="1"] { transform: rotate(180deg); }
+  #card2-3:checked ~ .page .frame-shell[data-n="2"] .req-card-body[data-p="3"] { display: block; }
+  #card2-3:checked ~ .page .frame-shell[data-n="2"] .req-chevron[data-p="3"] { transform: rotate(180deg); }
+
+  /* ---------- Option 3: split, focused queue ---------- */
+
+  .op3-cols { display: grid; grid-template-columns: 280px 1fr; }
+  @media (max-width: 780px) { .op3-cols { grid-template-columns: 1fr; } }
+  .queue-rail { border-right: 1px solid var(--border); padding: 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  @media (max-width: 780px) { .queue-rail { border-right: none; border-bottom: 1px solid var(--border); } }
+  .queue-rail label { display: flex; flex-direction: column; gap: 0.3rem; padding: 0.65rem 0.85rem; border-radius: 8px; cursor: pointer; transition: background var(--t); }
+  .queue-rail label:hover { background: var(--surface); }
+  .queue-rail label .name { font-size: 0.8125rem; font-weight: 600; }
+  .queue-rail label .meta { font-size: 0.75rem; color: var(--neutral); }
+  #q3-1:checked ~ .page .frame-shell[data-n="3"] .queue-rail label[for="q3-1"],
+  #q3-2:checked ~ .page .frame-shell[data-n="3"] .queue-rail label[for="q3-2"],
+  #q3-3:checked ~ .page .frame-shell[data-n="3"] .queue-rail label[for="q3-3"],
+  #q3-4:checked ~ .page .frame-shell[data-n="3"] .queue-rail label[for="q3-4"] {
+    background: var(--surface); box-shadow: inset 2px 0 0 var(--accent);
+  }
+  .decision-panel { padding: 1.75rem; display: none; flex-direction: column; gap: 1rem; }
+  #q3-1:checked ~ .page .frame-shell[data-n="3"] .decision-panel[data-p="1"],
+  #q3-2:checked ~ .page .frame-shell[data-n="3"] .decision-panel[data-p="2"],
+  #q3-3:checked ~ .page .frame-shell[data-n="3"] .decision-panel[data-p="3"],
+  #q3-4:checked ~ .page .frame-shell[data-n="3"] .decision-panel[data-p="4"] { display: flex; }
+  .decision-head { display: flex; align-items: center; gap: 1rem; }
+  .decision-head h3 { font-size: 1.1rem; font-weight: 700; }
+  .decision-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.15rem; }
+  .decision-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 0.9rem; background: var(--surface); border-radius: 8px; padding: 0.9rem 1rem; }
+  .decision-facts .f label { display: block; font-size: 0.6875rem; color: var(--neutral); font-weight: 500; }
+  .decision-facts .f p { font-size: 0.9375rem; margin-top: 0.15rem; }
+  .decision-actions { display: flex; gap: 0.6rem; }
+
+  @media (max-width: 480px) {
+    .req-item, .card-feed, .list-head, .decision-panel { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" checked />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="checkbox" id="empty1" />
+<input class="state" type="checkbox" id="card2-1" checked />
+<input class="state" type="checkbox" id="card2-3" />
+<input class="state" type="radio" name="q3" id="q3-1" checked />
+<input class="state" type="radio" name="q3" id="q3-2" />
+<input class="state" type="radio" name="q3" id="q3-3" />
+<input class="state" type="radio" name="q3" id="q3-4" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Team Approvals — three recommendations</h1>
+      <p class="sub">
+        The manager-only inbox under Team → Approvals
+        (decisions/ui/navigation-me-team-company.md) — the "Approve"
+        step of the v1 primary flow. The plan's own god moment is the
+        design brief here: "manager approves from one inbox with
+        balance shown inline — no cross-checking a spreadsheet." What
+        changes across the three is how much friction sits between
+        seeing a request and deciding on it.
+      </p>
+      <div class="assumptions">
+        <b>Carried over, not re-decided here:</b> approval is
+        single-level only, straight to the requester's manager — see
+        decisions/approval-chains-scrapped-fallback-design.md. Whether
+        a rejection requires a note is not yet a policy decision;
+        Option 2 shows an optional one, Options 1 and 3 keep reject a
+        single click, consistent with the fallback design's own framing
+        ("same approve/reject mechanism, just run twice — no new state
+        machinery"). This page is Team-tab only — absent entirely for
+        anyone without direct reports, per the absent-not-filtered rule
+        in the navigation decision.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Inbox list, inline actions <span class="chosen-badge">Chosen</span></label>
+      <label for="tab2"><span class="n">02</span> Card feed, expand to decide</label>
+      <label for="tab3"><span class="n">03</span> Split, focused queue</label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — INBOX LIST, INLINE ACTIONS ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="empty1">Preview empty state</label>
+          <span>— per decisions/ui/empty-states-guided.md, "You're all caught up" with no CTA</span>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Team <span class="nav-count">4</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">RD</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>Approvals</h2>
+            <p>4 requests waiting on you</p>
+          </div>
+
+          <div class="queue-live" style="margin-top:1rem;">
+            <div class="req-item">
+              <span class="avatar">MS</span>
+              <div class="who"><h4>Mikaela Santos</h4><p>Software Engineer II</p></div>
+              <div class="mid">
+                <p class="line1"><span class="type">Vacation Leave</span> · Dec 24–26, 2026 · 3 days</p>
+                <span class="balance-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Balance <b>12.5</b> of 15 days</span>
+              </div>
+              <div class="actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+              </div>
+            </div>
+
+            <div class="req-item">
+              <span class="avatar">PV</span>
+              <div class="who"><h4>Paolo Villanueva</h4><p>QA Engineer</p></div>
+              <div class="mid">
+                <p class="line1"><span class="type">Sick Leave</span> · Aug 22, 2026 · 1 day</p>
+                <span class="balance-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Balance <b>8.0</b> of 15 days</span>
+              </div>
+              <div class="actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+              </div>
+            </div>
+
+            <div class="req-item">
+              <span class="avatar">GL</span>
+              <div class="who"><h4>Grace Lim</h4><p>Product Designer</p></div>
+              <div class="mid">
+                <p class="line1"><span class="type">Vacation Leave</span> · Sep 1–5, 2026 · 5 days</p>
+                <span class="balance-chip low"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Balance <b>6.5</b> of 15 days — would leave <b>1.5</b></span>
+              </div>
+              <div class="actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+              </div>
+            </div>
+
+            <div class="req-item">
+              <span class="avatar">CB</span>
+              <div class="who"><h4>Carlo Bautista</h4><p>Backend Engineer</p></div>
+              <div class="mid">
+                <p class="line1"><span class="type">Emergency Leave</span> · Aug 21, 2026 · 1 day</p>
+                <span class="balance-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Balance <b>14.0</b> of 15 days</span>
+              </div>
+              <div class="actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-state">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>
+            <h3>You're all caught up</h3>
+            <p>No pending requests right now.</p>
+          </div>
+
+          <div class="list-head"><h3>Recently decided</h3></div>
+          <div class="table-wrap">
+            <table class="dectable">
+              <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>Diego Reyes</td><td>Vacation Leave</td><td class="mono">Aug 10–11, 2026</td><td><span class="badge badge-positive">Approved</span></td></tr>
+                <tr><td>Mikaela Santos</td><td>Sick Leave</td><td class="mono">Aug 3, 2026</td><td><span class="badge badge-negative">Rejected</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The most literal build of "one inbox, balance inline, approve/deny in one click" — every
+              fact needed to decide is already on the row, including a caution note when approving would
+              leave someone with very little balance left.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>A manager processes several requests in one sitting and wants speed over ceremony. Riskier
+              for a reflexive click — nothing stands between seeing a row and approving it, so this
+              relies entirely on the row itself carrying enough context.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — CARD FEED, EXPAND TO DECIDE ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Team <span class="nav-count">4</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">RD</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>Approvals</h2>
+            <p>4 requests waiting on you — tap a card to review before deciding</p>
+          </div>
+
+          <div class="card-feed">
+            <div class="req-card">
+              <label class="req-card-head" for="card2-1" style="margin:0;">
+                <span class="avatar">MS</span>
+                <div class="who"><h4>Mikaela Santos</h4><p>Vacation Leave · Dec 24–26, 2026 · 3 days</p></div>
+                <div class="spacer"></div>
+                <svg class="chevron req-chevron" data-p="1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </label>
+              <div class="req-card-body" data-p="1">
+                <div class="reason"><b>Reason:</b> Family trip to Baguio.</div>
+                <span class="balance-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Balance <b>12.5</b> of 15 days</span>
+                <div class="actions" style="margin-top:0.9rem;display:flex;gap:0.5rem;">
+                  <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                  <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="req-card">
+              <div class="req-card-head" style="cursor:default;">
+                <span class="avatar">PV</span>
+                <div class="who"><h4>Paolo Villanueva</h4><p>Sick Leave · Aug 22, 2026 · 1 day</p></div>
+                <div class="spacer"></div>
+              </div>
+            </div>
+
+            <div class="req-card">
+              <label class="req-card-head" for="card2-3" style="margin:0;">
+                <span class="avatar">GL</span>
+                <div class="who"><h4>Grace Lim</h4><p>Vacation Leave · Sep 1–5, 2026 · 5 days</p></div>
+                <div class="spacer"></div>
+                <svg class="chevron req-chevron" data-p="3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </label>
+              <div class="req-card-body" data-p="3">
+                <div class="reason"><b>Reason:</b> Cousin's wedding out of town.</div>
+                <span class="balance-chip low"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>Balance <b>6.5</b> of 15 days</span>
+                <div class="low-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+                  Approving this leaves Grace with 1.5 days remaining for the rest of the year.
+                </div>
+                <div class="actions" style="margin-top:0.9rem;display:flex;gap:0.5rem;">
+                  <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                  <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="req-card">
+              <div class="req-card-head" style="cursor:default;">
+                <span class="avatar">CB</span>
+                <div class="who"><h4>Carlo Bautista</h4><p>Emergency Leave · Aug 21, 2026 · 1 day</p></div>
+                <div class="spacer"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Adds a deliberate read-before-you-act step — a manager sees the reason and a plain-language
+              balance warning before Approve/Reject even appear, reducing the odds of a rubber-stamp
+              approval on a request that deserves a second look.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Requests are infrequent enough that the extra tap per decision doesn't add up to real
+              friction. Costs speed against Option 1 for the common case of an unremarkable one-day sick
+              leave, where the extra step protects against nothing.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — SPLIT, FOCUSED QUEUE ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Team <span class="nav-count">4</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">RD</span>
+          </nav>
+
+          <div class="op3-cols">
+            <div class="queue-rail">
+              <label for="q3-1"><span class="name">Mikaela Santos</span><span class="meta">Vacation · Dec 24–26 · 3d</span></label>
+              <label for="q3-2"><span class="name">Paolo Villanueva</span><span class="meta">Sick · Aug 22 · 1d</span></label>
+              <label for="q3-3"><span class="name">Grace Lim</span><span class="meta">Vacation · Sep 1–5 · 5d</span></label>
+              <label for="q3-4"><span class="name">Carlo Bautista</span><span class="meta">Emergency · Aug 21 · 1d</span></label>
+            </div>
+
+            <div class="decision-panel" data-p="1">
+              <div class="decision-head">
+                <span class="avatar" style="width:44px;height:44px;font-size:0.9375rem;">MS</span>
+                <div><h3>Mikaela Santos</h3><p>Software Engineer II · Reports to you</p></div>
+              </div>
+              <div class="decision-facts">
+                <div class="f"><label>Type</label><p>Vacation Leave</p></div>
+                <div class="f"><label>Dates</label><p class="mono">Dec 24–26, 2026</p></div>
+                <div class="f"><label>Days</label><p class="mono">3</p></div>
+                <div class="f"><label>Balance</label><p class="mono">12.5 of 15</p></div>
+              </div>
+              <p style="font-size:0.875rem;color:var(--ink-light);"><b>Reason:</b> Family trip to Baguio.</p>
+              <div class="decision-actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+              </div>
+            </div>
+
+            <div class="decision-panel" data-p="2">
+              <div class="decision-head">
+                <span class="avatar" style="width:44px;height:44px;font-size:0.9375rem;">PV</span>
+                <div><h3>Paolo Villanueva</h3><p>QA Engineer · Reports to you</p></div>
+              </div>
+              <div class="decision-facts">
+                <div class="f"><label>Type</label><p>Sick Leave</p></div>
+                <div class="f"><label>Dates</label><p class="mono">Aug 22, 2026</p></div>
+                <div class="f"><label>Days</label><p class="mono">1</p></div>
+                <div class="f"><label>Balance</label><p class="mono">8.0 of 15</p></div>
+              </div>
+              <p style="font-size:0.875rem;color:var(--ink-light);"><b>Reason:</b> Medical checkup.</p>
+              <div class="decision-actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+              </div>
+            </div>
+
+            <div class="decision-panel" data-p="3">
+              <div class="decision-head">
+                <span class="avatar" style="width:44px;height:44px;font-size:0.9375rem;">GL</span>
+                <div><h3>Grace Lim</h3><p>Product Designer · Reports to you</p></div>
+              </div>
+              <div class="decision-facts">
+                <div class="f"><label>Type</label><p>Vacation Leave</p></div>
+                <div class="f"><label>Dates</label><p class="mono">Sep 1–5, 2026</p></div>
+                <div class="f"><label>Days</label><p class="mono">5</p></div>
+                <div class="f"><label>Balance</label><p class="mono">6.5 of 15</p></div>
+              </div>
+              <div class="low-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+                Approving this leaves Grace with 1.5 days remaining for the rest of the year.
+              </div>
+              <p style="font-size:0.875rem;color:var(--ink-light);"><b>Reason:</b> Cousin's wedding out of town.</p>
+              <div class="decision-actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+              </div>
+            </div>
+
+            <div class="decision-panel" data-p="4">
+              <div class="decision-head">
+                <span class="avatar" style="width:44px;height:44px;font-size:0.9375rem;">CB</span>
+                <div><h3>Carlo Bautista</h3><p>Backend Engineer · Reports to you</p></div>
+              </div>
+              <div class="decision-facts">
+                <div class="f"><label>Type</label><p>Emergency Leave</p></div>
+                <div class="f"><label>Dates</label><p class="mono">Aug 21, 2026</p></div>
+                <div class="f"><label>Days</label><p class="mono">1</p></div>
+                <div class="f"><label>Balance</label><p class="mono">14.0 of 15</p></div>
+              </div>
+              <p style="font-size:0.875rem;color:var(--ink-light);"><b>Reason:</b> Family emergency.</p>
+              <div class="decision-actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Approve</button>
+                <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Built for triaging the whole queue back to back — the rail never disappears, so after
+              deciding on one request the next is already one click away, with no lost place and no
+              re-scan of a list that just changed shape.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>A manager sits down and clears the whole queue in one pass. Costs a fixed-width rail most
+              single-request visits won't need, and requires a full detail panel per row rather than the
+              shared modal/inline pattern the other two options lean on.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

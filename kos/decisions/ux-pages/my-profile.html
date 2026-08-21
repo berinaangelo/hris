@@ -1,0 +1,639 @@
+<title>HRIS My Profile Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.edit { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.6rem 0.95rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.55rem 0.85rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+  .btn-text { background: none; border: none; color: var(--accent); font-weight: 600; font-size: 0.8125rem; cursor: pointer; padding: 0.4rem 0.2rem; }
+
+  /* ---------- identity strip (always view-only, every option) ---------- */
+
+  .identity-strip { display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .avatar-lg { width: 56px; height: 56px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; flex: 0 0 auto; }
+  .identity-who h2 { font-size: 1.15rem; font-weight: 700; }
+  .identity-who p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+  .identity-meta { margin-left: auto; display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; }
+  .identity-meta .id { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--neutral); }
+
+  /* ---------- field view / edit ---------- */
+
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.1rem; }
+  .field-view label, .field-edit label { display: block; font-size: 0.75rem; color: var(--neutral); font-weight: 500; margin-bottom: 0.25rem; }
+  .field-view .val { font-size: 0.9375rem; color: var(--ink); }
+  .field-view .val.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .locked-tag { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.6875rem; color: var(--neutral); margin-top: 1.1rem; }
+  .locked-tag svg { width: 12px; height: 12px; }
+
+  .plain-input {
+    width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .plain-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .field-error { display: none; font-size: 0.75rem; color: var(--danger); margin-top: 0.3rem; }
+
+  .mode-edit { display: none; }
+  .save-bar { display: flex; gap: 0.6rem; justify-content: flex-end; padding-top: 1rem; margin-top: 1.1rem; border-top: 1px dashed var(--border); }
+
+  .demo-strip { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: var(--neutral); flex-wrap: wrap; }
+  .demo-strip label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--white); }
+  .demo-strip input { accent-color: var(--accent); }
+
+  /* ---------- section card ---------- */
+
+  .section { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; gap: 0.75rem; }
+  .section-head h3 { font-size: 1rem; font-weight: 700; }
+  .section-head .lock { display: inline-flex; align-items: center; gap: 0.35rem; font-size: 0.75rem; color: var(--neutral); }
+  .section-head .lock svg { width: 13px; height: 13px; }
+
+  /* ---------- checklist / documents ---------- */
+
+  .checklist-row, .doc-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+  .checklist-row:last-child, .doc-row:last-child { border-bottom: none; }
+  .checklist-row svg.check { width: 18px; height: 18px; color: var(--badge-positive-fg); flex: 0 0 auto; }
+  .checklist-row .txt { flex: 1; font-size: 0.875rem; }
+  .doc-row svg.file { width: 18px; height: 18px; color: var(--neutral); flex: 0 0 auto; }
+  .doc-row .txt { flex: 1; }
+  .doc-row .txt .name { font-size: 0.875rem; font-weight: 500; }
+  .doc-row .txt .meta { font-size: 0.75rem; color: var(--neutral); margin-top: 0.1rem; }
+  .doc-row .actions { display: flex; gap: 0.4rem; }
+  .icon-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-light); cursor: pointer; }
+  .icon-btn:hover { background: var(--surface); }
+  .icon-btn svg { width: 15px; height: 15px; }
+
+  /* ---------- Option 1: single edit toggle ---------- */
+
+  .op1-head { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem 0; gap: 1rem; flex-wrap: wrap; }
+  .op1-head p.lede { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.3rem; }
+  #edit1:checked ~ .page .frame-shell[data-n="1"] .op1-mode-view { display: none; }
+  #edit1:checked ~ .page .frame-shell[data-n="1"] .op1-mode-edit { display: flex; }
+  .frame-shell[data-n="1"]:has(#err1:checked) .p1-mobile-input { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(220,38,38,0.12); }
+  .frame-shell[data-n="1"]:has(#err1:checked) .p1-mobile-error { display: block; }
+
+  /* ---------- Option 2: section cards ---------- */
+
+  #edit2contact:checked ~ .page .frame-shell[data-n="2"] .c2-view { display: none; }
+  #edit2contact:checked ~ .page .frame-shell[data-n="2"] .c2-edit { display: flex; }
+  #edit2emg:checked ~ .page .frame-shell[data-n="2"] .c2e-view { display: none; }
+  #edit2emg:checked ~ .page .frame-shell[data-n="2"] .c2e-edit { display: flex; }
+
+  /* ---------- Option 3: summary + modal ---------- */
+
+  .mock3-cols { display: grid; grid-template-columns: 300px 1fr; }
+  @media (max-width: 760px) { .mock3-cols { grid-template-columns: 1fr; } }
+  .summary-col { border-right: 1px solid var(--border); padding: 1.75rem 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.3rem; }
+  @media (max-width: 760px) { .summary-col { border-right: none; border-bottom: 1px solid var(--border); } }
+  .summary-col .avatar-lg { width: 68px; height: 68px; font-size: 1.3rem; margin-bottom: 0.5rem; }
+  .summary-col h2 { font-size: 1.1rem; font-weight: 700; }
+  .summary-col p { font-size: 0.8125rem; color: var(--neutral); }
+  .summary-facts { width: 100%; text-align: left; margin-top: 1.1rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .summary-facts .row { display: flex; justify-content: space-between; font-size: 0.8125rem; gap: 0.5rem; }
+  .summary-facts .row span:first-child { color: var(--neutral); }
+  .summary-facts .row span:last-child { font-family: var(--font-mono); color: var(--ink); text-align: right; }
+
+  .modal-overlay {
+    display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.45);
+    align-items: center; justify-content: center; padding: 1.5rem; z-index: 5;
+  }
+  #modal3:checked ~ .page .frame-shell[data-n="3"] .modal-overlay { display: flex; }
+  .modal-box {
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-card);
+    width: 100%; max-width: 420px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.1rem;
+    max-height: 85%; overflow-y: auto;
+  }
+  .modal-box-head { display: flex; align-items: center; justify-content: space-between; }
+  .modal-box-head h3 { font-size: 1.05rem; font-weight: 700; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--surface); color: var(--ink-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .modal-close svg { width: 15px; height: 15px; }
+
+  @media (max-width: 480px) {
+    .section, .identity-strip, .op1-head { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" checked />
+<input class="edit" type="checkbox" id="edit1" />
+<input class="edit" type="checkbox" id="edit2contact" checked />
+<input class="edit" type="checkbox" id="edit2emg" />
+<input class="edit" type="checkbox" id="modal3" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>My Profile — three recommendations</h1>
+      <p class="sub">
+        View/edit for v1, under Me → My Profile
+        (decisions/ui/navigation-me-team-company.md). What changes across
+        the three is how editing is scoped and surfaced — one whole-page
+        toggle, per-section edit, or a summary page with edit pulled into
+        a modal. Content and fields are identical in all three.
+      </p>
+      <div class="assumptions">
+        <b>Field split, not yet a decision on file:</b> employment facts
+        (job title, department, manager, start date) stay HR-managed and
+        read-only everywhere, matching the plan's "HR adds a hire once
+        and it's correct everywhere — never edited twice." Contact and
+        emergency-contact fields are the only ones an employee edits
+        directly. Fixed schema throughout, per the v1 plan's "not a
+        custom-field builder" — no per-company or per-field
+        configuration in any of the three.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Single edit toggle</label>
+      <label for="tab2"><span class="n">02</span> Section cards</label>
+      <label for="tab3"><span class="n">03</span> Summary + modal <span class="chosen-badge">Chosen</span></label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — SINGLE EDIT TOGGLE ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label><input type="checkbox" id="err1" /> Preview validation error</label>
+          <span>— toggles the mobile number field per decisions/ui/form-validation-inline-only.md; click "Edit profile" below to preview edit mode</span>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a class="active" href="#">Me</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="identity-strip">
+            <span class="avatar-lg">MS</span>
+            <div class="identity-who">
+              <h2>Mikaela Santos</h2>
+              <p>Software Engineer II · Engineering</p>
+            </div>
+            <div class="identity-meta">
+              <span class="id">EMP-0142</span>
+              <span class="badge badge-positive">Active</span>
+            </div>
+          </div>
+
+          <div class="op1-head">
+            <div>
+              <p class="lede">Personal details and emergency contact are yours to keep current. Employment details are managed by HR.</p>
+            </div>
+            <label class="btn-primary op1-mode-view" for="edit1">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+              Edit profile
+            </label>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Personal &amp; contact</h3></div>
+
+            <div class="field-grid op1-mode-view">
+              <div class="field-view"><label>Full legal name</label><p class="val">Mikaela Santos</p></div>
+              <div class="field-view"><label>Birthdate</label><p class="val mono">Mar 9, 1996</p></div>
+              <div class="field-view"><label>Personal email</label><p class="val">mika.santos@gmail.com</p></div>
+              <div class="field-view"><label>Mobile number</label><p class="val mono">0917 123 4567</p></div>
+              <div class="field-view" style="grid-column:1/-1;"><label>Home address</label><p class="val">Blk 4 Lot 12, Sampaguita St., Quezon City</p></div>
+            </div>
+
+            <form class="field-grid mode-edit op1-mode-edit" onsubmit="return false;">
+              <div class="field-view"><label>Full legal name</label><p class="val">Mikaela Santos <span class="locked-tag" style="margin-top:0.3rem;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Managed by HR</span></p></div>
+              <div class="field-view"><label>Birthdate</label><p class="val mono">Mar 9, 1996</p></div>
+              <div class="field-edit"><label for="p1-email">Personal email</label><input class="plain-input" id="p1-email" type="email" value="mika.santos@gmail.com" /></div>
+              <div class="field-edit">
+                <label for="p1-mobile">Mobile number</label>
+                <input class="plain-input p1-mobile-input" id="p1-mobile" type="tel" value="0917 123 4567" />
+                <p class="field-error p1-mobile-error">Enter a valid 11-digit mobile number.</p>
+              </div>
+              <div class="field-edit" style="grid-column:1/-1;"><label for="p1-addr">Home address</label><input class="plain-input" id="p1-addr" type="text" value="Blk 4 Lot 12, Sampaguita St., Quezon City" /></div>
+
+              <div class="save-bar" style="grid-column:1/-1;">
+                <label class="btn-ghost" for="edit1">Cancel</label>
+                <button class="btn-primary" type="submit">Save changes</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Emergency contact</h3></div>
+            <div class="field-grid">
+              <div class="field-view"><label>Name</label><p class="val">Elena Santos</p></div>
+              <div class="field-view"><label>Relationship</label><p class="val">Mother</p></div>
+              <div class="field-view"><label>Phone</label><p class="val mono">0917 987 6543</p></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Employment</h3><span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Managed by HR</span></div>
+            <div class="field-grid">
+              <div class="field-view"><label>Manager</label><p class="val">Ramon Dela Cruz</p></div>
+              <div class="field-view"><label>Start date</label><p class="val mono">Jan 15, 2024</p></div>
+              <div class="field-view"><label>Employment type</label><p class="val">Regular</p></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Onboarding checklist</h3></div>
+            <div class="checklist-row"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg><span class="txt">Signed employment contract</span><span class="badge badge-positive">Done</span></div>
+            <div class="checklist-row"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg><span class="txt">Government IDs submitted (SSS, PhilHealth, Pag-IBIG, TIN)</span><span class="badge badge-positive">Done</span></div>
+            <div class="checklist-row"><span class="txt" style="margin-left:1.85rem;">Company equipment issued</span><span class="badge badge-caution">Pending</span></div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Documents</h3></div>
+            <div class="doc-row">
+              <svg class="file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+              <div class="txt"><p class="name">Employment Contract.pdf</p><p class="meta">Uploaded by HR · Jan 15, 2024</p></div>
+              <div class="actions"><button class="icon-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></button></div>
+            </div>
+            <div class="doc-row">
+              <svg class="file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+              <div class="txt"><p class="name">Valid ID — UMID.pdf</p><p class="meta">Uploaded by you · Jan 20, 2024</p></div>
+              <div class="actions">
+                <button class="icon-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></button>
+                <button class="icon-btn" title="Replace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Cheapest to build: one form, one submit, one set of inline validation errors, matching
+              how the rest of v1 avoids configurable/granular tooling — the same fixed-shape restraint
+              already applied to the onboarding checklist and KPI reviews.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Edits are rare and typically touch several fields at once. Weaker fit if someone only
+              ever needs to fix one thing (a phone number) — they still open the whole form to do it.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — SECTION CARDS ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a class="active" href="#">Me</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="identity-strip">
+            <span class="avatar-lg">MS</span>
+            <div class="identity-who">
+              <h2>Mikaela Santos</h2>
+              <p>Software Engineer II · Engineering</p>
+            </div>
+            <div class="identity-meta">
+              <span class="id">EMP-0142</span>
+              <span class="badge badge-positive">Active</span>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head">
+              <h3>Contact information</h3>
+              <label class="btn-ghost c2-view" for="edit2contact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+            </div>
+
+            <div class="field-grid c2-view">
+              <div class="field-view"><label>Personal email</label><p class="val">mika.santos@gmail.com</p></div>
+              <div class="field-view"><label>Mobile number</label><p class="val mono">0917 123 4567</p></div>
+              <div class="field-view" style="grid-column:1/-1;"><label>Home address</label><p class="val">Blk 4 Lot 12, Sampaguita St., Quezon City</p></div>
+            </div>
+
+            <form class="field-grid mode-edit c2-edit" onsubmit="return false;">
+              <div class="field-edit"><label for="p2-email">Personal email</label><input class="plain-input" id="p2-email" type="email" value="mika.santos@gmail.com" /></div>
+              <div class="field-edit"><label for="p2-mobile">Mobile number</label><input class="plain-input" id="p2-mobile" type="tel" value="0917 123 4567" /></div>
+              <div class="field-edit" style="grid-column:1/-1;"><label for="p2-addr">Home address</label><input class="plain-input" id="p2-addr" type="text" value="Blk 4 Lot 12, Sampaguita St., Quezon City" /></div>
+              <div class="save-bar" style="grid-column:1/-1;">
+                <label class="btn-ghost" for="edit2contact">Cancel</label>
+                <button class="btn-primary" type="submit">Save</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="section">
+            <div class="section-head">
+              <h3>Emergency contact</h3>
+              <label class="btn-ghost c2e-view" for="edit2emg"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+            </div>
+
+            <div class="field-grid c2e-view">
+              <div class="field-view"><label>Name</label><p class="val">Elena Santos</p></div>
+              <div class="field-view"><label>Relationship</label><p class="val">Mother</p></div>
+              <div class="field-view"><label>Phone</label><p class="val mono">0917 987 6543</p></div>
+            </div>
+
+            <form class="field-grid mode-edit c2e-edit" onsubmit="return false;">
+              <div class="field-edit"><label for="p2-ename">Name</label><input class="plain-input" id="p2-ename" type="text" value="Elena Santos" /></div>
+              <div class="field-edit"><label for="p2-erel">Relationship</label><input class="plain-input" id="p2-erel" type="text" value="Mother" /></div>
+              <div class="field-edit"><label for="p2-ephone">Phone</label><input class="plain-input" id="p2-ephone" type="tel" value="0917 987 6543" /></div>
+              <div class="save-bar" style="grid-column:1/-1;">
+                <label class="btn-ghost" for="edit2emg">Cancel</label>
+                <button class="btn-primary" type="submit">Save</button>
+              </div>
+            </form>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Employment</h3><span class="lock"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="10" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Managed by HR</span></div>
+            <div class="field-grid">
+              <div class="field-view"><label>Manager</label><p class="val">Ramon Dela Cruz</p></div>
+              <div class="field-view"><label>Start date</label><p class="val mono">Jan 15, 2024</p></div>
+              <div class="field-view"><label>Employment type</label><p class="val">Regular</p></div>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Onboarding checklist</h3></div>
+            <div class="checklist-row"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg><span class="txt">Signed employment contract</span><span class="badge badge-positive">Done</span></div>
+            <div class="checklist-row"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg><span class="txt">Government IDs submitted (SSS, PhilHealth, Pag-IBIG, TIN)</span><span class="badge badge-positive">Done</span></div>
+            <div class="checklist-row"><span class="txt" style="margin-left:1.85rem;">Company equipment issued</span><span class="badge badge-caution">Pending</span></div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Documents</h3></div>
+            <div class="doc-row">
+              <svg class="file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+              <div class="txt"><p class="name">Employment Contract.pdf</p><p class="meta">Uploaded by HR · Jan 15, 2024</p></div>
+              <div class="actions"><button class="icon-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></button></div>
+            </div>
+            <div class="doc-row">
+              <svg class="file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+              <div class="txt"><p class="name">Valid ID — UMID.pdf</p><p class="meta">Uploaded by you · Jan 20, 2024</p></div>
+              <div class="actions">
+                <button class="icon-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></button>
+                <button class="icon-btn" title="Replace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg></button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Keeps the "HR adds it once, employee keeps it current" split as separate visual and
+              interaction zones — editing your emergency contact doesn't put your email and address
+              back into play too. The Contact card above is shown pre-opened so both states are visible
+              without clicking; Emergency contact is shown closed.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Edits are usually small and scoped to one concern. Costs more than Option 1: two
+              independent mini-forms instead of one, each with its own save state — more places for
+              validation and errors to show up, the exact "second system" cost the validation decision
+              avoided elsewhere.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — SUMMARY + MODAL ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a class="active" href="#">Me</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="mock3-cols">
+            <div class="summary-col">
+              <span class="avatar-lg">MS</span>
+              <h2>Mikaela Santos</h2>
+              <p>Software Engineer II · Engineering</p>
+              <span class="badge badge-positive" style="margin-top:0.5rem;">Active</span>
+
+              <div class="summary-facts">
+                <div class="row"><span>Employee ID</span><span>EMP-0142</span></div>
+                <div class="row"><span>Manager</span><span style="font-family:var(--font-body);">Ramon Dela Cruz</span></div>
+                <div class="row"><span>Start date</span><span>Jan 15, 2024</span></div>
+                <div class="row"><span>Mobile</span><span>0917 123 4567</span></div>
+                <div class="row"><span>Email</span><span style="font-family:var(--font-body);font-size:0.75rem;">mika.santos@gmail.com</span></div>
+              </div>
+
+              <label class="btn-primary" for="modal3" style="margin-top:1.25rem;width:100%;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Edit personal info
+              </label>
+            </div>
+
+            <div>
+              <div class="section">
+                <div class="section-head"><h3>Onboarding checklist</h3></div>
+                <div class="checklist-row"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg><span class="txt">Signed employment contract</span><span class="badge badge-positive">Done</span></div>
+                <div class="checklist-row"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg><span class="txt">Government IDs submitted (SSS, PhilHealth, Pag-IBIG, TIN)</span><span class="badge badge-positive">Done</span></div>
+                <div class="checklist-row"><span class="txt" style="margin-left:1.85rem;">Company equipment issued</span><span class="badge badge-caution">Pending</span></div>
+              </div>
+
+              <div class="section">
+                <div class="section-head"><h3>Documents</h3></div>
+                <div class="doc-row">
+                  <svg class="file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                  <div class="txt"><p class="name">Employment Contract.pdf</p><p class="meta">Uploaded by HR · Jan 15, 2024</p></div>
+                  <div class="actions"><button class="icon-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></button></div>
+                </div>
+                <div class="doc-row">
+                  <svg class="file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+                  <div class="txt"><p class="name">Valid ID — UMID.pdf</p><p class="meta">Uploaded by you · Jan 20, 2024</p></div>
+                  <div class="actions">
+                    <button class="icon-btn" title="Download"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></button>
+                    <button class="icon-btn" title="Replace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36M21 3v6h-6"/></svg></button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-overlay">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <h3>Edit personal info</h3>
+                <label class="modal-close" for="modal3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <form onsubmit="return false;" style="display:flex;flex-direction:column;gap:1rem;">
+                <div class="field-edit"><label for="p3-email">Personal email</label><input class="plain-input" id="p3-email" type="email" value="mika.santos@gmail.com" /></div>
+                <div class="field-edit"><label for="p3-mobile">Mobile number</label><input class="plain-input" id="p3-mobile" type="tel" value="0917 123 4567" /></div>
+                <div class="field-edit"><label for="p3-addr">Home address</label><input class="plain-input" id="p3-addr" type="text" value="Blk 4 Lot 12, Sampaguita St., Quezon City" /></div>
+                <div class="field-edit"><label for="p3-ename">Emergency contact name</label><input class="plain-input" id="p3-ename" type="text" value="Elena Santos" /></div>
+                <div class="field-edit"><label for="p3-ephone">Emergency contact phone</label><input class="plain-input" id="p3-ephone" type="tel" value="0917 987 6543" /></div>
+                <div class="save-bar">
+                  <label class="btn-ghost" for="modal3">Cancel</label>
+                  <button class="btn-primary" type="submit">Save changes</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Keeps the default page calm and read-only — day to day, an employee just needs to see
+              their info is already correct, matching the plan's framing of this as a look, not a
+              form. Editing is a deliberate, infrequent side task pulled out of the main flow.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Edits are rare enough that hiding them behind a click is the right trade. Needs a modal
+              component no other v1 screen otherwise requires, and adds a context switch for what's
+              usually a small edit.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

@@ -48,33 +48,83 @@ structure below. Read this first; open only the files you actually need.
 - [performance-review-kpi-based-not-form-builder](decisions/performance-review-kpi-based-not-form-builder.md)
   — fixed KPI structure with free-text content, instead of a
   configurable evaluation form builder
-- [color-palette-ink-and-amber](decisions/color-palette-ink-and-amber.md)
+- [color-palette-ink-and-amber](decisions/ui/color-palette-ink-and-amber.md)
   — navy + burnt-orange complementary palette, chosen over two other
   proposed options; Bulma variable mapping included
 - [type-system-neutral-and-efficient](decisions/type-system-neutral-and-efficient.md)
   — Archivo + Work Sans neo-grotesque pairing, chosen over two other
   proposed options; IBM Plex Mono fixed for all numerals
-- [badge-system-four-categories](decisions/badge-system-four-categories.md)
+- [badge-system-four-categories](decisions/ui/badge-system-four-categories.md)
   — positive/caution/negative/neutral status pills mapped across every
   feature; badges omitted for default/steady states
-- [navigation-me-team-company](decisions/navigation-me-team-company.md)
+- [navigation-me-team-company](decisions/ui/navigation-me-team-company.md)
   — top-level Me/Team/Company switcher, chosen over a unified sidebar
   and a dashboard-first pattern; scales as backlog features land
-- [empty-states-guided](decisions/empty-states-guided.md) — icon +
+- [empty-states-guided](decisions/ui/empty-states-guided.md) — icon +
   headline + conditional CTA, chosen over a minimal and a
   contextual-with-help-links option; contextual deferred post-v2
-- [form-validation-inline-only](decisions/form-validation-inline-only.md)
+- [form-validation-inline-only](decisions/ui/form-validation-inline-only.md)
   — per-field inline errors on submit, with an auto-summary flex rule
   at 3+ errors; live blur validation set aside per the Hotwire decision
-- [notifications-nav-badge-counts](decisions/notifications-nav-badge-counts.md)
+- [notifications-nav-badge-counts](decisions/ui/notifications-nav-badge-counts.md)
   — live pending-count badges on Me/Team/Company tabs for MVP; no new
   table, notification center deferred post-MVP
-- [spacing-bulma-default](decisions/spacing-bulma-default.md) —
+- [spacing-bulma-default](decisions/ui/spacing-bulma-default.md) —
   reuses Bulma's built-in `$spacing-values` helper classes as-is, no
   custom scale
-- [dark-mode-deferred-tokenize-colors-now](decisions/dark-mode-deferred-tokenize-colors-now.md)
+- [iconography-lucide](decisions/ui/iconography-lucide.md) — thin
+  single-weight icon set, chosen over Heroicons and Phosphor for the
+  same "no stylistic opinion" reasoning as the type system
+- [motion-functional-microMotion](decisions/ui/motion-functional-microMotion.md)
+  — ~180ms confirm-only transitions, chosen over no motion and a full
+  spring-eased interaction layer
+- [data-tables-comfortable-density](decisions/ui/data-tables-comfortable-density.md)
+  — ~46px rows with subtle zebra striping on wide tables, chosen over
+  compact and spacious alternatives
+- [dark-mode-deferred-tokenize-colors-now](decisions/ui/dark-mode-deferred-tokenize-colors-now.md)
   — dark mode out of v1, but colors implemented as Sass/CSS tokens from
   the start so it's cheap to add later
+- [login-page-split-panel](decisions/ui/login-page-split-panel.md) —
+  brand panel + form two-column layout, chosen over a centered card and
+  a bare-minimum option; god moments used as the left-panel copy;
+  mockup at [decisions/ux-pages/login-page.html](decisions/ux-pages/login-page.html)
+- [home-dashboard-balance-led-hero](decisions/ui/home-dashboard-balance-led-hero.md)
+  — navy hero block leads with leave balance, chosen over a stat-row
+  grid and a compact feed; requests list + manager-only approvals nudge
+  below; mockup at [decisions/ux-pages/home-dashboard.html](decisions/ux-pages/home-dashboard.html)
+- [my-profile-summary-plus-modal](decisions/ui/my-profile-summary-plus-modal.md)
+  — read-only summary column + edit-in-a-modal, chosen over a
+  whole-page edit toggle and per-section edit cards; HR-owned vs.
+  self-managed field split confirmed, not assumed; mockup at
+  [decisions/ux-pages/my-profile.html](decisions/ux-pages/my-profile.html)
+- [time-off-list-plus-modal](decisions/ui/time-off-list-plus-modal.md) —
+  history list as the default view + request form in a modal, chosen
+  over an always-on split-panel form and a segmented request/history
+  toggle; reuses the My Profile modal pattern; mockup at
+  [decisions/ux-pages/time-off.html](decisions/ux-pages/time-off.html)
+- [my-reviews-split-master-detail](decisions/ui/my-reviews-split-master-detail.md)
+  — persistent cycle rail + detail panel, chosen over a list-with-modal
+  and a scrollable accordion timeline; built ahead of the
+  performance-reviews-goals feature's own commitment since the nav slot
+  is already reserved; mockup at
+  [decisions/ux-pages/my-reviews.html](decisions/ux-pages/my-reviews.html)
+- [my-payslips-pinned-hero-swappable-table](decisions/ui/my-payslips-pinned-hero-swappable-table.md)
+  — latest payslip's full breakdown pinned above a swappable history
+  table, chosen over a year-filtered table-with-modal and a
+  statement-style feed; built ahead of payroll v2's own commitment;
+  mockup at
+  [decisions/ux-pages/my-payslips.html](decisions/ux-pages/my-payslips.html)
+- [team-approvals-inbox-inline-actions](decisions/ui/team-approvals-inbox-inline-actions.md)
+  — flat pending-request list with Approve/Reject directly on each row
+  and balance shown inline, chosen over an expand-to-decide card feed
+  and a persistent split queue; mirrors the plan's own "one inbox,
+  balance inline, one click" wording; mockup at
+  [decisions/ux-pages/team-approvals.html](decisions/ux-pages/team-approvals.html)
+- [team-calendar-week-agenda](decisions/ui/team-calendar-week-agenda.md)
+  — plain day-by-day list for the current week, chosen over a spatial
+  month grid and a Gantt-style team row timeline; mirrors the plan's
+  "who's out this week is answerable by looking" wording; mockup at
+  [decisions/ux-pages/team-calendar.html](decisions/ux-pages/team-calendar.html)
 
 ## Reference
 - [ph-hr-payroll-compliance-glossary](reference/ph-hr-payroll-compliance-glossary.md)

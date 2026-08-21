@@ -1,0 +1,516 @@
+<title>HRIS Team Calendar Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Team active) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-count {
+    font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; min-width: 16px; height: 16px;
+    border-radius: 999px; background: var(--badge-caution-bg); color: var(--badge-caution-fg);
+    display: inline-flex; align-items: center; justify-content: center; padding: 0 0.3rem;
+  }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  .greet-block { padding: 1.75rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  .legend { display: flex; align-items: center; gap: 1rem; font-size: 0.75rem; color: var(--neutral); flex-wrap: wrap; }
+  .legend .dot { display: inline-flex; align-items: center; gap: 0.35rem; }
+  .legend .sw { width: 9px; height: 9px; border-radius: 999px; }
+  .sw-positive { background: var(--badge-positive-fg); }
+  .sw-caution { background: var(--badge-caution-fg); }
+
+  .avatar { width: 26px; height: 26px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.6875rem; flex: 0 0 auto; }
+
+  /* ---------- absence chip (shared color language w/ badge system) ---------- */
+
+  .chip {
+    display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.6875rem; font-weight: 600;
+    padding: 0.15rem 0.4rem; border-radius: 6px; white-space: nowrap;
+  }
+  .chip-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .chip-caution { background: var(--badge-caution-bg); color: var(--badge-caution-fg); }
+  .chip.past { opacity: 0.55; }
+
+  /* ---------- Option 1: month grid ---------- */
+
+  .cal-body { padding: 1.25rem 2rem 2rem; }
+  .cal-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; }
+  .cal-nav h3 { font-size: 1rem; font-weight: 700; }
+  .cal-nav .arrows { display: flex; gap: 0.4rem; }
+  .icon-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-light); cursor: pointer; }
+  .icon-btn:hover { background: var(--surface); }
+  .icon-btn svg { width: 15px; height: 15px; }
+
+  .month-grid { display: grid; grid-template-columns: repeat(7, 1fr); border-top: 1px solid var(--border); border-left: 1px solid var(--border); }
+  .month-grid .dow {
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral);
+    padding: 0.5rem 0.6rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border); background: var(--surface);
+  }
+  .month-grid .day {
+    min-height: 84px; padding: 0.4rem; border-right: 1px solid var(--border); border-bottom: 1px solid var(--border);
+    display: flex; flex-direction: column; gap: 0.25rem;
+  }
+  .month-grid .day.blank { background: var(--surface); }
+  .month-grid .day .num { font-family: var(--font-mono); font-size: 0.75rem; color: var(--neutral); }
+  .month-grid .day.today { background: #FFF4EC; }
+  .month-grid .day.today .num { color: var(--accent); font-weight: 700; }
+
+  /* ---------- Option 2: team row timeline (gantt) ---------- */
+
+  .gantt-body { padding: 1.25rem 2rem 2rem; }
+  .gantt-scroll { overflow-x: auto; }
+  .gantt { min-width: 760px; }
+  .gantt-header { display: grid; grid-template-columns: 160px repeat(14, 1fr); }
+  .gantt-header .corner { padding: 0.4rem 0.6rem; }
+  .gantt-header .d {
+    text-align: center; font-family: var(--font-mono); font-size: 0.6875rem; color: var(--neutral);
+    padding: 0.4rem 0.2rem; border-left: 1px solid var(--border);
+  }
+  .gantt-header .d.today { color: var(--accent); font-weight: 700; }
+  .gantt-row { display: grid; grid-template-columns: 160px repeat(14, 1fr); align-items: center; border-top: 1px solid var(--border); min-height: 44px; }
+  .gantt-row .who { display: flex; align-items: center; gap: 0.5rem; padding: 0.4rem 0.6rem; font-size: 0.8125rem; font-weight: 600; }
+  .gantt-track { grid-column: 2 / span 14; display: grid; grid-template-columns: repeat(14, 1fr); position: relative; height: 100%; align-items: center; }
+  .gantt-track::before { content: ""; grid-column: 12 / span 1; align-self: stretch; background: #FFF4EC; }
+  .gantt-bar {
+    height: 22px; border-radius: 6px; font-size: 0.6875rem; font-weight: 600; display: flex; align-items: center;
+    padding: 0 0.5rem; white-space: nowrap; overflow: hidden;
+  }
+  .bar-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .bar-caution { background: var(--badge-caution-bg); color: var(--badge-caution-fg); }
+  .bar-past { opacity: 0.55; }
+
+  /* ---------- Option 3: week agenda ---------- */
+
+  .agenda-body { padding: 1.25rem 2rem 2rem; display: flex; flex-direction: column; gap: 0.6rem; }
+  .agenda-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 0.4rem; }
+  .agenda-nav h3 { font-size: 1rem; font-weight: 700; }
+  .agenda-day { display: flex; gap: 1rem; padding: 0.9rem 0; border-bottom: 1px solid var(--border); }
+  .agenda-day:last-child { border-bottom: none; }
+  .agenda-day .dcol { width: 68px; flex: 0 0 auto; }
+  .agenda-day .dcol .dow { font-size: 0.6875rem; color: var(--neutral); font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; }
+  .agenda-day .dcol .dnum { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 500; margin-top: 0.1rem; }
+  .agenda-day.today .dcol .dnum { color: var(--accent); }
+  .agenda-day .items { flex: 1; display: flex; flex-direction: column; gap: 0.5rem; }
+  .agenda-item { display: flex; align-items: center; gap: 0.6rem; font-size: 0.875rem; }
+  .agenda-item .name { font-weight: 600; }
+  .agenda-item .type { color: var(--neutral); font-size: 0.8125rem; }
+  .agenda-empty { font-size: 0.8125rem; color: var(--neutral); font-style: italic; padding-top: 0.15rem; }
+
+  @media (max-width: 480px) {
+    .cal-body, .gantt-body, .agenda-body, .greet-block { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" checked />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Team Calendar — three recommendations</h1>
+      <p class="sub">
+        The manager-only view under Team → Team Calendar
+        (decisions/ui/navigation-me-team-company.md). Directly serves
+        the plan's own god moment: "who's out this week is answerable
+        by looking, not asking." What changes across the three is the
+        shape of the "look" — a spatial month grid, a comparative
+        row-by-row timeline, or a plain day-by-day agenda for the
+        current week.
+      </p>
+      <div class="assumptions">
+        <b>Carried over, not re-decided here:</b> this is a read-only
+        view over existing time-off request data (see
+        decisions/ui/time-off-list-plus-modal.md) — no new data model,
+        no separate scheduling feature. Only Approved and Pending
+        requests appear (Pending shown as tentative, tinted per
+        decisions/ui/badge-system-four-categories.md); a Rejected
+        request means the employee isn't actually out, so it never
+        appears here. Shift schedules and attendance are out of scope —
+        that's the separate, still-backlog Time &amp; Attendance
+        feature. Scoped to the viewing manager's own direct reports,
+        same team as decisions/ui/team-approvals-inbox-inline-actions.md.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Month grid</label>
+      <label for="tab2"><span class="n">02</span> Team row timeline</label>
+      <label for="tab3"><span class="n">03</span> Week agenda <span class="chosen-badge">Chosen</span></label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — MONTH GRID ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Team <span class="nav-count">4</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">RD</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Team calendar</h2>
+              <p>5 direct reports · August 2026</p>
+            </div>
+            <div class="legend">
+              <span class="dot"><span class="sw sw-positive"></span>Approved</span>
+              <span class="dot"><span class="sw sw-caution"></span>Pending</span>
+            </div>
+          </div>
+
+          <div class="cal-body">
+            <div class="cal-nav">
+              <h3>August 2026</h3>
+              <div class="arrows">
+                <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+              </div>
+            </div>
+
+            <div class="month-grid">
+              <div class="dow">Sun</div><div class="dow">Mon</div><div class="dow">Tue</div><div class="dow">Wed</div><div class="dow">Thu</div><div class="dow">Fri</div><div class="dow">Sat</div>
+
+              <div class="day blank"></div><div class="day blank"></div><div class="day blank"></div><div class="day blank"></div><div class="day blank"></div><div class="day blank"></div>
+              <div class="day"><span class="num">1</span></div>
+
+              <div class="day"><span class="num">2</span></div><div class="day"><span class="num">3</span></div><div class="day"><span class="num">4</span></div><div class="day"><span class="num">5</span></div><div class="day"><span class="num">6</span></div><div class="day"><span class="num">7</span></div><div class="day"><span class="num">8</span></div>
+
+              <div class="day"><span class="num">9</span></div>
+              <div class="day"><span class="num">10</span><span class="chip chip-positive past">DR</span></div>
+              <div class="day"><span class="num">11</span><span class="chip chip-positive past">DR</span></div>
+              <div class="day"><span class="num">12</span></div><div class="day"><span class="num">13</span></div><div class="day"><span class="num">14</span></div><div class="day"><span class="num">15</span></div>
+
+              <div class="day"><span class="num">16</span></div><div class="day"><span class="num">17</span></div><div class="day"><span class="num">18</span></div>
+              <div class="day"><span class="num">19</span><span class="chip chip-positive">GL</span></div>
+              <div class="day"><span class="num">20</span><span class="chip chip-positive">GL</span></div>
+              <div class="day today"><span class="num">21</span><span class="chip chip-caution">CB</span></div>
+              <div class="day"><span class="num">22</span><span class="chip chip-caution">PV</span></div>
+
+              <div class="day"><span class="num">23</span></div><div class="day"><span class="num">24</span></div><div class="day"><span class="num">25</span></div>
+              <div class="day"><span class="num">26</span><span class="chip chip-positive">MS</span></div>
+              <div class="day"><span class="num">27</span><span class="chip chip-positive">MS</span></div>
+              <div class="day"><span class="num">28</span><span class="chip chip-positive">MS</span></div>
+              <div class="day"><span class="num">29</span></div>
+
+              <div class="day"><span class="num">30</span></div><div class="day"><span class="num">31</span></div>
+              <div class="day blank"></div><div class="day blank"></div><div class="day blank"></div><div class="day blank"></div><div class="day blank"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The whole month is visible at once — every absence for the period is on screen without
+              paging or scrolling, and the spatial layout matches how most people already read a
+              calendar.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>The question is date-first ("what's the week of the 24th look like"). Weaker at the
+              question "is anyone else out at the same time as X" — figuring out overlap means scanning
+              several cells and holding names in your head, which Option 2's row layout answers directly.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — TEAM ROW TIMELINE ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Team <span class="nav-count">4</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">RD</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Team calendar</h2>
+              <p>5 direct reports · Aug 10–23, 2026</p>
+            </div>
+            <div class="legend">
+              <span class="dot"><span class="sw sw-positive"></span>Approved</span>
+              <span class="dot"><span class="sw sw-caution"></span>Pending</span>
+            </div>
+          </div>
+
+          <div class="gantt-body">
+            <div class="gantt-scroll">
+              <div class="gantt">
+                <div class="gantt-header">
+                  <div class="corner"></div>
+                  <div class="d">10</div><div class="d">11</div><div class="d">12</div><div class="d">13</div><div class="d">14</div><div class="d">15</div><div class="d">16</div>
+                  <div class="d">17</div><div class="d">18</div><div class="d">19</div><div class="d">20</div>
+                  <div class="d today">21</div>
+                  <div class="d">22</div><div class="d">23</div>
+                </div>
+
+                <div class="gantt-row">
+                  <div class="who"><span class="avatar">MS</span>Mikaela Santos</div>
+                  <div class="gantt-track"></div>
+                </div>
+                <div class="gantt-row">
+                  <div class="who"><span class="avatar">PV</span>Paolo Villanueva</div>
+                  <div class="gantt-track">
+                    <div class="gantt-bar bar-caution" style="grid-column:13 / span 1;">Sick</div>
+                  </div>
+                </div>
+                <div class="gantt-row">
+                  <div class="who"><span class="avatar">GL</span>Grace Lim</div>
+                  <div class="gantt-track">
+                    <div class="gantt-bar bar-positive" style="grid-column:10 / span 2;">Personal</div>
+                  </div>
+                </div>
+                <div class="gantt-row">
+                  <div class="who"><span class="avatar">CB</span>Carlo Bautista</div>
+                  <div class="gantt-track">
+                    <div class="gantt-bar bar-caution" style="grid-column:12 / span 1;">Emergency</div>
+                  </div>
+                </div>
+                <div class="gantt-row">
+                  <div class="who"><span class="avatar">DR</span>Diego Reyes</div>
+                  <div class="gantt-track">
+                    <div class="gantt-bar bar-positive bar-past" style="grid-column:1 / span 2;">Vacation</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>One row per person against a shared date axis is the direct answer to "who's out at the
+              same time as who" — Grace's Aug 19–20 absence and the two pending requests around today
+              are visually comparable without cross-referencing dates in your head.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Coverage planning is the actual task — checking whether approving one more request would
+              leave a day thin. The 14-day window trades off full-month reach for near-term resolution;
+              Mikaela's late-August vacation falls outside it entirely, visible only in Option 1's month
+              view.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — WEEK AGENDA ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Team <span class="nav-count">4</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">RD</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Team calendar</h2>
+              <p>This week</p>
+            </div>
+            <div class="legend">
+              <span class="dot"><span class="sw sw-positive"></span>Approved</span>
+              <span class="dot"><span class="sw sw-caution"></span>Pending</span>
+            </div>
+          </div>
+
+          <div class="agenda-body">
+            <div class="agenda-nav">
+              <h3>Aug 17–23, 2026</h3>
+              <div class="arrows">
+                <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg></button>
+                <button class="icon-btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg></button>
+              </div>
+            </div>
+
+            <div class="agenda-day">
+              <div class="dcol"><p class="dow">Mon</p><p class="dnum">17</p></div>
+              <div class="items"><p class="agenda-empty">No one out</p></div>
+            </div>
+            <div class="agenda-day">
+              <div class="dcol"><p class="dow">Tue</p><p class="dnum">18</p></div>
+              <div class="items"><p class="agenda-empty">No one out</p></div>
+            </div>
+            <div class="agenda-day">
+              <div class="dcol"><p class="dow">Wed</p><p class="dnum">19</p></div>
+              <div class="items">
+                <div class="agenda-item"><span class="avatar">GL</span><span class="name">Grace Lim</span><span class="type">Personal Leave · Approved</span></div>
+              </div>
+            </div>
+            <div class="agenda-day">
+              <div class="dcol"><p class="dow">Thu</p><p class="dnum">20</p></div>
+              <div class="items">
+                <div class="agenda-item"><span class="avatar">GL</span><span class="name">Grace Lim</span><span class="type">Personal Leave · Approved</span></div>
+              </div>
+            </div>
+            <div class="agenda-day today">
+              <div class="dcol"><p class="dow">Fri</p><p class="dnum">21</p></div>
+              <div class="items">
+                <div class="agenda-item"><span class="avatar">CB</span><span class="name">Carlo Bautista</span><span class="type">Emergency Leave · Pending</span></div>
+              </div>
+            </div>
+            <div class="agenda-day">
+              <div class="dcol"><p class="dow">Sat</p><p class="dnum">22</p></div>
+              <div class="items">
+                <div class="agenda-item"><span class="avatar">PV</span><span class="name">Paolo Villanueva</span><span class="type">Sick Leave · Pending</span></div>
+              </div>
+            </div>
+            <div class="agenda-day">
+              <div class="dcol"><p class="dow">Sun</p><p class="dnum">23</p></div>
+              <div class="items"><p class="agenda-empty">No one out</p></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Answers the god moment's exact phrasing — "who's out this week" — with nothing to parse
+              beyond scrolling down a day at a time. No grid to render, no date-axis math, the lightest
+              build of the three and the one most at home on a phone.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>The question is always about right now, not next month. Weakest for planning ahead —
+              seeing that Mikaela is out in late August means paging forward a week at a time, something
+              Options 1 and 2 both show without any navigation at all.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

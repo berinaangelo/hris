@@ -1,0 +1,668 @@
+<title>HRIS My Payslips Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-neutral { background: var(--badge-neutral-bg); color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.6rem 0.95rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .greet-block { padding: 1.75rem 2rem 0; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- year filter pill (Option 1) ---------- */
+
+  .year-filter { display: inline-flex; background: var(--surface); border-radius: 999px; padding: 0.2rem; }
+  .year-filter label { padding: 0.4rem 0.9rem; border-radius: 999px; cursor: pointer; font-weight: 600; font-size: 0.8125rem; color: var(--neutral); transition: background var(--t), color var(--t); }
+  #filt1-2026:checked ~ .page .frame-shell[data-n="1"] .year-filter label[for="filt1-2026"],
+  #filt1-2025:checked ~ .page .frame-shell[data-n="1"] .year-filter label[for="filt1-2025"] { background: var(--white); color: var(--ink); box-shadow: var(--shadow-card); }
+  #filt1-2026:checked ~ .page .frame-shell[data-n="1"] .paytable tbody tr[data-year="2025"],
+  #filt1-2025:checked ~ .page .frame-shell[data-n="1"] .paytable tbody tr[data-year="2026"] { display: none; }
+
+  /* ---------- payslip table ---------- */
+
+  .table-wrap { overflow-x: auto; }
+  .paytable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 560px; }
+  .paytable th {
+    text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .paytable td { padding: 0 0.75rem; height: 46px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+  .paytable tbody tr:nth-child(even) { background: var(--surface); }
+  .paytable tr:last-child td { border-bottom: none; }
+  .paytable .net { font-weight: 600; }
+  .list-head { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem 1rem; gap: 1rem; flex-wrap: wrap; }
+  .list-head h3 { font-size: 1rem; font-weight: 700; }
+
+  /* ---------- breakdown detail (shared) ---------- */
+
+  .pay-hero {
+    background: var(--ink); background-image: radial-gradient(circle at 85% 0%, rgba(232,99,10,0.18), transparent 50%);
+    color: var(--white); border-radius: var(--radius); padding: 1.25rem 1.5rem; display: flex; align-items: center;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .pay-hero .num { font-family: var(--font-mono); font-size: 2rem; font-weight: 500; line-height: 1; }
+  .pay-hero .sub { font-size: 0.75rem; color: #C7CEDE; margin-top: 0.35rem; }
+
+  .breakdown-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  @media (max-width: 560px) { .breakdown-cols { grid-template-columns: 1fr; } }
+  .breakdown-list { display: flex; flex-direction: column; gap: 0.15rem; }
+  .breakdown-list h4 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding-bottom: 0.5rem; }
+  .breakdown-row { display: flex; justify-content: space-between; gap: 0.75rem; padding: 0.45rem 0; border-bottom: 1px dashed var(--border); font-size: 0.875rem; }
+  .breakdown-row:last-of-type { border-bottom: none; }
+  .breakdown-row span:last-child { font-family: var(--font-mono); }
+  .breakdown-total { display: flex; justify-content: space-between; padding-top: 0.6rem; margin-top: 0.4rem; border-top: 1px solid var(--border); font-weight: 700; font-size: 0.9375rem; }
+  .breakdown-total span:last-child { font-family: var(--font-mono); }
+  .breakdown-note { font-size: 0.75rem; color: var(--neutral); margin-top: 0.5rem; line-height: 1.5; }
+
+  /* ---------- Option 1: table + modal ---------- */
+
+  .op1-body { padding: 1.5rem 2rem 2rem; }
+
+  .modal-overlay {
+    display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.45);
+    align-items: center; justify-content: center; padding: 1.5rem; z-index: 5; overflow-y: auto;
+  }
+  #modal1:checked ~ .page .frame-shell[data-n="1"] .modal-overlay { display: flex; }
+  .modal-box {
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-card);
+    width: 100%; max-width: 560px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1.1rem;
+    max-height: 88%; overflow-y: auto; margin: auto;
+  }
+  .modal-box-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .modal-box-head h3 { font-size: 1.05rem; font-weight: 700; }
+  .modal-box-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--surface); color: var(--ink-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .modal-close svg { width: 15px; height: 15px; }
+
+  /* ---------- Option 2: pinned hero + row-select swap ---------- */
+
+  .op2-body { padding: 1.5rem 2rem 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
+  .op2-panel { display: none; flex-direction: column; gap: 1rem; }
+  #sel2-1:checked ~ .page .frame-shell[data-n="2"] .op2-panel[data-p="1"],
+  #sel2-2:checked ~ .page .frame-shell[data-n="2"] .op2-panel[data-p="2"],
+  #sel2-3:checked ~ .page .frame-shell[data-n="2"] .op2-panel[data-p="3"] { display: flex; }
+
+  .paytable .view-row {
+    cursor: pointer; transition: background var(--t);
+  }
+  #sel2-1:checked ~ .page .frame-shell[data-n="2"] .paytable tr[data-sel="1"],
+  #sel2-2:checked ~ .page .frame-shell[data-n="2"] .paytable tr[data-sel="2"],
+  #sel2-3:checked ~ .page .frame-shell[data-n="2"] .paytable tr[data-sel="3"] { box-shadow: inset 3px 0 0 var(--accent); background: var(--badge-caution-bg); }
+
+  /* ---------- Option 3: accordion feed grouped by year ---------- */
+
+  .feed { padding: 1.5rem 2rem 2rem; display: flex; flex-direction: column; gap: 1.25rem; }
+  .year-group { display: flex; flex-direction: column; gap: 0.6rem; }
+  .year-head { display: flex; align-items: center; gap: 0.6rem; cursor: pointer; user-select: none; padding: 0.2rem 0; }
+  .year-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .year-head .chevron { width: 15px; height: 15px; color: var(--neutral); transition: transform var(--t); }
+  .year-body { display: flex; flex-direction: column; gap: 0.6rem; }
+  #yr3-2025:checked ~ .page .frame-shell[data-n="3"] .year-body[data-y="2025"] { display: flex; }
+  #yr3-2025:checked ~ .page .frame-shell[data-n="3"] .year-chevron[data-y="2025"] { transform: rotate(180deg); }
+
+  .stmt-row { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .stmt-head { display: flex; align-items: center; gap: 0.85rem; padding: 0.85rem 1.1rem; }
+  .stmt-head .period { font-weight: 600; font-size: 0.9375rem; }
+  .stmt-head .spacer { flex: 1; }
+  .stmt-head .net { font-family: var(--font-mono); font-weight: 600; }
+  .stmt-head.clickable { cursor: pointer; }
+  .stmt-head .chevron { width: 15px; height: 15px; color: var(--neutral); transition: transform var(--t); flex: 0 0 auto; }
+  .stmt-body { display: none; padding: 0 1.1rem 1.1rem; border-top: 1px solid var(--border); padding-top: 1rem; }
+
+  #acc3-2:checked ~ .page .frame-shell[data-n="3"] .stmt-body[data-p="2"] { display: block; }
+  #acc3-2:checked ~ .page .frame-shell[data-n="3"] .stmt-chevron[data-p="2"] { transform: rotate(180deg); }
+
+  @media (max-width: 480px) {
+    .op1-body, .op2-body, .feed, .list-head { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" checked />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="checkbox" id="modal1" />
+<input class="state" type="radio" name="filt1" id="filt1-2026" checked />
+<input class="state" type="radio" name="filt1" id="filt1-2025" />
+<input class="state" type="radio" name="sel2" id="sel2-1" checked />
+<input class="state" type="radio" name="sel2" id="sel2-2" />
+<input class="state" type="radio" name="sel2" id="sel2-3" />
+<input class="state" type="checkbox" id="yr3-2025" />
+<input class="state" type="checkbox" id="acc3-2" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>My Payslips — three recommendations</h1>
+      <p class="sub">
+        The employee's own payslip history, under Me → My Payslips
+        (decisions/ui/navigation-me-team-company.md). Read-only —
+        payroll generates these, the employee only views/downloads.
+        What changes across the three is how someone gets from "24
+        cutoffs a year" down to one they actually want to open: a
+        year-filtered table with a modal, a pinned latest payslip with
+        a swappable table below, or a statement-style feed grouped by
+        year.
+      </p>
+      <div class="assumptions">
+        <b>Ahead of the roadmap, on purpose:</b> payroll is v2 —
+        committed, but deferred until after v1 ships — yet
+        decisions/ui/navigation-me-team-company.md already reserves the
+        "My Payslips" nav slot, so this mockup exists now the same way
+        My Reviews did. Figures shown (₱22,500 basic pay, SSS/
+        PhilHealth/Pag-IBIG/BIR amounts) are illustrative placeholders,
+        not real rate-table output — the actual amounts come from
+        editable statutory tables per
+        decisions/statutory-deductions-as-editable-data-not-code.md.
+        The loan line reflects
+        decisions/cash-advance-vs-loan-ledger-distinction.md (a typed-in
+        monthly amortization, not computed); the December 13th Month
+        Pay entry reflects
+        decisions/thirteenth-month-pay-mandatory-in-ph.md.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Table + modal, year filter</label>
+      <label for="tab2"><span class="n">02</span> Pinned hero + swappable table <span class="chosen-badge">Chosen</span></label>
+      <label for="tab3"><span class="n">03</span> Statement feed by year</label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — TABLE + MODAL, YEAR FILTER ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a class="active" href="#">Me</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>My payslips</h2>
+            <p>Latest: Aug 1–15, 2026 · Net pay ₱18,200.00</p>
+          </div>
+
+          <div class="op1-body">
+            <div class="list-head" style="padding:0 0 1rem;">
+              <div class="year-filter">
+                <label for="filt1-2026">2026</label>
+                <label for="filt1-2025">2025</label>
+              </div>
+            </div>
+
+            <div class="table-wrap">
+              <table class="paytable">
+                <thead><tr><th>Cutoff</th><th>Pay date</th><th>Type</th><th>Gross</th><th>Net</th><th></th></tr></thead>
+                <tbody>
+                  <tr data-year="2026">
+                    <td>Aug 1–15, 2026</td><td class="mono">Aug 20, 2026</td><td></td>
+                    <td class="mono">₱22,500.00</td><td class="mono net">₱18,200.00</td>
+                    <td><label class="btn-ghost" for="modal1">View</label></td>
+                  </tr>
+                  <tr data-year="2026">
+                    <td>Jul 16–31, 2026</td><td class="mono">Aug 5, 2026</td><td></td>
+                    <td class="mono">₱23,350.00</td><td class="mono net">₱19,750.00</td>
+                    <td><label class="btn-ghost" for="modal1">View</label></td>
+                  </tr>
+                  <tr data-year="2026">
+                    <td>Jul 1–15, 2026</td><td class="mono">Jul 20, 2026</td><td></td>
+                    <td class="mono">₱22,500.00</td><td class="mono net">₱18,050.00</td>
+                    <td><label class="btn-ghost" for="modal1">View</label></td>
+                  </tr>
+                  <tr data-year="2026">
+                    <td>Jun 16–30, 2026</td><td class="mono">Jul 5, 2026</td><td></td>
+                    <td class="mono">₱23,100.00</td><td class="mono net">₱19,600.00</td>
+                    <td><label class="btn-ghost" for="modal1">View</label></td>
+                  </tr>
+                  <tr data-year="2026">
+                    <td>Jun 1–15, 2026</td><td class="mono">Jun 20, 2026</td><td></td>
+                    <td class="mono">₱22,500.00</td><td class="mono net">₱18,150.00</td>
+                    <td><label class="btn-ghost" for="modal1">View</label></td>
+                  </tr>
+                  <tr data-year="2025">
+                    <td>Dec 24, 2025</td><td class="mono">Dec 24, 2025</td><td><span class="badge badge-neutral">13th Month</span></td>
+                    <td class="mono">₱45,000.00</td><td class="mono net">₱45,000.00</td>
+                    <td><label class="btn-ghost" for="modal1">View</label></td>
+                  </tr>
+                  <tr data-year="2025">
+                    <td>Dec 16–31, 2025</td><td class="mono">Jan 5, 2026</td><td></td>
+                    <td class="mono">₱22,000.00</td><td class="mono net">₱17,900.00</td>
+                    <td><label class="btn-ghost" for="modal1">View</label></td>
+                  </tr>
+                  <tr data-year="2025">
+                    <td>Dec 1–15, 2025</td><td class="mono">Dec 20, 2025</td><td></td>
+                    <td class="mono">₱22,000.00</td><td class="mono net">₱17,800.00</td>
+                    <td><label class="btn-ghost" for="modal1">View</label></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="modal-overlay">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div>
+                  <h3>Payslip — Aug 1–15, 2026</h3>
+                  <p>Pay date Aug 20, 2026 · Mikaela Santos, EMP-0142</p>
+                </div>
+                <label class="modal-close" for="modal1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+
+              <div class="pay-hero">
+                <div>
+                  <p class="card-label" style="color:#A9B4CB;">Net pay</p>
+                  <p class="num">₱18,200.00</p>
+                  <p class="sub">Gross ₱22,500.00 − deductions ₱4,300.00</p>
+                </div>
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Download</button>
+              </div>
+
+              <div class="breakdown-cols">
+                <div class="breakdown-list">
+                  <h4>Earnings</h4>
+                  <div class="breakdown-row"><span>Basic pay</span><span>₱22,500.00</span></div>
+                </div>
+                <div class="breakdown-list">
+                  <h4>Deductions</h4>
+                  <div class="breakdown-row"><span>SSS</span><span>₱675.00</span></div>
+                  <div class="breakdown-row"><span>PhilHealth</span><span>₱450.00</span></div>
+                  <div class="breakdown-row"><span>Pag-IBIG</span><span>₱100.00</span></div>
+                  <div class="breakdown-row"><span>BIR withholding tax</span><span>₱1,875.00</span></div>
+                  <div class="breakdown-row"><span>Loan amortization (Pag-IBIG MPL)</span><span>₱1,200.00</span></div>
+                </div>
+              </div>
+              <div class="breakdown-total"><span>Net pay</span><span>₱18,200.00</span></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The year filter is what keeps this workable once a full year of semi-monthly cutoffs
+              piles up — 24 rows a year is too many to expect someone to scroll past casually. Reuses
+              the same modal already chosen for My Profile, Time Off, and My Reviews.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Most visits are "find one specific payslip and download it." Every row opens the same
+              modal shell regardless of which cutoff was clicked — fine for a mockup demonstrating the
+              mechanism, but the real build needs per-row content, same as any table-triggered modal.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — PINNED HERO + SWAPPABLE TABLE ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a class="active" href="#">Me</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="op2-body">
+
+            <div class="op2-panel" data-p="1">
+              <div class="pay-hero">
+                <div>
+                  <p class="card-label" style="color:#A9B4CB;">Aug 1–15, 2026 · Net pay</p>
+                  <p class="num">₱18,200.00</p>
+                  <p class="sub">Pay date Aug 20, 2026 · Gross ₱22,500.00 − deductions ₱4,300.00</p>
+                </div>
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Download</button>
+              </div>
+              <div class="breakdown-cols">
+                <div class="breakdown-list">
+                  <h4>Earnings</h4>
+                  <div class="breakdown-row"><span>Basic pay</span><span>₱22,500.00</span></div>
+                </div>
+                <div class="breakdown-list">
+                  <h4>Deductions</h4>
+                  <div class="breakdown-row"><span>SSS</span><span>₱675.00</span></div>
+                  <div class="breakdown-row"><span>PhilHealth</span><span>₱450.00</span></div>
+                  <div class="breakdown-row"><span>Pag-IBIG</span><span>₱100.00</span></div>
+                  <div class="breakdown-row"><span>BIR withholding tax</span><span>₱1,875.00</span></div>
+                  <div class="breakdown-row"><span>Loan amortization (Pag-IBIG MPL)</span><span>₱1,200.00</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="op2-panel" data-p="2">
+              <div class="pay-hero">
+                <div>
+                  <p class="card-label" style="color:#A9B4CB;">Jul 16–31, 2026 · Net pay</p>
+                  <p class="num">₱19,750.00</p>
+                  <p class="sub">Pay date Aug 5, 2026 · Gross ₱23,350.00 − deductions ₱3,600.00</p>
+                </div>
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Download</button>
+              </div>
+              <div class="breakdown-cols">
+                <div class="breakdown-list">
+                  <h4>Earnings</h4>
+                  <div class="breakdown-row"><span>Basic pay</span><span>₱22,500.00</span></div>
+                  <div class="breakdown-row"><span>Overtime</span><span>₱850.00</span></div>
+                </div>
+                <div class="breakdown-list">
+                  <h4>Deductions</h4>
+                  <div class="breakdown-row"><span>SSS</span><span>₱675.00</span></div>
+                  <div class="breakdown-row"><span>PhilHealth</span><span>₱450.00</span></div>
+                  <div class="breakdown-row"><span>Pag-IBIG</span><span>₱100.00</span></div>
+                  <div class="breakdown-row"><span>BIR withholding tax</span><span>₱1,875.00</span></div>
+                  <div class="breakdown-row"><span>Cash advance repayment</span><span>₱500.00</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="op2-panel" data-p="3">
+              <div class="pay-hero">
+                <div>
+                  <p class="card-label" style="color:#A9B4CB;">13th Month Pay · Net</p>
+                  <p class="num">₱45,000.00</p>
+                  <p class="sub">Pay date Dec 24, 2025 · Total basic salary earned in 2025 ÷ 12</p>
+                </div>
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Download</button>
+              </div>
+              <p class="breakdown-note">No statutory deductions applied — 13th month pay is non-taxable up to the BIR-set threshold. Company-wide toggle, on by default, per decisions/thirteenth-month-pay-mandatory-in-ph.md.</p>
+            </div>
+
+            <div>
+              <div class="list-head" style="padding:0 0 1rem;"><h3>All payslips</h3></div>
+              <div class="table-wrap">
+                <table class="paytable">
+                  <thead><tr><th>Cutoff</th><th>Pay date</th><th>Type</th><th>Gross</th><th>Net</th></tr></thead>
+                  <tbody>
+                    <tr class="view-row" data-sel="1"><td><label style="cursor:pointer;" for="sel2-1">Aug 1–15, 2026</label></td><td class="mono">Aug 20, 2026</td><td></td><td class="mono">₱22,500.00</td><td class="mono net">₱18,200.00</td></tr>
+                    <tr class="view-row" data-sel="2"><td><label style="cursor:pointer;" for="sel2-2">Jul 16–31, 2026</label></td><td class="mono">Aug 5, 2026</td><td></td><td class="mono">₱23,350.00</td><td class="mono net">₱19,750.00</td></tr>
+                    <tr><td>Jul 1–15, 2026</td><td class="mono">Jul 20, 2026</td><td></td><td class="mono">₱22,500.00</td><td class="mono net">₱18,050.00</td></tr>
+                    <tr><td>Jun 16–30, 2026</td><td class="mono">Jul 5, 2026</td><td></td><td class="mono">₱23,100.00</td><td class="mono net">₱19,600.00</td></tr>
+                    <tr><td>Jun 1–15, 2026</td><td class="mono">Jun 20, 2026</td><td></td><td class="mono">₱22,500.00</td><td class="mono net">₱18,150.00</td></tr>
+                    <tr class="view-row" data-sel="3"><td><label style="cursor:pointer;" for="sel2-3">Dec 24, 2025</label></td><td class="mono">Dec 24, 2025</td><td><span class="badge badge-neutral">13th Month</span></td><td class="mono">₱45,000.00</td><td class="mono net">₱45,000.00</td></tr>
+                    <tr><td>Dec 16–31, 2025</td><td class="mono">Jan 5, 2026</td><td></td><td class="mono">₱22,000.00</td><td class="mono net">₱17,900.00</td></tr>
+                    <tr><td>Dec 1–15, 2025</td><td class="mono">Dec 20, 2025</td><td></td><td class="mono">₱22,000.00</td><td class="mono net">₱17,800.00</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The latest payslip is always the first thing on the page, fully broken down, no click
+              required — the closest match to the other Me-tab screens' habit of surfacing the one
+              current fact (balance on Time Off, this half's rating on My Reviews) before any history.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>"What did I just get paid" is the dominant reason to open this page. Costs vertical space
+              to a full breakdown above the fold even on a visit that's really about finding an old
+              payslip — three rows are wired to swap the panel here; the rest fall back to summary-only,
+              same simplification as the other two options' modal/detail content.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — STATEMENT FEED, GROUPED BY YEAR ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a class="active" href="#">Me</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>My payslips</h2>
+            <p>Grouped by year — tap a cutoff to expand its breakdown</p>
+          </div>
+
+          <div class="feed">
+            <div class="year-group">
+              <div class="year-head"><h3>2026</h3></div>
+              <div class="year-body" data-y="2026" style="display:flex;">
+
+                <div class="stmt-row">
+                  <div class="stmt-head">
+                    <span class="period">Aug 1–15, 2026</span>
+                    <div class="spacer"></div>
+                    <span class="net mono">₱18,200.00</span>
+                  </div>
+                  <div class="stmt-body" style="display:block;">
+                    <div class="breakdown-cols">
+                      <div class="breakdown-list">
+                        <h4>Earnings</h4>
+                        <div class="breakdown-row"><span>Basic pay</span><span>₱22,500.00</span></div>
+                      </div>
+                      <div class="breakdown-list">
+                        <h4>Deductions</h4>
+                        <div class="breakdown-row"><span>SSS</span><span>₱675.00</span></div>
+                        <div class="breakdown-row"><span>PhilHealth</span><span>₱450.00</span></div>
+                        <div class="breakdown-row"><span>Pag-IBIG</span><span>₱100.00</span></div>
+                        <div class="breakdown-row"><span>BIR withholding tax</span><span>₱1,875.00</span></div>
+                        <div class="breakdown-row"><span>Loan amortization (Pag-IBIG MPL)</span><span>₱1,200.00</span></div>
+                      </div>
+                    </div>
+                    <div class="breakdown-total" style="margin-top:0.85rem;"><span>Net pay</span><span>₱18,200.00</span></div>
+                    <button class="btn-ghost" style="margin-top:0.85rem;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Download</button>
+                  </div>
+                </div>
+
+                <div class="stmt-row">
+                  <label class="stmt-head clickable" for="acc3-2" style="margin:0;">
+                    <span class="period">Jul 16–31, 2026</span>
+                    <div class="spacer"></div>
+                    <span class="net mono">₱19,750.00</span>
+                    <svg class="chevron stmt-chevron" data-p="2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </label>
+                  <div class="stmt-body" data-p="2">
+                    <div class="breakdown-cols">
+                      <div class="breakdown-list">
+                        <h4>Earnings</h4>
+                        <div class="breakdown-row"><span>Basic pay</span><span>₱22,500.00</span></div>
+                        <div class="breakdown-row"><span>Overtime</span><span>₱850.00</span></div>
+                      </div>
+                      <div class="breakdown-list">
+                        <h4>Deductions</h4>
+                        <div class="breakdown-row"><span>SSS</span><span>₱675.00</span></div>
+                        <div class="breakdown-row"><span>PhilHealth</span><span>₱450.00</span></div>
+                        <div class="breakdown-row"><span>Pag-IBIG</span><span>₱100.00</span></div>
+                        <div class="breakdown-row"><span>BIR withholding tax</span><span>₱1,875.00</span></div>
+                        <div class="breakdown-row"><span>Cash advance repayment</span><span>₱500.00</span></div>
+                      </div>
+                    </div>
+                    <div class="breakdown-total" style="margin-top:0.85rem;"><span>Net pay</span><span>₱19,750.00</span></div>
+                    <button class="btn-ghost" style="margin-top:0.85rem;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>Download</button>
+                  </div>
+                </div>
+
+                <div class="stmt-row"><div class="stmt-head"><span class="period">Jul 1–15, 2026</span><div class="spacer"></div><span class="net mono">₱18,050.00</span></div></div>
+                <div class="stmt-row"><div class="stmt-head"><span class="period">Jun 16–30, 2026</span><div class="spacer"></div><span class="net mono">₱19,600.00</span></div></div>
+                <div class="stmt-row"><div class="stmt-head"><span class="period">Jun 1–15, 2026</span><div class="spacer"></div><span class="net mono">₱18,150.00</span></div></div>
+              </div>
+            </div>
+
+            <div class="year-group">
+              <label class="year-head" for="yr3-2025">
+                <h3>2025</h3>
+                <svg class="chevron year-chevron" data-y="2025" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </label>
+              <div class="year-body" data-y="2025">
+                <div class="stmt-row"><div class="stmt-head"><span class="period">Dec 24, 2025</span><span class="badge badge-neutral" style="margin-left:0.5rem;">13th Month</span><div class="spacer"></div><span class="net mono">₱45,000.00</span></div></div>
+                <div class="stmt-row"><div class="stmt-head"><span class="period">Dec 16–31, 2025</span><div class="spacer"></div><span class="net mono">₱17,900.00</span></div></div>
+                <div class="stmt-row"><div class="stmt-head"><span class="period">Dec 1–15, 2025</span><div class="spacer"></div><span class="net mono">₱17,800.00</span></div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Reads like a bank statement app — the format most people already have muscle memory for
+              when checking pay. No modal, no split rail; year grouping keeps two-dozen-a-year cutoffs
+              from turning into one long undifferentiated scroll.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Mobile is the primary surface for this page. Costs the most build effort of the three —
+              every row needs its own expand affordance eventually, though this mockup only wires two
+              per year group to demonstrate the mechanism, same simplification as Options 1 and 2.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

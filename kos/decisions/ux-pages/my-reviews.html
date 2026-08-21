@@ -1,0 +1,726 @@
+<title>HRIS My Reviews Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.6rem 0.95rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.55rem 0.85rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .greet-block { padding: 1.75rem 2rem 0; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+
+  /* ---------- rating figure + score meter ---------- */
+
+  .rating-num { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .score-cell { display: flex; align-items: center; gap: 0.5rem; }
+  .score-cell .fig { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink); min-width: 26px; }
+  .score-track { width: 46px; height: 5px; border-radius: 999px; background: var(--surface); overflow: hidden; flex: 0 0 auto; }
+  .score-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+
+  /* ---------- KPI table (comfortable density) ---------- */
+
+  .table-wrap { overflow-x: auto; }
+  .kpitable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 560px; }
+  .kpitable th {
+    text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .kpitable td { padding: 0.65rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .kpitable tbody tr:nth-child(even) { background: var(--surface); }
+  .kpitable tr:last-child td { border-bottom: none; }
+  .kpitable .name { font-weight: 600; }
+  .kpitable .muted { color: var(--neutral); font-size: 0.8125rem; }
+
+  .manager-comment {
+    background: var(--surface); border-radius: 8px; padding: 0.85rem 1rem; font-size: 0.8125rem;
+    color: var(--ink-light); line-height: 1.55; margin-top: 0.9rem;
+  }
+  .manager-comment b { color: var(--ink); }
+
+  .inprogress-note {
+    display: flex; align-items: center; gap: 0.6rem; font-size: 0.8125rem; color: var(--badge-caution-fg);
+    background: var(--badge-caution-bg); border-radius: 8px; padding: 0.7rem 0.95rem;
+  }
+  .inprogress-note svg { width: 16px; height: 16px; flex: 0 0 auto; }
+
+  .rating-hero {
+    background: var(--ink); background-image: radial-gradient(circle at 85% 0%, rgba(232,99,10,0.18), transparent 50%);
+    color: var(--white); border-radius: var(--radius); padding: 1.1rem 1.35rem; display: flex; align-items: center;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .rating-hero .num { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; line-height: 1; }
+  .rating-hero .sub { font-size: 0.75rem; color: #C7CEDE; margin-top: 0.35rem; }
+
+  /* ---------- Option 1: list + modal detail ---------- */
+
+  .op1-body { padding: 1.5rem 2rem 2rem; }
+  .cycle-row {
+    display: flex; align-items: center; gap: 1rem; padding: 0.9rem 0; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  }
+  .cycle-row:last-child { border-bottom: none; }
+  .cycle-row .period { font-weight: 600; font-size: 0.9375rem; min-width: 180px; }
+  .cycle-row .type { font-size: 0.75rem; color: var(--neutral); }
+  .cycle-row .spacer { flex: 1; }
+  .cycle-row .rating { font-family: var(--font-mono); font-size: 0.9375rem; color: var(--ink); min-width: 44px; text-align: right; }
+
+  .modal-overlay {
+    display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.45);
+    align-items: center; justify-content: center; padding: 1.5rem; z-index: 5; overflow-y: auto;
+  }
+  #modal1:checked ~ .page .frame-shell[data-n="1"] .modal-overlay { display: flex; }
+  .modal-box {
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-card);
+    width: 100%; max-width: 620px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;
+    max-height: 88%; overflow-y: auto; margin: auto;
+  }
+  .modal-box-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .modal-box-head h3 { font-size: 1.05rem; font-weight: 700; }
+  .modal-box-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--surface); color: var(--ink-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .modal-close svg { width: 15px; height: 15px; }
+
+  /* ---------- Option 2: split, master-detail ---------- */
+
+  .op2-cols { display: grid; grid-template-columns: 260px 1fr; }
+  @media (max-width: 780px) { .op2-cols { grid-template-columns: 1fr; } }
+  .cycle-list { border-right: 1px solid var(--border); padding: 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  @media (max-width: 780px) { .cycle-list { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; overflow-x: auto; } }
+  .cycle-list label {
+    display: flex; flex-direction: column; gap: 0.3rem; padding: 0.65rem 0.85rem; border-radius: 8px; cursor: pointer;
+    transition: background var(--t); flex: 0 0 auto;
+  }
+  .cycle-list label:hover { background: var(--surface); }
+  .cycle-list label .period { font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
+  .cycle-list label .meta { font-size: 0.75rem; color: var(--neutral); display: flex; align-items: center; gap: 0.4rem; }
+  .cycle-list label .meta .rating { font-family: var(--font-mono); color: var(--ink); }
+  .op2-detail { padding: 1.5rem; }
+  .op2-detail-panel { display: none; flex-direction: column; gap: 1rem; }
+
+  #cyc2-1:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-1"],
+  #cyc2-2:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-2"],
+  #cyc2-3:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-3"],
+  #cyc2-4:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-4"] {
+    background: var(--surface); box-shadow: inset 2px 0 0 var(--accent);
+  }
+
+  #cyc2-1:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="1"],
+  #cyc2-2:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="2"],
+  #cyc2-3:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="3"],
+  #cyc2-4:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="4"] { display: flex; }
+
+  /* ---------- Option 3: timeline / accordion ---------- */
+
+  .timeline { padding: 1.5rem 2rem 2rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .acc-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .acc-head { display: flex; align-items: center; gap: 0.85rem; padding: 0.95rem 1.15rem; cursor: pointer; user-select: none; }
+  .acc-head .period { font-weight: 600; font-size: 0.9375rem; }
+  .acc-head .type { font-size: 0.75rem; color: var(--neutral); }
+  .acc-head .spacer { flex: 1; }
+  .acc-head .rating { font-family: var(--font-mono); font-size: 0.9375rem; }
+  .acc-head .chevron { width: 16px; height: 16px; color: var(--neutral); transition: transform var(--t); flex: 0 0 auto; }
+  .acc-body { display: none; padding: 0 1.15rem 1.15rem; border-top: 1px solid var(--border); padding-top: 1.1rem; }
+
+  #acc3-2:checked ~ .page .frame-shell[data-n="3"] .acc-body[data-p="2"] { display: block; }
+  #acc3-2:checked ~ .page .frame-shell[data-n="3"] .acc-chevron[data-p="2"] { transform: rotate(180deg); }
+  #acc3-3:checked ~ .page .frame-shell[data-n="3"] .acc-body[data-p="3"] { display: block; }
+  #acc3-3:checked ~ .page .frame-shell[data-n="3"] .acc-chevron[data-p="3"] { transform: rotate(180deg); }
+  #acc3-4:checked ~ .page .frame-shell[data-n="3"] .acc-body[data-p="4"] { display: block; }
+  #acc3-4:checked ~ .page .frame-shell[data-n="3"] .acc-chevron[data-p="4"] { transform: rotate(180deg); }
+
+  @media (max-width: 480px) {
+    .op1-body, .op2-detail, .timeline { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" checked />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="checkbox" id="modal1" />
+<input class="state" type="radio" name="cyc2" id="cyc2-1" />
+<input class="state" type="radio" name="cyc2" id="cyc2-2" checked />
+<input class="state" type="radio" name="cyc2" id="cyc2-3" />
+<input class="state" type="radio" name="cyc2" id="cyc2-4" />
+<input class="state" type="checkbox" id="acc3-2" checked />
+<input class="state" type="checkbox" id="acc3-3" />
+<input class="state" type="checkbox" id="acc3-4" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>My Reviews — three recommendations</h1>
+      <p class="sub">
+        The employee's own finished review cycles, under Me → My Reviews
+        (decisions/ui/navigation-me-team-company.md). Read-only for the
+        employee throughout — a manager fills in KPIs and scores, never
+        the employee. What changes across the three is how someone moves
+        between review cycles: a list with a detail modal, a
+        always-visible master-detail split, or an expandable timeline.
+      </p>
+      <div class="assumptions">
+        <b>Ahead of the backlog, on purpose:</b> performance
+        reviews/goals is scoped post-MVP backlog, not committed to a
+        version — this mockup exists because
+        decisions/ui/navigation-me-team-company.md already reserves the
+        nav slot, not because the feature is scheduled. Content follows
+        the fixed KPI structure already on file
+        (decisions/performance-review-kpi-based-not-form-builder.md):
+        kpi_name / target / actual / score(1–5) / comment, overall
+        rating as a simple average. An "On PIP" badge would appear next
+        to a cycle here when one is active — not shown for this persona,
+        who isn't on one. A cycle in progress shows no scores until the
+        manager publishes it.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> List + modal detail</label>
+      <label for="tab2"><span class="n">02</span> Split, master-detail <span class="chosen-badge">Chosen</span></label>
+      <label for="tab3"><span class="n">03</span> Timeline / accordion</label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — LIST + MODAL DETAIL ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a class="active" href="#">Me</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>My reviews</h2>
+            <p>4 cycles on file · most recent overall rating 4.3 / 5</p>
+          </div>
+
+          <div class="op1-body">
+            <div class="cycle-row">
+              <div>
+                <p class="period">H2 2026 (Jul–Dec)</p>
+                <p class="type">Regular cycle</p>
+              </div>
+              <div class="spacer"></div>
+              <span class="badge badge-caution">In progress</span>
+            </div>
+            <div class="cycle-row">
+              <div>
+                <p class="period">H1 2026 (Jan–Jun)</p>
+                <p class="type">Regular cycle</p>
+              </div>
+              <div class="spacer"></div>
+              <span class="rating">4.3<span style="color:var(--neutral);">/5</span></span>
+              <label class="btn-ghost" for="modal1">View details</label>
+            </div>
+            <div class="cycle-row">
+              <div>
+                <p class="period">H2 2025 (Jul–Dec)</p>
+                <p class="type">Regular cycle</p>
+              </div>
+              <div class="spacer"></div>
+              <span class="rating">3.7<span style="color:var(--neutral);">/5</span></span>
+              <label class="btn-ghost" for="modal1">View details</label>
+            </div>
+            <div class="cycle-row">
+              <div>
+                <p class="period">H1 2025 (Jan–Jun)</p>
+                <p class="type">Regular cycle</p>
+              </div>
+              <div class="spacer"></div>
+              <span class="rating">3.9<span style="color:var(--neutral);">/5</span></span>
+              <label class="btn-ghost" for="modal1">View details</label>
+            </div>
+          </div>
+
+          <div class="modal-overlay">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div>
+                  <h3>H1 2026 Review</h3>
+                  <p>Jan 1 – Jun 30, 2026 · Reviewed by Ramon Dela Cruz</p>
+                </div>
+                <label class="modal-close" for="modal1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+
+              <div class="rating-hero">
+                <div>
+                  <p class="card-label" style="color:#A9B4CB;">Overall rating</p>
+                  <p class="num">4.3 <span style="font-size:1rem;font-family:var(--font-body);color:#C7CEDE;">/ 5</span></p>
+                </div>
+              </div>
+
+              <div class="table-wrap">
+                <table class="kpitable">
+                  <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><p class="name">Reduce checkout page load time</p></td>
+                      <td class="muted">&lt;2.5s p95</td>
+                      <td class="muted">2.1s p95</td>
+                      <td><div class="score-cell"><span class="fig">5/5</span><div class="score-track"><div class="score-fill" style="width:100%"></div></div></div></td>
+                    </tr>
+                    <tr>
+                      <td><p class="name">Code review turnaround</p></td>
+                      <td class="muted">&lt;24h avg</td>
+                      <td class="muted">20h avg</td>
+                      <td><div class="score-cell"><span class="fig">4/5</span><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                    </tr>
+                    <tr>
+                      <td><p class="name">Mentor onboarding buddy</p></td>
+                      <td class="muted">Complete buddy program for 1 new hire</td>
+                      <td class="muted">Completed, buddy rated experience 5/5</td>
+                      <td><div class="score-cell"><span class="fig">4/5</span><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="manager-comment"><b>Ramon:</b> Strong half — technical execution is consistently ahead of target. Keep building on the mentoring work into next cycle.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Reuses the same modal mechanism already chosen for My Profile and Time Off — no third
+              dialog pattern to build. The list stays a clean, scannable summary; full KPI detail only
+              appears once someone actually wants to reread a specific cycle.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Most visits are a quick "what was my last rating" glance, not a close reread. Comparing
+              two cycles side by side means opening one, closing it, opening the other — the split
+              layout in Option 2 removes that friction.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — SPLIT, MASTER-DETAIL ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a class="active" href="#">Me</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="op2-cols">
+            <div class="cycle-list">
+              <label for="cyc2-1">
+                <span class="period">H2 2026 (Jul–Dec)</span>
+                <span class="meta"><span class="badge badge-caution">In progress</span></span>
+              </label>
+              <label for="cyc2-2">
+                <span class="period">H1 2026 (Jan–Jun)</span>
+                <span class="meta">Regular · <span class="rating">4.3/5</span></span>
+              </label>
+              <label for="cyc2-3">
+                <span class="period">H2 2025 (Jul–Dec)</span>
+                <span class="meta">Regular · <span class="rating">3.7/5</span></span>
+              </label>
+              <label for="cyc2-4">
+                <span class="period">H1 2025 (Jan–Jun)</span>
+                <span class="meta">Regular · <span class="rating">3.9/5</span></span>
+              </label>
+            </div>
+
+            <div class="op2-detail">
+              <div class="op2-detail-panel" data-p="1">
+                <div class="inprogress-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  Your manager is completing this cycle — you'll be notified when it's published. Runs through Dec 31, 2026.
+                </div>
+              </div>
+
+              <div class="op2-detail-panel" data-p="2">
+                <div class="rating-hero">
+                  <div>
+                    <p class="card-label" style="color:#A9B4CB;">H1 2026 · Overall rating</p>
+                    <p class="num">4.3 <span style="font-size:1rem;font-family:var(--font-body);color:#C7CEDE;">/ 5</span></p>
+                  </div>
+                  <span style="font-size:0.75rem;color:#C7CEDE;">Reviewed by Ramon Dela Cruz</span>
+                </div>
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td><p class="name">Reduce checkout page load time</p></td>
+                        <td class="muted">&lt;2.5s p95</td>
+                        <td class="muted">2.1s p95</td>
+                        <td><div class="score-cell"><span class="fig">5/5</span><div class="score-track"><div class="score-fill" style="width:100%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Code review turnaround</p></td>
+                        <td class="muted">&lt;24h avg</td>
+                        <td class="muted">20h avg</td>
+                        <td><div class="score-cell"><span class="fig">4/5</span><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Mentor onboarding buddy</p></td>
+                        <td class="muted">Complete buddy program for 1 new hire</td>
+                        <td class="muted">Completed, buddy rated experience 5/5</td>
+                        <td><div class="score-cell"><span class="fig">4/5</span><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="manager-comment"><b>Ramon:</b> Strong half — technical execution is consistently ahead of target. Keep building on the mentoring work into next cycle.</div>
+              </div>
+
+              <div class="op2-detail-panel" data-p="3">
+                <div class="rating-hero">
+                  <div>
+                    <p class="card-label" style="color:#A9B4CB;">H2 2025 · Overall rating</p>
+                    <p class="num">3.7 <span style="font-size:1rem;font-family:var(--font-body);color:#C7CEDE;">/ 5</span></p>
+                  </div>
+                  <span style="font-size:0.75rem;color:#C7CEDE;">Reviewed by Ramon Dela Cruz</span>
+                </div>
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td><p class="name">Ship checkout redesign</p></td>
+                        <td class="muted">Launch by Nov 30</td>
+                        <td class="muted">Launched Dec 8</td>
+                        <td><div class="score-cell"><span class="fig">3/5</span><div class="score-track"><div class="score-fill" style="width:60%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Code review turnaround</p></td>
+                        <td class="muted">&lt;24h avg</td>
+                        <td class="muted">30h avg</td>
+                        <td><div class="score-cell"><span class="fig">3/5</span><div class="score-track"><div class="score-fill" style="width:60%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Cross-team API documentation</p></td>
+                        <td class="muted">Document 3 core services</td>
+                        <td class="muted">Documented all 3, well received</td>
+                        <td><div class="score-cell"><span class="fig">5/5</span><div class="score-track"><div class="score-fill" style="width:100%"></div></div></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="manager-comment"><b>Ramon:</b> Uneven cycle — the documentation work was outstanding, delivery timelines need attention going into H1.</div>
+              </div>
+
+              <div class="op2-detail-panel" data-p="4">
+                <div class="rating-hero">
+                  <div>
+                    <p class="card-label" style="color:#A9B4CB;">H1 2025 · Overall rating</p>
+                    <p class="num">3.9 <span style="font-size:1rem;font-family:var(--font-body);color:#C7CEDE;">/ 5</span></p>
+                  </div>
+                  <span style="font-size:0.75rem;color:#C7CEDE;">Reviewed by Ramon Dela Cruz</span>
+                </div>
+                <p style="font-size:0.8125rem;color:var(--neutral);">First full review cycle on file for this employee. KPI-level detail preserved the same way as later cycles.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>No click ever hides the list — moving between cycles is a single click, and the current
+              in-progress cycle sits right at the top so its status is never a surprise.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Someone genuinely compares cycles over time (prepping for a 1:1, tracking their own
+              trend). Costs permanent width to a rail most single visits won't use, and needs a detail
+              panel authored for every row rather than one shared modal.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — TIMELINE / ACCORDION ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a class="active" href="#">Me</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">MS</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>My reviews</h2>
+            <p>Read top to bottom — most recent first, older cycles collapsed</p>
+          </div>
+
+          <div class="timeline">
+            <div class="acc-card">
+              <div class="acc-head">
+                <span class="period">H2 2026 (Jul–Dec)</span>
+                <span class="type">Regular cycle</span>
+                <div class="spacer"></div>
+                <span class="badge badge-caution">In progress</span>
+              </div>
+              <div class="acc-body" style="display:block;">
+                <div class="inprogress-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  Your manager is completing this cycle — you'll be notified when it's published.
+                </div>
+              </div>
+            </div>
+
+            <div class="acc-card">
+              <label class="acc-head" for="acc3-2" style="margin:0;">
+                <span class="period">H1 2026 (Jan–Jun)</span>
+                <span class="type">Regular cycle</span>
+                <div class="spacer"></div>
+                <span class="rating">4.3<span style="color:var(--neutral);">/5</span></span>
+                <svg class="chevron acc-chevron" data-p="2" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </label>
+              <div class="acc-body" data-p="2">
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td><p class="name">Reduce checkout page load time</p></td>
+                        <td class="muted">&lt;2.5s p95</td>
+                        <td class="muted">2.1s p95</td>
+                        <td><div class="score-cell"><span class="fig">5/5</span><div class="score-track"><div class="score-fill" style="width:100%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Code review turnaround</p></td>
+                        <td class="muted">&lt;24h avg</td>
+                        <td class="muted">20h avg</td>
+                        <td><div class="score-cell"><span class="fig">4/5</span><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Mentor onboarding buddy</p></td>
+                        <td class="muted">Complete buddy program for 1 new hire</td>
+                        <td class="muted">Completed, buddy rated experience 5/5</td>
+                        <td><div class="score-cell"><span class="fig">4/5</span><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="manager-comment"><b>Ramon:</b> Strong half — technical execution is consistently ahead of target. Keep building on the mentoring work into next cycle.</div>
+              </div>
+            </div>
+
+            <div class="acc-card">
+              <label class="acc-head" for="acc3-3" style="margin:0;">
+                <span class="period">H2 2025 (Jul–Dec)</span>
+                <span class="type">Regular cycle</span>
+                <div class="spacer"></div>
+                <span class="rating">3.7<span style="color:var(--neutral);">/5</span></span>
+                <svg class="chevron acc-chevron" data-p="3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </label>
+              <div class="acc-body" data-p="3">
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td><p class="name">Ship checkout redesign</p></td>
+                        <td class="muted">Launch by Nov 30</td>
+                        <td class="muted">Launched Dec 8</td>
+                        <td><div class="score-cell"><span class="fig">3/5</span><div class="score-track"><div class="score-fill" style="width:60%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Code review turnaround</p></td>
+                        <td class="muted">&lt;24h avg</td>
+                        <td class="muted">30h avg</td>
+                        <td><div class="score-cell"><span class="fig">3/5</span><div class="score-track"><div class="score-fill" style="width:60%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Cross-team API documentation</p></td>
+                        <td class="muted">Document 3 core services</td>
+                        <td class="muted">Documented all 3, well received</td>
+                        <td><div class="score-cell"><span class="fig">5/5</span><div class="score-track"><div class="score-fill" style="width:100%"></div></div></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="manager-comment"><b>Ramon:</b> Uneven cycle — the documentation work was outstanding, delivery timelines need attention going into H1.</div>
+              </div>
+            </div>
+
+            <div class="acc-card">
+              <label class="acc-head" for="acc3-4" style="margin:0;">
+                <span class="period">H1 2025 (Jan–Jun)</span>
+                <span class="type">Regular cycle</span>
+                <div class="spacer"></div>
+                <span class="rating">3.9<span style="color:var(--neutral);">/5</span></span>
+                <svg class="chevron acc-chevron" data-p="4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              </label>
+              <div class="acc-body" data-p="4">
+                <p style="font-size:0.8125rem;color:var(--neutral);">First full review cycle on file for this employee.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Reads as one continuous history rather than a table to query — closest to how "who's out
+              this week" is meant to be answerable by looking, applied to an employee's own review
+              trend. No modal, no fixed-width rail to fight for space on a phone.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Cycles are few enough (two a year) that scrolling past collapsed cards stays cheap. Would
+              get unwieldy quickly if the cadence sped up (quarterly cycles, several years of history) —
+              a case the split layout in Option 2 handles better since it never re-flows the page.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>
