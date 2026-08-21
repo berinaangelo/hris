@@ -1,0 +1,1039 @@
+<title>HRIS Team Reviews Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Team active) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-count {
+    font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; min-width: 16px; height: 16px;
+    border-radius: 999px; background: var(--badge-caution-bg); color: var(--badge-caution-fg);
+    display: inline-flex; align-items: center; justify-content: center; padding: 0 0.3rem;
+  }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .add-kpi-btn {
+    border: 1px dashed var(--border); background: none; color: var(--neutral); border-radius: 8px;
+    padding: 0.5rem 0.8rem; font-size: 0.8125rem; font-weight: 600; cursor: pointer; display: inline-flex;
+    align-items: center; gap: 0.4rem; width: fit-content; transition: border-color var(--t), color var(--t);
+  }
+  .add-kpi-btn:hover { border-color: var(--accent); color: var(--accent); }
+  .add-kpi-btn svg { width: 14px; height: 14px; }
+
+  .greet-block { padding: 1.75rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.8125rem; flex: 0 0 auto; }
+
+  /* ---------- KPI table (comfortable density) ---------- */
+
+  .table-wrap { overflow-x: auto; }
+  .kpitable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 560px; }
+  .kpitable th {
+    text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap;
+  }
+  .kpitable td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .kpitable tbody tr:nth-child(even) { background: var(--surface); }
+  .kpitable tr:last-child td { border-bottom: none; }
+  .kpitable .name { font-weight: 600; }
+  .kpitable .muted { color: var(--neutral); font-size: 0.8125rem; }
+
+  .plain-input {
+    width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .plain-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .plain-input.compact { padding: 0.4rem 0.55rem; font-size: 0.8125rem; }
+  .plain-input.narrow { width: 68px; }
+  textarea.plain-input { resize: vertical; min-height: 64px; font-family: var(--font-body); line-height: 1.5; }
+
+  .score-edit-cell { display: flex; align-items: center; gap: 0.5rem; }
+  .score-track { width: 40px; height: 5px; border-radius: 999px; background: var(--surface); overflow: hidden; flex: 0 0 auto; }
+  .score-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+
+  .manager-comment {
+    background: var(--surface); border-radius: 8px; padding: 0.85rem 1rem; font-size: 0.8125rem;
+    color: var(--ink-light); line-height: 1.55; margin-top: 0.9rem;
+  }
+  .manager-comment b { color: var(--ink); }
+
+  .inprogress-note {
+    display: flex; align-items: center; gap: 0.6rem; font-size: 0.8125rem; color: var(--badge-caution-fg);
+    background: var(--badge-caution-bg); border-radius: 8px; padding: 0.7rem 0.95rem;
+  }
+  .inprogress-note svg { width: 16px; height: 16px; flex: 0 0 auto; }
+
+  .rating-hero {
+    background: var(--ink); background-image: radial-gradient(circle at 85% 0%, rgba(232,99,10,0.18), transparent 50%);
+    color: var(--white); border-radius: var(--radius); padding: 1.1rem 1.35rem; display: flex; align-items: center;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .rating-hero .num { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; line-height: 1; }
+  .rating-hero .sub { font-size: 0.75rem; color: #C7CEDE; margin-top: 0.35rem; }
+
+  .divider-note { border-top: 1px dashed var(--border); padding-top: 1rem; margin-top: 0.25rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  .draftkpi { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .draftkpi td { padding: 0.35rem 0.5rem 0.35rem 0; vertical-align: top; }
+  .draftkpi td:first-child { width: 58%; }
+  .draftkpi-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
+
+  /* ---------- modal (shared) ---------- */
+
+  .modal-overlay {
+    display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.45);
+    align-items: center; justify-content: center; padding: 1.5rem; z-index: 5; overflow-y: auto;
+  }
+  .modal-box {
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-card);
+    width: 100%; max-width: 640px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;
+    max-height: 88%; overflow-y: auto; margin: auto;
+  }
+  .modal-box-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .modal-box-head h3 { font-size: 1.05rem; font-weight: 700; }
+  .modal-box-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--surface); color: var(--ink-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .modal-close svg { width: 15px; height: 15px; }
+  .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+
+  /* ---------- Option 1: roster table, row actions ---------- */
+
+  .table-wrap.roster { padding: 0 2rem 1.5rem; }
+  .reviewtable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 640px; }
+  .reviewtable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .reviewtable td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .reviewtable tbody tr:nth-child(even) { background: var(--surface); }
+  .reviewtable tr:last-child td { border-bottom: none; }
+  .reviewtable .who { display: flex; align-items: center; gap: 0.65rem; }
+  .reviewtable .who h4 { font-size: 0.875rem; font-weight: 700; }
+  .reviewtable .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.05rem; }
+  .reviewtable .action-cell { text-align: right; white-space: nowrap; }
+
+  #modal1-mika:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="mika"],
+  #modal1-paolo:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="paolo"],
+  #modal1-grace:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="grace"],
+  #modal1-carlo:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="carlo"],
+  #modal1-diego:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="diego"] { display: flex; }
+
+  /* ---------- Option 2: split, roster + editable detail ---------- */
+
+  .roster-cols { display: grid; grid-template-columns: 260px 1fr; }
+  @media (max-width: 780px) { .roster-cols { grid-template-columns: 1fr; } }
+  .roster-list { border-right: 1px solid var(--border); padding: 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  @media (max-width: 780px) { .roster-list { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; overflow-x: auto; } }
+  .roster-list label {
+    display: flex; align-items: center; gap: 0.6rem; padding: 0.6rem 0.75rem; border-radius: 8px; cursor: pointer;
+    transition: background var(--t); flex: 0 0 auto;
+  }
+  .roster-list label:hover { background: var(--surface); }
+  .roster-list label .meta-col { display: flex; flex-direction: column; gap: 0.2rem; }
+  .roster-list label .name { font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
+  .roster-list label .meta { font-size: 0.75rem; color: var(--neutral); }
+  .roster-detail { padding: 1.5rem; }
+  .roster-detail-panel { display: none; flex-direction: column; gap: 1rem; }
+
+  #r2-mika:checked ~ .page .frame-shell[data-n="2"] .roster-list label[for="r2-mika"],
+  #r2-paolo:checked ~ .page .frame-shell[data-n="2"] .roster-list label[for="r2-paolo"],
+  #r2-grace:checked ~ .page .frame-shell[data-n="2"] .roster-list label[for="r2-grace"],
+  #r2-carlo:checked ~ .page .frame-shell[data-n="2"] .roster-list label[for="r2-carlo"],
+  #r2-diego:checked ~ .page .frame-shell[data-n="2"] .roster-list label[for="r2-diego"] {
+    background: var(--surface); box-shadow: inset 2px 0 0 var(--accent);
+  }
+  #r2-mika:checked ~ .page .frame-shell[data-n="2"] .roster-detail-panel[data-p="mika"],
+  #r2-paolo:checked ~ .page .frame-shell[data-n="2"] .roster-detail-panel[data-p="paolo"],
+  #r2-grace:checked ~ .page .frame-shell[data-n="2"] .roster-detail-panel[data-p="grace"],
+  #r2-carlo:checked ~ .page .frame-shell[data-n="2"] .roster-detail-panel[data-p="carlo"],
+  #r2-diego:checked ~ .page .frame-shell[data-n="2"] .roster-detail-panel[data-p="diego"] { display: flex; }
+
+  /* ---------- Option 3: card grid, status first ---------- */
+
+  .card-grid { padding: 1.5rem 2rem 2rem; display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1rem; }
+  .review-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.15rem; display: flex; flex-direction: column; gap: 0.85rem; }
+  .review-card .rc-head { display: flex; align-items: flex-start; gap: 0.7rem; }
+  .review-card .rc-head .avatar { width: 40px; height: 40px; font-size: 0.875rem; }
+  .review-card .rc-head h4 { font-size: 0.9375rem; font-weight: 700; }
+  .review-card .rc-head p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.1rem; }
+  .review-card .rc-spacer { flex: 1; }
+  .review-card .rc-fact { font-size: 0.8125rem; color: var(--ink-light); }
+  .review-card .rc-fact .mono { color: var(--ink); }
+  .review-card .rc-foot { margin-top: auto; }
+
+  #modal3-mika:checked ~ .page .frame-shell[data-n="3"] .modal-overlay[data-m="mika"],
+  #modal3-paolo:checked ~ .page .frame-shell[data-n="3"] .modal-overlay[data-m="paolo"],
+  #modal3-grace:checked ~ .page .frame-shell[data-n="3"] .modal-overlay[data-m="grace"],
+  #modal3-carlo:checked ~ .page .frame-shell[data-n="3"] .modal-overlay[data-m="carlo"],
+  #modal3-diego:checked ~ .page .frame-shell[data-n="3"] .modal-overlay[data-m="diego"] { display: flex; }
+
+  @media (max-width: 480px) {
+    .table-wrap.roster, .roster-detail, .card-grid { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" checked />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="checkbox" id="modal1-mika" />
+<input class="state" type="checkbox" id="modal1-paolo" />
+<input class="state" type="checkbox" id="modal1-grace" />
+<input class="state" type="checkbox" id="modal1-carlo" />
+<input class="state" type="checkbox" id="modal1-diego" />
+<input class="state" type="radio" name="r2" id="r2-mika" checked />
+<input class="state" type="radio" name="r2" id="r2-paolo" />
+<input class="state" type="radio" name="r2" id="r2-grace" />
+<input class="state" type="radio" name="r2" id="r2-carlo" />
+<input class="state" type="radio" name="r2" id="r2-diego" />
+<input class="state" type="checkbox" id="modal3-mika" />
+<input class="state" type="checkbox" id="modal3-paolo" />
+<input class="state" type="checkbox" id="modal3-grace" />
+<input class="state" type="checkbox" id="modal3-carlo" />
+<input class="state" type="checkbox" id="modal3-diego" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Team Reviews — three recommendations</h1>
+      <p class="sub">
+        The manager-only workspace under Team → Team Reviews
+        (decisions/ui/navigation-me-team-company.md) — where a manager
+        does the actual work described in
+        decisions/performance-review-kpi-based-not-form-builder.md:
+        opens a cycle, sets a few KPIs, and fills in actual results,
+        scores, and a comment per KPI once the cycle ends. This is the
+        manager-authored counterpart to the employee's read-only
+        decisions/ux-pages/my-reviews.html. What changes across the
+        three is how a manager moves between direct reports to get that
+        work done: a flat roster with row actions and a shared modal, an
+        always-visible split with an editable detail panel, or a
+        status-first card grid.
+      </p>
+      <div class="assumptions">
+        <b>Ahead of the backlog, on purpose:</b> performance
+        reviews/goals is still post-MVP backlog, not committed to a
+        version — this mockup exists because the nav slot is already
+        reserved. Same 5-person team as
+        decisions/ux-pages/team-approvals.html and
+        decisions/ux-pages/team-calendar.html (manager Ramon Dela Cruz).
+        Cycle content follows the fixed KPI structure on file
+        (kpi_name / target / actual / score 1–5 / comment); an "On PIP"
+        badge is Caution per decisions/ui/badge-system-four-categories.md,
+        and its outcome field (Passed/Not Passed/Extended) is recorded
+        at close — not shown active here since no PIP closes in this
+        persona set. The Team tab's live count badge aggregates pending
+        approvals and pending reviews together, per
+        decisions/ui/notifications-nav-badge-counts.md; it's kept at the
+        same illustrative 4 used in the other Team-tab mockups rather
+        than recomputed for this page. All editable fields shown here
+        are static, illustrative content — this is a comparison mockup,
+        not a wired form.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Roster table, row actions</label>
+      <label for="tab2"><span class="n">02</span> Split, editable detail <span class="chosen-badge">Chosen</span></label>
+      <label for="tab3"><span class="n">03</span> Card grid, status first</label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — ROSTER TABLE, ROW ACTIONS ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Team <span class="nav-count">4</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">RD</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Team reviews</h2>
+              <p>H2 2026 cycle · 3 need your attention</p>
+            </div>
+          </div>
+
+          <div class="table-wrap roster" style="margin-top:1rem;">
+            <table class="reviewtable">
+              <thead><tr><th>Employee</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td>
+                    <div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div>
+                  </td>
+                  <td><span class="mono" style="font-size:0.875rem;">4.3 / 5 <span style="color:var(--neutral);">· H1 2026</span></span></td>
+                  <td class="action-cell"><label class="btn-ghost" for="modal1-mika">Start H2 cycle</label></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div>
+                  </td>
+                  <td><span class="badge badge-caution">Needs scoring</span></td>
+                  <td class="action-cell"><label class="btn-primary" for="modal1-paolo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Score now</label></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div>
+                  </td>
+                  <td><span class="badge badge-neutral">Not started</span></td>
+                  <td class="action-cell"><label class="btn-ghost" for="modal1-grace">Start cycle</label></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div>
+                  </td>
+                  <td><span class="badge badge-caution">In progress</span></td>
+                  <td class="action-cell"><label class="btn-ghost" for="modal1-carlo">View</label></td>
+                </tr>
+                <tr>
+                  <td>
+                    <div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div>
+                  </td>
+                  <td><span class="badge badge-caution">On PIP</span></td>
+                  <td class="action-cell"><label class="btn-ghost" for="modal1-diego">View</label></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <!-- modal: Mikaela — published H1 + start H2 -->
+          <div class="modal-overlay" data-m="mika">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Mikaela Santos</h3><p>H1 2026 · Published · Jan 1 – Jun 30, 2026</p></div>
+                <label class="modal-close" for="modal1-mika"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="rating-hero">
+                <div><p class="card-label" style="color:#A9B4CB;">Overall rating</p><p class="num">4.3 <span style="font-size:1rem;font-family:var(--font-body);color:#C7CEDE;">/ 5</span></p></div>
+              </div>
+              <div class="table-wrap">
+                <table class="kpitable">
+                  <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                  <tbody>
+                    <tr><td><p class="name">Reduce checkout page load time</p></td><td class="muted">&lt;2.5s p95</td><td class="muted">2.1s p95</td><td class="mono">5/5</td></tr>
+                    <tr><td><p class="name">Code review turnaround</p></td><td class="muted">&lt;24h avg</td><td class="muted">20h avg</td><td class="mono">4/5</td></tr>
+                    <tr><td><p class="name">Mentor onboarding buddy</p></td><td class="muted">Complete buddy program for 1 new hire</td><td class="muted">Completed, buddy rated experience 5/5</td><td class="mono">4/5</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="manager-comment"><b>Ramon:</b> Strong half — technical execution is consistently ahead of target. Keep building on the mentoring work into next cycle.</div>
+              <div class="divider-note">
+                <p class="card-label">Start H2 2026 cycle</p>
+                <div class="draftkpi-wrap">
+                  <table class="draftkpi">
+                    <tr><td><input class="plain-input compact" value="Ship notification-center backend refactor" /></td><td><input class="plain-input compact" value="Complete by Nov 30, 2026" /></td></tr>
+                    <tr><td><input class="plain-input compact" value="Reduce P1 incident count" /></td><td><input class="plain-input compact" value="≤1 per quarter" /></td></tr>
+                    <tr><td><input class="plain-input compact" value="Pair-mentor new hire buddy" /></td><td><input class="plain-input compact" value="Complete buddy program for 1 new hire" /></td></tr>
+                  </table>
+                  <button class="add-kpi-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add another KPI</button>
+                </div>
+              </div>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="modal1-mika">Save draft</label>
+                <label class="btn-primary" for="modal1-mika">Open cycle</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- modal: Paolo — needs scoring -->
+          <div class="modal-overlay" data-m="paolo">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Paolo Villanueva</h3><p>H1 2026 · Cycle ended Jun 30 — awaiting scoring</p></div>
+                <label class="modal-close" for="modal1-paolo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="table-wrap">
+                <table class="kpitable">
+                  <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><p class="name">Test coverage on new features</p></td><td class="muted">≥85%</td>
+                      <td><input class="plain-input compact" value="88%" /></td>
+                      <td><div class="score-edit-cell"><select class="plain-input compact narrow"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                    </tr>
+                    <tr>
+                      <td><p class="name">Critical bug escape rate</p></td><td class="muted">&lt;2 per release</td>
+                      <td><input class="plain-input compact" value="1 per release" /></td>
+                      <td><div class="score-edit-cell"><select class="plain-input compact narrow"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option></select><div class="score-track"><div class="score-fill" style="width:100%"></div></div></div></td>
+                    </tr>
+                    <tr>
+                      <td><p class="name">Automate regression suite for checkout flow</p></td><td class="muted">Complete by Jun 30</td>
+                      <td><input class="plain-input compact" value="Completed Jul 3 (3 days late)" /></td>
+                      <td><div class="score-edit-cell"><select class="plain-input compact narrow"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select><div class="score-track"><div class="score-fill" style="width:60%"></div></div></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <label for="p1-comment" class="card-label" style="display:block;margin-bottom:0.35rem;">Overall comment</label>
+                <textarea class="plain-input" id="p1-comment">Strong QA discipline this half — automation work slipped a few days but the coverage and defect numbers are the best on the team.</textarea>
+              </div>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="modal1-paolo">Save draft</label>
+                <label class="btn-primary" for="modal1-paolo">Publish review</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- modal: Grace — not started -->
+          <div class="modal-overlay" data-m="grace">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Grace Lim</h3><p>No review cycles on file yet</p></div>
+                <label class="modal-close" for="modal1-grace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <p style="font-size:0.8125rem;color:var(--neutral);">This will be Grace's first review cycle. Set a few KPIs to open H2 2026.</p>
+              <div class="draftkpi-wrap">
+                <table class="draftkpi">
+                  <tr><td><input class="plain-input compact" value="Ship checkout redesign handoff specs" /></td><td><input class="plain-input compact" value="Complete by Sep 15, 2026" /></td></tr>
+                  <tr><td><input class="plain-input compact" value="Usability testing sessions run" /></td><td><input class="plain-input compact" value="≥4 sessions this half" /></td></tr>
+                  <tr><td><input class="plain-input compact" value="Design system component contributions" /></td><td><input class="plain-input compact" value="3 new components shipped" /></td></tr>
+                </table>
+                <button class="add-kpi-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add another KPI</button>
+              </div>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="modal1-grace">Save draft</label>
+                <label class="btn-primary" for="modal1-grace">Open cycle</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- modal: Carlo — in progress -->
+          <div class="modal-overlay" data-m="carlo">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Carlo Bautista</h3><p>H2 2026 · In progress · Jul 1 – Dec 31, 2026</p></div>
+                <label class="modal-close" for="modal1-carlo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="inprogress-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Cycle is running — scoring opens after Dec 31, 2026.
+              </div>
+              <div class="table-wrap">
+                <table class="kpitable">
+                  <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                  <tbody>
+                    <tr><td><p class="name">API error rate under load</p></td><td class="muted">&lt;0.1%</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    <tr><td><p class="name">Ship payments service migration</p></td><td class="muted">Complete by Nov 30, 2026</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    <tr><td><p class="name">On-call response time</p></td><td class="muted">&lt;15 min avg</td><td class="muted">—</td><td class="muted">—</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- modal: Diego — on PIP -->
+          <div class="modal-overlay" data-m="diego">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Diego Reyes <span class="badge badge-caution" style="margin-left:0.4rem;">On PIP</span></h3><p>PIP cycle · Aug 1 – Oct 31, 2026</p></div>
+                <label class="modal-close" for="modal1-diego"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="inprogress-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+                Performance Improvement Plan running through Oct 31, 2026 — outcome (Passed / Not Passed / Extended) is recorded at close.
+              </div>
+              <div class="table-wrap">
+                <table class="kpitable">
+                  <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                  <tbody>
+                    <tr><td><p class="name">Ticket resolution SLA compliance</p></td><td class="muted">≥90%</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    <tr><td><p class="name">Customer satisfaction score</p></td><td class="muted">≥4.2 / 5</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    <tr><td><p class="name">Complete onboarding automation runbook</p></td><td class="muted">Done by Sep 30, 2026</td><td class="muted">—</td><td class="muted">—</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Fastest way to triage the whole team from one screen — five rows, one glance. Amber is spent
+              on exactly one button, Paolo's overdue "Score now," the single most urgent thing on the page;
+              everything else is a click into a shared modal.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>A manager wants speed and works through review admin for several reports in one sitting.
+              Scoring a full cycle inside a fixed-width modal is a bit cramped compared to Option 2's full-width
+              editable panel.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — SPLIT, ROSTER + EDITABLE DETAIL ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Team <span class="nav-count">4</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">RD</span>
+          </nav>
+
+          <div class="roster-cols">
+            <div class="roster-list">
+              <label for="r2-mika">
+                <span class="avatar">MS</span>
+                <span class="meta-col"><span class="name">Mikaela Santos</span><span class="meta"><span class="mono">4.3/5</span> · H1 2026</span></span>
+              </label>
+              <label for="r2-paolo">
+                <span class="avatar">PV</span>
+                <span class="meta-col"><span class="name">Paolo Villanueva</span><span class="meta"><span class="badge badge-caution">Needs scoring</span></span></span>
+              </label>
+              <label for="r2-grace">
+                <span class="avatar">GL</span>
+                <span class="meta-col"><span class="name">Grace Lim</span><span class="meta"><span class="badge badge-neutral">Not started</span></span></span>
+              </label>
+              <label for="r2-carlo">
+                <span class="avatar">CB</span>
+                <span class="meta-col"><span class="name">Carlo Bautista</span><span class="meta"><span class="badge badge-caution">In progress</span></span></span>
+              </label>
+              <label for="r2-diego">
+                <span class="avatar">DR</span>
+                <span class="meta-col"><span class="name">Diego Reyes</span><span class="meta"><span class="badge badge-caution">On PIP</span></span></span>
+              </label>
+            </div>
+
+            <div class="roster-detail">
+              <!-- Mikaela panel -->
+              <div class="roster-detail-panel" data-p="mika">
+                <div class="rating-hero">
+                  <div><p class="card-label" style="color:#A9B4CB;">H1 2026 · Overall rating</p><p class="num">4.3 <span style="font-size:1rem;font-family:var(--font-body);color:#C7CEDE;">/ 5</span></p></div>
+                  <span style="font-size:0.75rem;color:#C7CEDE;">Published Jul 2, 2026</span>
+                </div>
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                    <tbody>
+                      <tr><td><p class="name">Reduce checkout page load time</p></td><td class="muted">&lt;2.5s p95</td><td class="muted">2.1s p95</td><td class="mono">5/5</td></tr>
+                      <tr><td><p class="name">Code review turnaround</p></td><td class="muted">&lt;24h avg</td><td class="muted">20h avg</td><td class="mono">4/5</td></tr>
+                      <tr><td><p class="name">Mentor onboarding buddy</p></td><td class="muted">Complete buddy program for 1 new hire</td><td class="muted">Completed, buddy rated experience 5/5</td><td class="mono">4/5</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="manager-comment"><b>Ramon:</b> Strong half — technical execution is consistently ahead of target. Keep building on the mentoring work into next cycle.</div>
+                <div class="divider-note">
+                  <p class="card-label">Start H2 2026 cycle</p>
+                  <div class="draftkpi-wrap">
+                    <table class="draftkpi">
+                      <tr><td><input class="plain-input compact" value="Ship notification-center backend refactor" /></td><td><input class="plain-input compact" value="Complete by Nov 30, 2026" /></td></tr>
+                      <tr><td><input class="plain-input compact" value="Reduce P1 incident count" /></td><td><input class="plain-input compact" value="≤1 per quarter" /></td></tr>
+                      <tr><td><input class="plain-input compact" value="Pair-mentor new hire buddy" /></td><td><input class="plain-input compact" value="Complete buddy program for 1 new hire" /></td></tr>
+                    </table>
+                    <button class="add-kpi-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add another KPI</button>
+                  </div>
+                  <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+                    <button class="btn-ghost" type="button">Save draft</button>
+                    <button class="btn-primary" type="button">Open cycle</button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Paolo panel -->
+              <div class="roster-detail-panel" data-p="paolo">
+                <div class="inprogress-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  H1 2026 ended Jun 30 — fill in actuals and scores to publish.
+                </div>
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td><p class="name">Test coverage on new features</p></td><td class="muted">≥85%</td>
+                        <td><input class="plain-input compact" value="88%" /></td>
+                        <td><div class="score-edit-cell"><select class="plain-input compact narrow"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Critical bug escape rate</p></td><td class="muted">&lt;2 per release</td>
+                        <td><input class="plain-input compact" value="1 per release" /></td>
+                        <td><div class="score-edit-cell"><select class="plain-input compact narrow"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option></select><div class="score-track"><div class="score-fill" style="width:100%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Automate regression suite for checkout flow</p></td><td class="muted">Complete by Jun 30</td>
+                        <td><input class="plain-input compact" value="Completed Jul 3 (3 days late)" /></td>
+                        <td><div class="score-edit-cell"><select class="plain-input compact narrow"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select><div class="score-track"><div class="score-fill" style="width:60%"></div></div></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div>
+                  <label for="p2-comment" class="card-label" style="display:block;margin-bottom:0.35rem;">Overall comment</label>
+                  <textarea class="plain-input" id="p2-comment">Strong QA discipline this half — automation work slipped a few days but the coverage and defect numbers are the best on the team.</textarea>
+                </div>
+                <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+                  <button class="btn-ghost" type="button">Save draft</button>
+                  <button class="btn-primary" type="button">Publish review</button>
+                </div>
+              </div>
+
+              <!-- Grace panel -->
+              <div class="roster-detail-panel" data-p="grace">
+                <p style="font-size:0.8125rem;color:var(--neutral);">This will be Grace's first review cycle. Set a few KPIs to open H2 2026.</p>
+                <div class="draftkpi-wrap">
+                  <table class="draftkpi">
+                    <tr><td><input class="plain-input compact" value="Ship checkout redesign handoff specs" /></td><td><input class="plain-input compact" value="Complete by Sep 15, 2026" /></td></tr>
+                    <tr><td><input class="plain-input compact" value="Usability testing sessions run" /></td><td><input class="plain-input compact" value="≥4 sessions this half" /></td></tr>
+                    <tr><td><input class="plain-input compact" value="Design system component contributions" /></td><td><input class="plain-input compact" value="3 new components shipped" /></td></tr>
+                  </table>
+                  <button class="add-kpi-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add another KPI</button>
+                </div>
+                <div style="display:flex;gap:0.6rem;justify-content:flex-end;">
+                  <button class="btn-ghost" type="button">Save draft</button>
+                  <button class="btn-primary" type="button">Open cycle</button>
+                </div>
+              </div>
+
+              <!-- Carlo panel -->
+              <div class="roster-detail-panel" data-p="carlo">
+                <div class="inprogress-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                  Cycle is running — scoring opens after Dec 31, 2026.
+                </div>
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                    <tbody>
+                      <tr><td><p class="name">API error rate under load</p></td><td class="muted">&lt;0.1%</td><td class="muted">—</td><td class="muted">—</td></tr>
+                      <tr><td><p class="name">Ship payments service migration</p></td><td class="muted">Complete by Nov 30, 2026</td><td class="muted">—</td><td class="muted">—</td></tr>
+                      <tr><td><p class="name">On-call response time</p></td><td class="muted">&lt;15 min avg</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Diego panel -->
+              <div class="roster-detail-panel" data-p="diego">
+                <div class="inprogress-note">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+                  PIP cycle running through Oct 31, 2026 — outcome (Passed / Not Passed / Extended) is recorded at close.
+                </div>
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                    <tbody>
+                      <tr><td><p class="name">Ticket resolution SLA compliance</p></td><td class="muted">≥90%</td><td class="muted">—</td><td class="muted">—</td></tr>
+                      <tr><td><p class="name">Customer satisfaction score</p></td><td class="muted">≥4.2 / 5</td><td class="muted">—</td><td class="muted">—</td></tr>
+                      <tr><td><p class="name">Complete onboarding automation runbook</p></td><td class="muted">Done by Sep 30, 2026</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Actually writing a review — filling in several actuals, scores, and a comment — gets full page
+              width instead of a cramped modal. Mikaela's panel also shows the pattern at its best: her
+              finished H1 review and her not-yet-opened H2 cycle sit together, no modal hand-off between
+              "look back" and "act next."</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>A manager sits down to actually do review work, not just check status. Costs a fixed-width rail
+              on a page most people open only twice a year — the same tradeoff flagged for the split layout
+              in decisions/ux-pages/team-approvals.html.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — CARD GRID, STATUS FIRST ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Team <span class="nav-count">4</span></a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">RD</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Team reviews</h2>
+              <p>H2 2026 cycle · scan the whole team at a glance</p>
+            </div>
+          </div>
+
+          <div class="card-grid">
+            <div class="review-card">
+              <div class="rc-head">
+                <span class="avatar">MS</span>
+                <div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div>
+              </div>
+              <p class="rc-fact"><span class="mono">4.3 / 5</span> · H1 2026 · H2 not started</p>
+              <div class="rc-foot"><label class="btn-ghost" for="modal3-mika">Start H2 cycle</label></div>
+            </div>
+
+            <div class="review-card">
+              <div class="rc-head">
+                <span class="avatar">PV</span>
+                <div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div>
+                <div class="rc-spacer"></div>
+                <span class="badge badge-caution">Needs scoring</span>
+              </div>
+              <p class="rc-fact">H1 2026 ended Jun 30, 2026</p>
+              <div class="rc-foot"><label class="btn-primary" for="modal3-paolo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Score now</label></div>
+            </div>
+
+            <div class="review-card">
+              <div class="rc-head">
+                <span class="avatar">GL</span>
+                <div><h4>Grace Lim</h4><p>Product Designer</p></div>
+                <div class="rc-spacer"></div>
+                <span class="badge badge-neutral">Not started</span>
+              </div>
+              <p class="rc-fact">No cycles on file yet</p>
+              <div class="rc-foot"><label class="btn-ghost" for="modal3-grace">Start cycle</label></div>
+            </div>
+
+            <div class="review-card">
+              <div class="rc-head">
+                <span class="avatar">CB</span>
+                <div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div>
+                <div class="rc-spacer"></div>
+                <span class="badge badge-caution">In progress</span>
+              </div>
+              <p class="rc-fact">H2 2026 · runs through Dec 31</p>
+              <div class="rc-foot"><label class="btn-ghost" for="modal3-carlo">View</label></div>
+            </div>
+
+            <div class="review-card">
+              <div class="rc-head">
+                <span class="avatar">DR</span>
+                <div><h4>Diego Reyes</h4><p>Support Engineer</p></div>
+                <div class="rc-spacer"></div>
+                <span class="badge badge-caution">On PIP</span>
+              </div>
+              <p class="rc-fact">PIP cycle · runs through Oct 31</p>
+              <div class="rc-foot"><label class="btn-ghost" for="modal3-diego">View</label></div>
+            </div>
+          </div>
+
+          <!-- modals, identical content to Option 1, scoped to frame 3 -->
+          <div class="modal-overlay" data-m="mika">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Mikaela Santos</h3><p>H1 2026 · Published · Jan 1 – Jun 30, 2026</p></div>
+                <label class="modal-close" for="modal3-mika"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="rating-hero">
+                <div><p class="card-label" style="color:#A9B4CB;">Overall rating</p><p class="num">4.3 <span style="font-size:1rem;font-family:var(--font-body);color:#C7CEDE;">/ 5</span></p></div>
+              </div>
+              <div class="table-wrap">
+                <table class="kpitable">
+                  <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                  <tbody>
+                    <tr><td><p class="name">Reduce checkout page load time</p></td><td class="muted">&lt;2.5s p95</td><td class="muted">2.1s p95</td><td class="mono">5/5</td></tr>
+                    <tr><td><p class="name">Code review turnaround</p></td><td class="muted">&lt;24h avg</td><td class="muted">20h avg</td><td class="mono">4/5</td></tr>
+                    <tr><td><p class="name">Mentor onboarding buddy</p></td><td class="muted">Complete buddy program for 1 new hire</td><td class="muted">Completed, buddy rated experience 5/5</td><td class="mono">4/5</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="manager-comment"><b>Ramon:</b> Strong half — technical execution is consistently ahead of target. Keep building on the mentoring work into next cycle.</div>
+              <div class="divider-note">
+                <p class="card-label">Start H2 2026 cycle</p>
+                <div class="draftkpi-wrap">
+                  <table class="draftkpi">
+                    <tr><td><input class="plain-input compact" value="Ship notification-center backend refactor" /></td><td><input class="plain-input compact" value="Complete by Nov 30, 2026" /></td></tr>
+                    <tr><td><input class="plain-input compact" value="Reduce P1 incident count" /></td><td><input class="plain-input compact" value="≤1 per quarter" /></td></tr>
+                    <tr><td><input class="plain-input compact" value="Pair-mentor new hire buddy" /></td><td><input class="plain-input compact" value="Complete buddy program for 1 new hire" /></td></tr>
+                  </table>
+                  <button class="add-kpi-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add another KPI</button>
+                </div>
+              </div>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="modal3-mika">Save draft</label>
+                <label class="btn-primary" for="modal3-mika">Open cycle</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-overlay" data-m="paolo">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Paolo Villanueva</h3><p>H1 2026 · Cycle ended Jun 30 — awaiting scoring</p></div>
+                <label class="modal-close" for="modal3-paolo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="table-wrap">
+                <table class="kpitable">
+                  <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td><p class="name">Test coverage on new features</p></td><td class="muted">≥85%</td>
+                      <td><input class="plain-input compact" value="88%" /></td>
+                      <td><div class="score-edit-cell"><select class="plain-input compact narrow"><option>1</option><option>2</option><option>3</option><option selected>4</option><option>5</option></select><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                    </tr>
+                    <tr>
+                      <td><p class="name">Critical bug escape rate</p></td><td class="muted">&lt;2 per release</td>
+                      <td><input class="plain-input compact" value="1 per release" /></td>
+                      <td><div class="score-edit-cell"><select class="plain-input compact narrow"><option>1</option><option>2</option><option>3</option><option>4</option><option selected>5</option></select><div class="score-track"><div class="score-fill" style="width:100%"></div></div></div></td>
+                    </tr>
+                    <tr>
+                      <td><p class="name">Automate regression suite for checkout flow</p></td><td class="muted">Complete by Jun 30</td>
+                      <td><input class="plain-input compact" value="Completed Jul 3 (3 days late)" /></td>
+                      <td><div class="score-edit-cell"><select class="plain-input compact narrow"><option>1</option><option>2</option><option selected>3</option><option>4</option><option>5</option></select><div class="score-track"><div class="score-fill" style="width:60%"></div></div></div></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div>
+                <label for="p3-comment" class="card-label" style="display:block;margin-bottom:0.35rem;">Overall comment</label>
+                <textarea class="plain-input" id="p3-comment">Strong QA discipline this half — automation work slipped a few days but the coverage and defect numbers are the best on the team.</textarea>
+              </div>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="modal3-paolo">Save draft</label>
+                <label class="btn-primary" for="modal3-paolo">Publish review</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-overlay" data-m="grace">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Grace Lim</h3><p>No review cycles on file yet</p></div>
+                <label class="modal-close" for="modal3-grace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <p style="font-size:0.8125rem;color:var(--neutral);">This will be Grace's first review cycle. Set a few KPIs to open H2 2026.</p>
+              <div class="draftkpi-wrap">
+                <table class="draftkpi">
+                  <tr><td><input class="plain-input compact" value="Ship checkout redesign handoff specs" /></td><td><input class="plain-input compact" value="Complete by Sep 15, 2026" /></td></tr>
+                  <tr><td><input class="plain-input compact" value="Usability testing sessions run" /></td><td><input class="plain-input compact" value="≥4 sessions this half" /></td></tr>
+                  <tr><td><input class="plain-input compact" value="Design system component contributions" /></td><td><input class="plain-input compact" value="3 new components shipped" /></td></tr>
+                </table>
+                <button class="add-kpi-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add another KPI</button>
+              </div>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="modal3-grace">Save draft</label>
+                <label class="btn-primary" for="modal3-grace">Open cycle</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-overlay" data-m="carlo">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Carlo Bautista</h3><p>H2 2026 · In progress · Jul 1 – Dec 31, 2026</p></div>
+                <label class="modal-close" for="modal3-carlo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="inprogress-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+                Cycle is running — scoring opens after Dec 31, 2026.
+              </div>
+              <div class="table-wrap">
+                <table class="kpitable">
+                  <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                  <tbody>
+                    <tr><td><p class="name">API error rate under load</p></td><td class="muted">&lt;0.1%</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    <tr><td><p class="name">Ship payments service migration</p></td><td class="muted">Complete by Nov 30, 2026</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    <tr><td><p class="name">On-call response time</p></td><td class="muted">&lt;15 min avg</td><td class="muted">—</td><td class="muted">—</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-overlay" data-m="diego">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div><h3>Diego Reyes <span class="badge badge-caution" style="margin-left:0.4rem;">On PIP</span></h3><p>PIP cycle · Aug 1 – Oct 31, 2026</p></div>
+                <label class="modal-close" for="modal3-diego"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="inprogress-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+                Performance Improvement Plan running through Oct 31, 2026 — outcome (Passed / Not Passed / Extended) is recorded at close.
+              </div>
+              <div class="table-wrap">
+                <table class="kpitable">
+                  <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                  <tbody>
+                    <tr><td><p class="name">Ticket resolution SLA compliance</p></td><td class="muted">≥90%</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    <tr><td><p class="name">Customer satisfaction score</p></td><td class="muted">≥4.2 / 5</td><td class="muted">—</td><td class="muted">—</td></tr>
+                    <tr><td><p class="name">Complete onboarding automation runbook</p></td><td class="muted">Done by Sep 30, 2026</td><td class="muted">—</td><td class="muted">—</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Most glanceable overview of where the whole team stands — photos and badges scannable in one
+              sweep, good for a monthly check rather than working through every review one at a time.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>A manager wants a status overview, not to do the writing right now. Falls back to the same
+              modal as Option 1 for any real work, and a card grid this size wouldn't stay glanceable much
+              past 8–10 direct reports — not a concern yet, since a Philippine SME manager's team is small.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

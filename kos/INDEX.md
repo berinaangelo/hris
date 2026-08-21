@@ -125,6 +125,12 @@ structure below. Read this first; open only the files you actually need.
   month grid and a Gantt-style team row timeline; mirrors the plan's
   "who's out this week is answerable by looking" wording; mockup at
   [decisions/ux-pages/team-calendar.html](decisions/ux-pages/team-calendar.html)
+- [team-reviews-split-editable-detail](decisions/ui/team-reviews-split-editable-detail.md)
+  — persistent roster rail + editable detail panel, chosen over a
+  roster table with row actions and a status-first card grid; the
+  manager-authored counterpart to My Reviews, KPI fields editable in
+  place rather than in a modal; mockup at
+  [decisions/ux-pages/team-reviews.html](decisions/ux-pages/team-reviews.html)
 
 ## Reference
 - [ph-hr-payroll-compliance-glossary](reference/ph-hr-payroll-compliance-glossary.md)
