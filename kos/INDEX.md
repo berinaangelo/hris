@@ -27,6 +27,10 @@ structure below. Read this first; open only the files you actually need.
 ## Decisions
 - [tech-stack-hotwire-over-coffeescript](decisions/tech-stack-hotwire-over-coffeescript.md)
   — Turbo+Stimulus over legacy CoffeeScript/Sprockets
+- [rails-thin-controllers-organizer-interactor-pattern](decisions/rails-thin-controllers-organizer-interactor-pattern.md)
+  — thin controllers + single-purpose Interactors composed by an
+  Organizer, carried over from the user's own past practice, to apply
+  once backend implementation starts
 - [statutory-deductions-as-editable-data-not-code](decisions/statutory-deductions-as-editable-data-not-code.md)
   — SSS/PhilHealth/Pag-IBIG/BIR rate tables stored as admin-editable
   data, never hardcoded formulas
