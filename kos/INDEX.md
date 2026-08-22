@@ -1,6 +1,6 @@
 # Knowledge Base Index
 
-Last updated: 2026-08-21
+Last updated: 2026-08-22
 
 One line per note/project, link + why-it-exists, mirroring the folder
 structure below. Read this first; open only the files you actually need.
@@ -184,6 +184,58 @@ structure below. Read this first; open only the files you actually need.
   manager-authored counterpart to My Reviews, KPI fields editable in
   place rather than in a modal; mockup at
   [decisions/ux-pages/team-reviews.html](decisions/ux-pages/team-reviews.html)
+- [people-directory-card-grid-with-list-toggle](decisions/ui/people-directory-card-grid-with-list-toggle.md)
+  — photo-forward card grid as the v1 default, chosen over a dense data
+  table and department-grouped sections; adds a card/list toggle so the
+  table view is always one click away; first Company-tab page; mockup
+  at [decisions/ux-pages/people-directory.html](decisions/ux-pages/people-directory.html)
+- [employee-detail-inline-edit-with-reserved-tabs](decisions/ui/employee-detail-inline-edit-with-reserved-tabs.md)
+  — hybrid of inline per-section edit (no modal, nothing hidden) with
+  top-level tabs reserved only for genuinely separate future modules
+  (Loan Ledger, Benefits); chosen over a summary+modal and a fully
+  tabbed layout; mockup at
+  [decisions/ux-pages/employee-detail.html](decisions/ux-pages/employee-detail.html)
+- [add-employee-split-live-preview](decisions/ui/add-employee-split-live-preview.md)
+  — form paired with a live directory-card preview, chosen over a
+  single-page form and a multi-step wizard; shows the actual result
+  before commit, matching "HR adds a hire once and it's correct
+  everywhere"; closes out v1 People; mockup at
+  [decisions/ux-pages/add-employee.html](decisions/ux-pages/add-employee.html)
+- [company-reviews-roster-filterable-grid-list](decisions/ui/company-reviews-roster-filterable-grid-list.md)
+  — HR-Admin company-wide review cycle list (Post-MVP, Performance
+  Reviews); flat filterable roster with a card/list toggle and
+  pagination, chosen over a department rollup and a cycle-first list;
+  reviews stay manager-authored, HR views read-only; mockup at
+  [decisions/ux-pages/company-reviews.html](decisions/ux-pages/company-reviews.html)
+- [reports-landing-grid-drill-in](decisions/ui/reports-landing-grid-drill-in.md)
+  — HR-Admin Reports (Post-MVP, basic-reporting), the fixed set of 7
+  views; card-grid landing with a one-line description per report,
+  chosen over a persistent report rail and a pill-tab switcher for its
+  teaching value on names HR is still learning; each report's filters
+  match what's actually filterable (as-of date, cutoff, or period, not
+  one bar for all); mockup at
+  [decisions/ux-pages/reports.html](decisions/ux-pages/reports.html)
+- [employee-benefits-repeatable-plan-cards](decisions/ui/employee-benefits-repeatable-plan-cards.md)
+  — the Benefits tab content on Employee Detail (Post-MVP, benefits,
+  record-keeping only); one editable card per enrollment, chosen over
+  a single flat section and a compact expandable list; the only option
+  that doesn't assume exactly one benefit plan per employee; mockup at
+  [decisions/ux-pages/employee-benefits.html](decisions/ux-pages/employee-benefits.html)
+- [compliance-certifications-pinned-attention-full-list](decisions/ui/compliance-certifications-pinned-attention-full-list.md)
+  — HR-Admin Compliance/Certifications (Post-MVP,
+  compliance-certification-tracking, customer-dependent); a single
+  list sorted by soonest-expiring, chosen over a plain flat list and
+  an urgency-grouped sections option; adds a pinned "needs attention"
+  summary strip above the unmodified sorted table, in service of the
+  plan's own "god moments" north star; mockup at
+  [decisions/ux-pages/compliance-certifications.html](decisions/ux-pages/compliance-certifications.html)
+- [time-attendance-attendance-first-templates-drawer](decisions/ui/time-attendance-attendance-first-templates-drawer.md)
+  — HR-Admin Time & Attendance (Post-MVP, time-attendance,
+  customer-dependent); Attendance Records given the full page, chosen
+  over a stacked-sections option and a segmented-switch option; Shift
+  Templates tucked behind a "Manage shift templates" slide-over drawer
+  since it's edited far less often than attendance is checked; mockup
+  at [decisions/ux-pages/time-attendance.html](decisions/ux-pages/time-attendance.html)
 
 ## Reference
 - [ph-hr-payroll-compliance-glossary](reference/ph-hr-payroll-compliance-glossary.md)

@@ -1,0 +1,963 @@
+<title>HRIS Company Reviews Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, Andrea Cruz — HR Admin) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+  .btn-ghost.small { padding: 0.35rem 0.6rem; font-size: 0.75rem; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.8125rem; flex: 0 0 auto; }
+
+  .greet-block { padding: 1.75rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  /* ---------- toolbar / filters (people-directory pattern) ---------- */
+
+  .toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 1.25rem 2rem 0; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 300px; }
+  .search-wrap svg { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--neutral); }
+  .search-wrap input {
+    width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.1rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); background: var(--white);
+  }
+  .search-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip-filter {
+    flex: 0 0 auto; padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--white); font-size: 0.8125rem; font-weight: 600; color: var(--ink-light); cursor: pointer;
+    transition: background var(--t), color var(--t), border-color var(--t);
+  }
+  .chip-filter.is-active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+  .toolbar-spacer { flex: 1; }
+
+  /* ---------- stat strip ---------- */
+
+  .stat-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 1.5rem 2rem 0; }
+  .stat-tile { background: var(--white); padding: 0.95rem 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; cursor: pointer; transition: background var(--t); }
+  .stat-tile:hover { background: var(--surface); }
+  .stat-tile .num { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1; }
+  .stat-tile .lbl { font-size: 0.75rem; color: var(--neutral); }
+  .stat-tile.dot-caution .num { color: var(--badge-caution-fg); }
+  .stat-tile.dot-negative .num { color: var(--badge-negative-fg); }
+  .stat-tile.dot-neutral .num { color: var(--ink-light); }
+  .stat-tile.dot-positive .num { color: var(--badge-positive-fg); }
+
+  /* ---------- table (comfortable density) ---------- */
+
+  .table-wrap { overflow-x: auto; padding: 0 2rem; }
+  .cptable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 680px; }
+  .cptable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .cptable td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .cptable tbody tr { cursor: pointer; transition: background var(--t); }
+  .cptable tbody tr:hover { background: var(--surface); }
+  .cptable tr:last-child td { border-bottom: none; }
+  .cptable .who { display: flex; align-items: center; gap: 0.65rem; }
+  .cptable .who h4 { font-size: 0.875rem; font-weight: 700; }
+  .cptable .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.05rem; }
+  .cptable .muted { color: var(--neutral); font-size: 0.8125rem; }
+  .dept-tag { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--ink-light); background: var(--surface); padding: 0.2rem 0.5rem; border-radius: 999px; display: inline-block; }
+
+  /* KPI mini table reused in modals */
+  .kpitable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 480px; }
+  .kpitable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .kpitable td { padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: top; }
+  .kpitable tbody tr:nth-child(even) { background: var(--surface); }
+  .kpitable tr:last-child td { border-bottom: none; }
+  .kpitable .name { font-weight: 600; }
+  .kpitable .muted { color: var(--neutral); font-size: 0.8125rem; }
+
+  .rating-hero {
+    background: var(--ink); background-image: radial-gradient(circle at 85% 0%, rgba(232,99,10,0.18), transparent 50%);
+    color: var(--white); border-radius: var(--radius); padding: 1.1rem 1.35rem; display: flex; align-items: center;
+    justify-content: space-between; gap: 1rem; flex-wrap: wrap;
+  }
+  .rating-hero .num { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; line-height: 1; }
+
+  .inprogress-note {
+    display: flex; align-items: center; gap: 0.6rem; font-size: 0.8125rem; color: var(--badge-caution-fg);
+    background: var(--badge-caution-bg); border-radius: 8px; padding: 0.7rem 0.95rem;
+  }
+  .inprogress-note svg { width: 16px; height: 16px; flex: 0 0 auto; }
+  .inprogress-note.pip { color: var(--badge-negative-fg); background: var(--badge-negative-bg); }
+
+  .plain-input {
+    width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
+  }
+  .plain-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  select.plain-input { -webkit-appearance: none; appearance: none; }
+
+  .field-grid { display: grid; grid-template-columns: 1fr; gap: 0.9rem; }
+  @media (min-width: 520px) { .field-grid.two { grid-template-columns: 1fr 1fr; } }
+  .field label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--neutral); margin-bottom: 0.3rem; }
+
+  /* ---------- modal (shared) ---------- */
+
+  .modal-overlay {
+    display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.45);
+    align-items: center; justify-content: center; padding: 1.5rem; z-index: 5; overflow-y: auto;
+  }
+  .modal-box {
+    background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-card);
+    width: 100%; max-width: 640px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem;
+    max-height: 88%; overflow-y: auto; margin: auto;
+  }
+  .modal-box.narrow { max-width: 480px; }
+  .modal-box-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; }
+  .modal-box-head h3 { font-size: 1.05rem; font-weight: 700; }
+  .modal-box-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--surface); color: var(--ink-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .modal-close svg { width: 15px; height: 15px; }
+  .modal-actions { display: flex; gap: 0.6rem; justify-content: flex-end; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+
+  #newcycle1:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="newcycle"],
+  #newcycle2:checked ~ .page .frame-shell[data-n="2"] .modal-overlay[data-m="newcycle"],
+  #newcycle3:checked ~ .page .frame-shell[data-n="3"] .modal-overlay[data-m="newcycle"] { display: flex; }
+
+  #row1-ramon:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="ramon"],
+  #row1-mika:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="mika"],
+  #row1-paolo:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="paolo"],
+  #row1-carlo:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="carlo"],
+  #row1-diego:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="diego"],
+  #row1-grace:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="grace"],
+  #row1-isabel:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="isabel"],
+  #row1-ferdinand:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="ferdinand"],
+  #row1-bea:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="bea"],
+  #row1-miguel:checked ~ .page .frame-shell[data-n="1"] .modal-overlay[data-m="miguel"] { display: flex; }
+
+  /* ---------- Option 1: company roster table ---------- */
+
+  .status-cell { display: flex; flex-direction: column; gap: 0.25rem; align-items: flex-start; }
+  .status-cell .last { font-size: 0.75rem; color: var(--neutral); }
+
+  .view-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex: 0 0 auto; }
+  .view-toggle-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 34px; cursor: pointer; color: var(--neutral); background: var(--white); transition: background var(--t), color var(--t); }
+  .view-toggle-btn:first-child { border-right: 1px solid var(--border); }
+  .view-toggle-btn svg { width: 15px; height: 15px; }
+
+  #view1-list:checked ~ .page .frame-shell[data-n="1"] .view-card-panel { display: none; }
+  #view1-list:checked ~ .page .frame-shell[data-n="1"] .view-list-panel { display: block; }
+  #view1-card:checked ~ .page .frame-shell[data-n="1"] .view-toggle-btn[for="view1-card"],
+  #view1-list:checked ~ .page .frame-shell[data-n="1"] .view-toggle-btn[for="view1-list"] { background: var(--ink); color: var(--white); }
+
+  .people-grid { padding: 1.25rem 2rem 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+  .person-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; display: flex; flex-direction: column; gap: 0.6rem; cursor: pointer; transition: border-color var(--t), box-shadow var(--t); }
+  .person-card:hover { border-color: var(--accent); box-shadow: var(--shadow-card); }
+  .person-card .avatar { width: 44px; height: 44px; font-size: 0.9375rem; }
+  .person-card h4 { font-size: 0.9375rem; font-weight: 700; }
+  .person-card .role { font-size: 0.8125rem; color: var(--neutral); }
+  .person-card .foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.2rem; flex-wrap: wrap; }
+  .person-card .last-mini { font-size: 0.75rem; color: var(--neutral); }
+
+  .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem 1.5rem; gap: 1rem; flex-wrap: wrap; }
+  .pagination-bar p { font-size: 0.8125rem; color: var(--neutral); }
+  .pagination-controls { display: flex; gap: 0.4rem; }
+
+  /* ---------- Option 2: department accordion + progress ---------- */
+
+  .dept-section { border-bottom: 1px solid var(--border); }
+  .dept-section:last-child { border-bottom: none; }
+  .dept-head { display: flex; align-items: center; gap: 0.9rem; padding: 1rem 2rem; cursor: pointer; user-select: none; }
+  .dept-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .dept-head .count { font-family: var(--font-mono); font-size: 0.75rem; color: var(--neutral); }
+  .dept-head .spacer { flex: 1; }
+  .dept-progress { display: flex; align-items: center; gap: 0.5rem; min-width: 160px; }
+  .dept-progress .track { flex: 1; height: 6px; border-radius: 999px; background: var(--surface); overflow: hidden; }
+  .dept-progress .fill { height: 100%; background: var(--accent); border-radius: 999px; }
+  .dept-progress .frac { font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-light); white-space: nowrap; }
+  .dept-head .chevron { width: 16px; height: 16px; color: var(--neutral); transition: transform var(--t); flex: 0 0 auto; }
+  .dept-body { display: none; flex-direction: column; padding: 0 2rem 1rem; gap: 0.4rem; }
+  .dept-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.55rem 0.75rem; border-radius: 8px; cursor: default; }
+  .dept-row .who { display: flex; align-items: center; gap: 0.6rem; flex: 1; min-width: 0; }
+  .dept-row .who h4 { font-size: 0.8125rem; font-weight: 600; }
+  .dept-row .who p { font-size: 0.75rem; color: var(--neutral); }
+  .dept-row:hover { background: var(--surface); }
+
+  #adept1:checked ~ .page .frame-shell[data-n="2"] .dept-head[data-d="1"] .chevron,
+  #adept2:checked ~ .page .frame-shell[data-n="2"] .dept-head[data-d="2"] .chevron,
+  #adept3:checked ~ .page .frame-shell[data-n="2"] .dept-head[data-d="3"] .chevron,
+  #adept4:checked ~ .page .frame-shell[data-n="2"] .dept-head[data-d="4"] .chevron { transform: rotate(90deg); }
+  #adept1:checked ~ .page .frame-shell[data-n="2"] .dept-body[data-d="1"],
+  #adept2:checked ~ .page .frame-shell[data-n="2"] .dept-body[data-d="2"],
+  #adept3:checked ~ .page .frame-shell[data-n="2"] .dept-body[data-d="3"],
+  #adept4:checked ~ .page .frame-shell[data-n="2"] .dept-body[data-d="4"] { display: flex; }
+
+  /* ---------- Option 3: cycle-first list ---------- */
+
+  .cycle-list { display: flex; flex-direction: column; padding: 0 2rem 1.5rem; gap: 0.75rem; }
+  .cycle-card { border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+  .cycle-summary { display: flex; align-items: center; gap: 1rem; padding: 1rem 1.15rem; cursor: pointer; flex-wrap: wrap; }
+  .cycle-summary:hover { background: var(--surface); }
+  .cycle-summary .cy-id { display: flex; flex-direction: column; gap: 0.25rem; min-width: 160px; }
+  .cycle-summary .cy-id h4 { font-size: 0.9375rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; }
+  .cycle-summary .cy-id p { font-size: 0.75rem; color: var(--neutral); }
+  .cycle-summary .cy-scope { font-size: 0.8125rem; color: var(--ink-light); }
+  .cycle-summary .cy-spacer { flex: 1; }
+  .cycle-summary .cy-progress { display: flex; align-items: center; gap: 0.6rem; min-width: 190px; }
+  .cycle-summary .cy-progress .track { flex: 1; height: 6px; border-radius: 999px; background: var(--surface); overflow: hidden; }
+  .cycle-summary .cy-progress .fill { height: 100%; background: var(--accent); border-radius: 999px; }
+  .cycle-summary .cy-progress .frac { font-family: var(--font-mono); font-size: 0.75rem; color: var(--ink-light); white-space: nowrap; }
+  .cycle-summary .chevron { width: 16px; height: 16px; color: var(--neutral); transition: transform var(--t); flex: 0 0 auto; }
+  .cycle-body { display: none; border-top: 1px solid var(--border); padding: 0.5rem 1.15rem 1rem; }
+  .cycle-roster { display: flex; flex-direction: column; gap: 0.2rem; }
+  .cycle-roster .crow { display: flex; align-items: center; gap: 0.65rem; padding: 0.5rem 0.35rem; border-radius: 8px; }
+  .cycle-roster .crow:hover { background: var(--surface); }
+  .cycle-roster .crow .who { flex: 1; display: flex; align-items: center; gap: 0.6rem; }
+  .cycle-roster .crow .who h5 { font-size: 0.8125rem; font-weight: 600; }
+  .cycle-roster .crow .who p { font-size: 0.75rem; color: var(--neutral); }
+
+  #cy1:checked ~ .page .frame-shell[data-n="3"] .cycle-card[data-c="1"] .cycle-body,
+  #cy2:checked ~ .page .frame-shell[data-n="3"] .cycle-card[data-c="2"] .cycle-body,
+  #cy3:checked ~ .page .frame-shell[data-n="3"] .cycle-card[data-c="3"] .cycle-body,
+  #cy4:checked ~ .page .frame-shell[data-n="3"] .cycle-card[data-c="4"] .cycle-body { display: block; }
+  #cy1:checked ~ .page .frame-shell[data-n="3"] .cycle-card[data-c="1"] .chevron,
+  #cy2:checked ~ .page .frame-shell[data-n="3"] .cycle-card[data-c="2"] .chevron,
+  #cy3:checked ~ .page .frame-shell[data-n="3"] .cycle-card[data-c="3"] .chevron,
+  #cy4:checked ~ .page .frame-shell[data-n="3"] .cycle-card[data-c="4"] .chevron { transform: rotate(90deg); }
+
+  @media (max-width: 480px) {
+    .toolbar, .table-wrap, .dept-head, .dept-body, .cycle-list, .stat-strip { padding-left: 1.25rem; padding-right: 1.25rem; margin-left: 0; margin-right: 0; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" checked />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" />
+
+<input class="state" type="radio" name="view1" id="view1-card" />
+<input class="state" type="radio" name="view1" id="view1-list" checked />
+<input class="state" type="checkbox" id="newcycle1" />
+<input class="state" type="checkbox" id="newcycle2" />
+<input class="state" type="checkbox" id="newcycle3" />
+<input class="state" type="checkbox" id="row1-ramon" />
+<input class="state" type="checkbox" id="row1-mika" />
+<input class="state" type="checkbox" id="row1-paolo" />
+<input class="state" type="checkbox" id="row1-carlo" />
+<input class="state" type="checkbox" id="row1-diego" />
+<input class="state" type="checkbox" id="row1-grace" />
+<input class="state" type="checkbox" id="row1-isabel" />
+<input class="state" type="checkbox" id="row1-ferdinand" />
+<input class="state" type="checkbox" id="row1-bea" />
+<input class="state" type="checkbox" id="row1-miguel" />
+<input class="state" type="checkbox" id="adept1" checked />
+<input class="state" type="checkbox" id="adept2" />
+<input class="state" type="checkbox" id="adept3" />
+<input class="state" type="checkbox" id="adept4" />
+<input class="state" type="checkbox" id="cy1" checked />
+<input class="state" type="checkbox" id="cy2" />
+<input class="state" type="checkbox" id="cy3" />
+<input class="state" type="checkbox" id="cy4" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Company Reviews — three recommendations</h1>
+      <p class="sub">
+        The HR-Admin workspace under Company → Performance Reviews
+        (decisions/ui/navigation-me-team-company.md) — the company-wide
+        counterpart to a manager's own
+        decisions/ux-pages/team-reviews.html. This is where HR opens
+        review cycles and sees, across every department and every
+        manager, where each cycle stands — not where scoring happens
+        (that stays manager-authored, per
+        decisions/performance-review-kpi-based-not-form-builder.md).
+        What changes across the three is what the page organizes around:
+        a flat filterable roster of every employee, departments rolled
+        up with progress, or the review cycles themselves as the primary
+        list.
+      </p>
+      <div class="assumptions">
+        <b>Ahead of the backlog, on purpose:</b> performance
+        reviews/goals is still post-MVP backlog, not committed to a
+        version — this mockup exists to compare admin-list shapes ahead
+        of build. Viewing persona: Andrea Cruz, HR Admin (no direct
+        reports, so nav shows Me/Company only). Company roster of 10
+        across four departments — Engineering (mgr. Ramon Dela Cruz):
+        Mikaela Santos, Paolo Villanueva, Carlo Bautista, Diego Reyes;
+        Design: Grace Lim (reports to Ramon); Finance (mgr. Ferdinand
+        Ocampo): Isabel Torres; Sales (mgr. Miguel Santos): Bea
+        Fernandez. Cycle content follows the fixed KPI structure on file
+        (kpi_name / target / actual / score 1–5 / comment); "On PIP" is
+        Caution per decisions/ui/badge-system-four-categories.md — shown
+        here as Negative instead since, read company-wide, an active PIP
+        is exactly the kind of deviation that badge category exists to
+        flag (Team Reviews' own Caution choice was scoped to one
+        manager's page, not re-decided here). All content shown is
+        static, illustrative — this is a comparison mockup, not a wired
+        form.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Company roster, filterable <span class="chosen-badge">Chosen</span></label>
+      <label for="tab2"><span class="n">02</span> Departments, rolled up</label>
+      <label for="tab3"><span class="n">03</span> Cycles, first</label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — COMPANY ROSTER, FILTERABLE ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Performance reviews</h2>
+              <p>10 employees · 2 on PIP · 2 awaiting scoring</p>
+            </div>
+            <label class="btn-primary" for="newcycle1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Start new cycle</label>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Search employees…" />
+            </div>
+            <div class="chip-row">
+              <span class="chip-filter is-active">All depts</span>
+              <span class="chip-filter">Engineering</span>
+              <span class="chip-filter">Design</span>
+              <span class="chip-filter">Finance</span>
+              <span class="chip-filter">Sales</span>
+            </div>
+            <div class="toolbar-spacer"></div>
+            <div class="chip-row">
+              <span class="chip-filter is-active">All statuses</span>
+              <span class="chip-filter">On PIP</span>
+              <span class="chip-filter">Needs scoring</span>
+            </div>
+            <div class="view-toggle">
+              <label class="view-toggle-btn" for="view1-card" title="Card view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></label>
+              <label class="view-toggle-btn" for="view1-list" title="List view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></label>
+            </div>
+          </div>
+
+          <div class="view-card-panel">
+            <div class="people-grid">
+              <label class="person-card" for="row1-ramon"><span class="avatar">RD</span><h4>Ramon Dela Cruz</h4><p class="role">Engineering Manager</p><div class="foot"><span class="dept-tag">Engineering</span><span class="badge badge-neutral">Not started</span></div></label>
+              <label class="person-card" for="row1-mika"><span class="avatar">MS</span><h4>Mikaela Santos</h4><p class="role">Software Engineer II</p><div class="foot"><span class="dept-tag">Engineering</span><span class="badge badge-neutral">Not started</span></div><span class="last-mini mono">Last: 4.3/5 · H1 2026</span></label>
+              <label class="person-card" for="row1-paolo"><span class="avatar">PV</span><h4>Paolo Villanueva</h4><p class="role">QA Engineer</p><div class="foot"><span class="dept-tag">Engineering</span><span class="badge badge-caution">Needs scoring</span></div></label>
+              <label class="person-card" for="row1-carlo"><span class="avatar">CB</span><h4>Carlo Bautista</h4><p class="role">Backend Engineer</p><div class="foot"><span class="dept-tag">Engineering</span><span class="badge badge-caution">In progress</span></div></label>
+              <label class="person-card" for="row1-diego"><span class="avatar">DR</span><h4>Diego Reyes</h4><p class="role">Support Engineer</p><div class="foot"><span class="dept-tag">Engineering</span><span class="badge badge-negative">On PIP</span></div></label>
+              <label class="person-card" for="row1-grace"><span class="avatar">GL</span><h4>Grace Lim</h4><p class="role">Product Designer</p><div class="foot"><span class="dept-tag">Design</span><span class="badge badge-neutral">Not started</span></div></label>
+              <label class="person-card" for="row1-ferdinand"><span class="avatar">FO</span><h4>Ferdinand Ocampo</h4><p class="role">Finance Manager</p><div class="foot"><span class="dept-tag">Finance</span><span class="badge badge-neutral">Not started</span></div></label>
+              <label class="person-card" for="row1-isabel"><span class="avatar">IT</span><h4>Isabel Torres</h4><p class="role">Accountant</p><div class="foot"><span class="dept-tag">Finance</span><span class="badge badge-caution">Needs scoring</span></div></label>
+              <label class="person-card" for="row1-miguel"><span class="avatar">MS</span><h4>Miguel Santos</h4><p class="role">Sales Lead</p><div class="foot"><span class="dept-tag">Sales</span><span class="badge badge-caution">In progress</span></div></label>
+              <label class="person-card" for="row1-bea"><span class="avatar">BF</span><h4>Bea Fernandez</h4><p class="role">Sales Associate</p><div class="foot"><span class="dept-tag">Sales</span><span class="badge badge-negative">On PIP</span></div></label>
+            </div>
+            <div class="pagination-bar">
+              <p>Showing 1–10 of 10</p>
+              <div class="pagination-controls">
+                <button class="btn-ghost" type="button" disabled>Prev</button>
+                <button class="btn-ghost" type="button" disabled>Next</button>
+              </div>
+            </div>
+          </div>
+
+          <div class="view-list-panel">
+          <div class="table-wrap" style="margin-top:1rem;">
+            <table class="cptable">
+              <thead><tr><th>Employee</th><th>Department</th><th>Manager</th><th>Current cycle status</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><label for="row1-ramon" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">RD</span><div><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div></div></label></td>
+                  <td><span class="dept-tag">Engineering</span></td>
+                  <td class="muted">—</td>
+                  <td><label for="row1-ramon" style="cursor:pointer;"><div class="status-cell"><span class="badge badge-neutral">Not started</span></div></label></td>
+                </tr>
+                <tr>
+                  <td><label for="row1-mika" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div></label></td>
+                  <td><span class="dept-tag">Engineering</span></td>
+                  <td class="muted">Ramon Dela Cruz</td>
+                  <td><label for="row1-mika" style="cursor:pointer;"><div class="status-cell"><span class="badge badge-neutral">Not started</span><span class="last mono">Last: 4.3/5 · H1 2026</span></div></label></td>
+                </tr>
+                <tr>
+                  <td><label for="row1-paolo" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div></label></td>
+                  <td><span class="dept-tag">Engineering</span></td>
+                  <td class="muted">Ramon Dela Cruz</td>
+                  <td><label for="row1-paolo" style="cursor:pointer;"><span class="badge badge-caution">Needs scoring</span></label></td>
+                </tr>
+                <tr>
+                  <td><label for="row1-carlo" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div></label></td>
+                  <td><span class="dept-tag">Engineering</span></td>
+                  <td class="muted">Ramon Dela Cruz</td>
+                  <td><label for="row1-carlo" style="cursor:pointer;"><span class="badge badge-caution">In progress</span></label></td>
+                </tr>
+                <tr>
+                  <td><label for="row1-diego" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div></label></td>
+                  <td><span class="dept-tag">Engineering</span></td>
+                  <td class="muted">Ramon Dela Cruz</td>
+                  <td><label for="row1-diego" style="cursor:pointer;"><span class="badge badge-negative">On PIP</span></label></td>
+                </tr>
+                <tr>
+                  <td><label for="row1-grace" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div></label></td>
+                  <td><span class="dept-tag">Design</span></td>
+                  <td class="muted">Ramon Dela Cruz</td>
+                  <td><label for="row1-grace" style="cursor:pointer;"><span class="badge badge-neutral">Not started</span></label></td>
+                </tr>
+                <tr>
+                  <td><label for="row1-ferdinand" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">FO</span><div><h4>Ferdinand Ocampo</h4><p>Finance Manager</p></div></div></label></td>
+                  <td><span class="dept-tag">Finance</span></td>
+                  <td class="muted">—</td>
+                  <td><label for="row1-ferdinand" style="cursor:pointer;"><span class="badge badge-neutral">Not started</span></label></td>
+                </tr>
+                <tr>
+                  <td><label for="row1-isabel" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div></label></td>
+                  <td><span class="dept-tag">Finance</span></td>
+                  <td class="muted">Ferdinand Ocampo</td>
+                  <td><label for="row1-isabel" style="cursor:pointer;"><span class="badge badge-caution">Needs scoring</span></label></td>
+                </tr>
+                <tr>
+                  <td><label for="row1-miguel" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div></label></td>
+                  <td><span class="dept-tag">Sales</span></td>
+                  <td class="muted">—</td>
+                  <td><label for="row1-miguel" style="cursor:pointer;"><span class="badge badge-caution">In progress</span></label></td>
+                </tr>
+                <tr>
+                  <td><label for="row1-bea" style="cursor:pointer;display:block;"><div class="who"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div></label></td>
+                  <td><span class="dept-tag">Sales</span></td>
+                  <td class="muted">Miguel Santos</td>
+                  <td><label for="row1-bea" style="cursor:pointer;"><span class="badge badge-negative">On PIP</span></label></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-bar">
+            <p>Showing 1–10 of 10</p>
+            <div class="pagination-controls">
+              <button class="btn-ghost" type="button" disabled>Prev</button>
+              <button class="btn-ghost" type="button" disabled>Next</button>
+            </div>
+          </div>
+          </div>
+
+          <!-- new cycle modal -->
+          <div class="modal-overlay" data-m="newcycle">
+            <div class="modal-box narrow">
+              <div class="modal-box-head">
+                <div><h3>Start a new review cycle</h3><p>Opens a draft cycle — managers fill in KPIs next.</p></div>
+                <label class="modal-close" for="newcycle1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="field-grid">
+                <div class="field"><label>Scope</label><select class="plain-input"><option>Company-wide</option><option>Engineering only</option><option>Design only</option><option>Finance only</option><option>Sales only</option><option>Single employee…</option></select></div>
+                <div class="field-grid two">
+                  <div class="field"><label>Cycle type</label><select class="plain-input"><option>Regular</option><option>PIP</option></select></div>
+                  <div class="field"><label>Period</label><select class="plain-input"><option>H2 2026 (Jul–Dec)</option><option>Custom range…</option></select></div>
+                </div>
+              </div>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="newcycle1">Cancel</label>
+                <label class="btn-primary" for="newcycle1">Open cycle</label>
+              </div>
+            </div>
+          </div>
+
+          <!-- per-employee read-only detail modals -->
+          <div class="modal-overlay" data-m="ramon">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Ramon Dela Cruz</h3><p>Engineering Manager · No cycle open for H2 2026 yet</p></div><label class="modal-close" for="row1-ramon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <p class="muted" style="font-size:0.8125rem;">HR opens cycles for department managers same as anyone else — Ramon is reviewed by Andrea Cruz (HR) since he has no manager of his own.</p>
+              <div class="modal-actions"><label class="btn-primary" for="row1-ramon">Open cycle</label></div>
+            </div>
+          </div>
+          <div class="modal-overlay" data-m="mika">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Mikaela Santos</h3><p>H1 2026 · Published Jul 2, 2026 · Reviewed by Ramon Dela Cruz</p></div><label class="modal-close" for="row1-mika"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <div class="rating-hero"><div><p class="card-label" style="color:#A9B4CB;">Overall rating</p><p class="num">4.3 <span style="font-size:1rem;font-family:var(--font-body);color:#C7CEDE;">/ 5</span></p></div></div>
+              <div class="table-wrap" style="padding:0;"><table class="kpitable"><thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead><tbody>
+                <tr><td><p class="name">Reduce checkout page load time</p></td><td class="muted">&lt;2.5s p95</td><td class="muted">2.1s p95</td><td class="mono">5/5</td></tr>
+                <tr><td><p class="name">Code review turnaround</p></td><td class="muted">&lt;24h avg</td><td class="muted">20h avg</td><td class="mono">4/5</td></tr>
+              </tbody></table></div>
+              <p class="muted" style="font-size:0.75rem;">Read-only — scoring stays with the direct manager. H2 2026 cycle not yet opened.</p>
+            </div>
+          </div>
+          <div class="modal-overlay" data-m="paolo">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Paolo Villanueva</h3><p>H1 2026 · Cycle ended Jun 30 — awaiting Ramon's scoring</p></div><label class="modal-close" for="row1-paolo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <div class="inprogress-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Cycle ended 52 days ago — flagged for a manager nudge.</div>
+              <div class="modal-actions"><label class="btn-ghost" for="row1-paolo">Remind Ramon</label></div>
+            </div>
+          </div>
+          <div class="modal-overlay" data-m="carlo">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Carlo Bautista</h3><p>H2 2026 · In progress · Jul 1 – Dec 31, 2026</p></div><label class="modal-close" for="row1-carlo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <p class="muted" style="font-size:0.8125rem;">Scoring opens after the cycle ends Dec 31, 2026. Nothing for HR to do yet.</p>
+            </div>
+          </div>
+          <div class="modal-overlay" data-m="diego">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Diego Reyes <span class="badge badge-negative" style="margin-left:0.4rem;">On PIP</span></h3><p>PIP cycle · Aug 1 – Oct 31, 2026 · Ramon Dela Cruz</p></div><label class="modal-close" for="row1-diego"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <div class="inprogress-note pip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>Running through Oct 31, 2026 — outcome (Passed / Not Passed / Extended) recorded at close.</div>
+            </div>
+          </div>
+          <div class="modal-overlay" data-m="grace">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Grace Lim</h3><p>No review cycles on file yet</p></div><label class="modal-close" for="row1-grace"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <p class="muted" style="font-size:0.8125rem;">First cycle not opened — flagged for a Ramon nudge alongside Paolo's scoring.</p>
+              <div class="modal-actions"><label class="btn-ghost" for="row1-grace">Remind Ramon</label></div>
+            </div>
+          </div>
+          <div class="modal-overlay" data-m="isabel">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Isabel Torres</h3><p>H1 2026 · Cycle ended Jun 30 — awaiting Ferdinand's scoring</p></div><label class="modal-close" for="row1-isabel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <div class="inprogress-note"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Cycle ended 52 days ago — flagged for a Ferdinand nudge.</div>
+              <div class="modal-actions"><label class="btn-ghost" for="row1-isabel">Remind Ferdinand</label></div>
+            </div>
+          </div>
+          <div class="modal-overlay" data-m="ferdinand">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Ferdinand Ocampo</h3><p>Finance Manager · No cycle open for H2 2026 yet</p></div><label class="modal-close" for="row1-ferdinand"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <p class="muted" style="font-size:0.8125rem;">Reviewed by Andrea Cruz (HR) since he has no manager of his own.</p>
+              <div class="modal-actions"><label class="btn-primary" for="row1-ferdinand">Open cycle</label></div>
+            </div>
+          </div>
+          <div class="modal-overlay" data-m="miguel">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Miguel Santos</h3><p>H2 2026 · In progress · Jul 1 – Dec 31, 2026</p></div><label class="modal-close" for="row1-miguel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <p class="muted" style="font-size:0.8125rem;">Scoring opens after the cycle ends Dec 31, 2026. Reviewed by Andrea Cruz (HR).</p>
+            </div>
+          </div>
+          <div class="modal-overlay" data-m="bea">
+            <div class="modal-box">
+              <div class="modal-box-head"><div><h3>Bea Fernandez <span class="badge badge-negative" style="margin-left:0.4rem;">On PIP</span></h3><p>PIP cycle · Aug 1 – Oct 31, 2026 · Miguel Santos</p></div><label class="modal-close" for="row1-bea"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label></div>
+              <div class="inprogress-note pip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>Running through Oct 31, 2026 — outcome (Passed / Not Passed / Extended) recorded at close.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The most familiar admin-list shape — one flat, searchable, filterable roster, closest to
+              decisions/ux-pages/people-directory.html's Option 1. Every employee is one scroll away, and
+              department/status chips narrow it fast.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>HR is hunting for one specific person or a specific status ("show me everyone on PIP"). Doesn't
+              surface which department is falling behind without manually filtering dept by dept.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — DEPARTMENTS, ROLLED UP ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Performance reviews</h2>
+              <p>H2 2026 · by department</p>
+            </div>
+            <label class="btn-primary" for="newcycle2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Start new cycle</label>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat-tile dot-neutral"><span class="num mono">4</span><span class="lbl">Not started</span></div>
+            <div class="stat-tile dot-caution"><span class="num mono">2</span><span class="lbl">Needs scoring</span></div>
+            <div class="stat-tile dot-caution"><span class="num mono">2</span><span class="lbl">In progress</span></div>
+            <div class="stat-tile dot-negative"><span class="num mono">2</span><span class="lbl">On PIP</span></div>
+          </div>
+
+          <div style="margin-top:1.25rem;">
+            <div class="dept-section">
+              <label class="dept-head" for="adept1" data-d="1">
+                <h3>Engineering</h3><span class="count">5 people</span>
+                <div class="spacer"></div>
+                <div class="dept-progress"><div class="track"><div class="fill" style="width:0%"></div></div><span class="frac mono">0/5 published</span></div>
+                <button class="btn-ghost small" type="button" onclick="event.preventDefault()">Remind managers</button>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </label>
+              <div class="dept-body" data-d="1">
+                <div class="dept-row"><div class="who"><span class="avatar">RD</span><div><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div></div><span class="badge badge-neutral">Not started</span></div>
+                <div class="dept-row"><div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div><span class="badge badge-neutral">Not started</span></div>
+                <div class="dept-row"><div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div><span class="badge badge-caution">Needs scoring</span></div>
+                <div class="dept-row"><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div><span class="badge badge-caution">In progress</span></div>
+                <div class="dept-row"><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div><span class="badge badge-negative">On PIP</span></div>
+              </div>
+            </div>
+
+            <div class="dept-section">
+              <label class="dept-head" for="adept2" data-d="2">
+                <h3>Design</h3><span class="count">1 person</span>
+                <div class="spacer"></div>
+                <div class="dept-progress"><div class="track"><div class="fill" style="width:0%"></div></div><span class="frac mono">0/1 published</span></div>
+                <button class="btn-ghost small" type="button" onclick="event.preventDefault()">Remind managers</button>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </label>
+              <div class="dept-body" data-d="2">
+                <div class="dept-row"><div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div><span class="badge badge-neutral">Not started</span></div>
+              </div>
+            </div>
+
+            <div class="dept-section">
+              <label class="dept-head" for="adept3" data-d="3">
+                <h3>Finance</h3><span class="count">2 people</span>
+                <div class="spacer"></div>
+                <div class="dept-progress"><div class="track"><div class="fill" style="width:0%"></div></div><span class="frac mono">0/2 published</span></div>
+                <button class="btn-ghost small" type="button" onclick="event.preventDefault()">Remind managers</button>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </label>
+              <div class="dept-body" data-d="3">
+                <div class="dept-row"><div class="who"><span class="avatar">FO</span><div><h4>Ferdinand Ocampo</h4><p>Finance Manager</p></div></div><span class="badge badge-neutral">Not started</span></div>
+                <div class="dept-row"><div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div><span class="badge badge-caution">Needs scoring</span></div>
+              </div>
+            </div>
+
+            <div class="dept-section">
+              <label class="dept-head" for="adept4" data-d="4">
+                <h3>Sales</h3><span class="count">2 people</span>
+                <div class="spacer"></div>
+                <div class="dept-progress"><div class="track"><div class="fill" style="width:0%"></div></div><span class="frac mono">0/2 published</span></div>
+                <button class="btn-ghost small" type="button" onclick="event.preventDefault()">Remind managers</button>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </label>
+              <div class="dept-body" data-d="4">
+                <div class="dept-row"><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div><span class="badge badge-caution">In progress</span></div>
+                <div class="dept-row"><div class="who"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div><span class="badge badge-negative">On PIP</span></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal-overlay" data-m="newcycle">
+            <div class="modal-box narrow">
+              <div class="modal-box-head">
+                <div><h3>Start a new review cycle</h3><p>Opens a draft cycle — managers fill in KPIs next.</p></div>
+                <label class="modal-close" for="newcycle2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="field-grid">
+                <div class="field"><label>Scope</label><select class="plain-input"><option>Company-wide</option><option>Engineering only</option><option>Design only</option><option>Finance only</option><option>Sales only</option><option>Single employee…</option></select></div>
+                <div class="field-grid two">
+                  <div class="field"><label>Cycle type</label><select class="plain-input"><option>Regular</option><option>PIP</option></select></div>
+                  <div class="field"><label>Period</label><select class="plain-input"><option>H2 2026 (Jul–Dec)</option><option>Custom range…</option></select></div>
+                </div>
+              </div>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="newcycle2">Cancel</label>
+                <label class="btn-primary" for="newcycle2">Open cycle</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Progress is visible at the level HR actually acts on — a department — with a company-wide stat
+              strip on top for the whole-org number. "0/5 published" tells you Engineering is behind before you
+              open a single row.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>HR runs a monthly check-in on cycle health across the org and needs to know which manager to
+              chase. Costs an extra click to reach any one person, compared to Option 1's flat search.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — CYCLES, FIRST ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Performance reviews</h2>
+              <p>4 cycles on file · 2 need attention</p>
+            </div>
+            <label class="btn-primary" for="newcycle3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>New cycle</label>
+          </div>
+
+          <div class="cycle-list" style="margin-top:1.25rem;">
+
+            <div class="cycle-card" data-c="1">
+              <label class="cycle-summary" for="cy1">
+                <div class="cy-id"><h4>H1 2026 <span class="badge badge-positive">Closed</span></h4><p>Jan 1 – Jun 30, 2026 · Regular</p></div>
+                <span class="cy-scope">Company-wide</span>
+                <div class="cy-spacer"></div>
+                <div class="cy-progress"><div class="track"><div class="fill" style="width:10%"></div></div><span class="frac mono">1/10 published</span></div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </label>
+              <div class="cycle-body">
+                <div class="cycle-roster">
+                  <div class="crow"><div class="who"><span class="avatar">MS</span><div><h5>Mikaela Santos</h5><p>Ramon Dela Cruz</p></div></div><span class="badge badge-positive">Published · 4.3/5</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">PV</span><div><h5>Paolo Villanueva</h5><p>Ramon Dela Cruz</p></div></div><span class="badge badge-caution">Needs scoring</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">IT</span><div><h5>Isabel Torres</h5><p>Ferdinand Ocampo</p></div></div><span class="badge badge-caution">Needs scoring</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">RD</span><div><h5>Ramon Dela Cruz</h5><p>Andrea Cruz (HR)</p></div></div><span class="badge badge-neutral">Never opened</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">GL</span><div><h5>Grace Lim</h5><p>Ramon Dela Cruz</p></div></div><span class="badge badge-neutral">Never opened</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">CB</span><div><h5>Carlo Bautista</h5><p>Ramon Dela Cruz</p></div></div><span class="badge badge-neutral">Never opened</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">DR</span><div><h5>Diego Reyes</h5><p>Ramon Dela Cruz</p></div></div><span class="badge badge-neutral">Never opened</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">FO</span><div><h5>Ferdinand Ocampo</h5><p>Andrea Cruz (HR)</p></div></div><span class="badge badge-neutral">Never opened</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">MS</span><div><h5>Miguel Santos</h5><p>Andrea Cruz (HR)</p></div></div><span class="badge badge-neutral">Never opened</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">BF</span><div><h5>Bea Fernandez</h5><p>Miguel Santos</p></div></div><span class="badge badge-neutral">Never opened</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cycle-card" data-c="2">
+              <label class="cycle-summary" for="cy2">
+                <div class="cy-id"><h4>H2 2026 <span class="badge badge-caution">Open</span></h4><p>Jul 1 – Dec 31, 2026 · Regular</p></div>
+                <span class="cy-scope">Engineering, Sales</span>
+                <div class="cy-spacer"></div>
+                <div class="cy-progress"><div class="track"><div class="fill" style="width:0%"></div></div><span class="frac mono">0/2 published</span></div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </label>
+              <div class="cycle-body">
+                <div class="cycle-roster">
+                  <div class="crow"><div class="who"><span class="avatar">CB</span><div><h5>Carlo Bautista</h5><p>Ramon Dela Cruz</p></div></div><span class="badge badge-caution">In progress</span></div>
+                  <div class="crow"><div class="who"><span class="avatar">MS</span><div><h5>Miguel Santos</h5><p>Andrea Cruz (HR)</p></div></div><span class="badge badge-caution">In progress</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cycle-card" data-c="3">
+              <label class="cycle-summary" for="cy3">
+                <div class="cy-id"><h4>PIP — Diego Reyes <span class="badge badge-negative">Open</span></h4><p>Aug 1 – Oct 31, 2026 · PIP</p></div>
+                <span class="cy-scope">Individual</span>
+                <div class="cy-spacer"></div>
+                <div class="cy-progress"><div class="track"><div class="fill" style="width:0%"></div></div><span class="frac mono">Outcome pending</span></div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </label>
+              <div class="cycle-body">
+                <div class="cycle-roster">
+                  <div class="crow"><div class="who"><span class="avatar">DR</span><div><h5>Diego Reyes</h5><p>Ramon Dela Cruz</p></div></div><span class="badge badge-negative">Running · ends Oct 31</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="cycle-card" data-c="4">
+              <label class="cycle-summary" for="cy4">
+                <div class="cy-id"><h4>PIP — Bea Fernandez <span class="badge badge-negative">Open</span></h4><p>Aug 1 – Oct 31, 2026 · PIP</p></div>
+                <span class="cy-scope">Individual</span>
+                <div class="cy-spacer"></div>
+                <div class="cy-progress"><div class="track"><div class="fill" style="width:0%"></div></div><span class="frac mono">Outcome pending</span></div>
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              </label>
+              <div class="cycle-body">
+                <div class="cycle-roster">
+                  <div class="crow"><div class="who"><span class="avatar">BF</span><div><h5>Bea Fernandez</h5><p>Miguel Santos</p></div></div><span class="badge badge-negative">Running · ends Oct 31</span></div>
+                </div>
+              </div>
+            </div>
+
+          </div>
+
+          <div class="modal-overlay" data-m="newcycle">
+            <div class="modal-box narrow">
+              <div class="modal-box-head">
+                <div><h3>Start a new review cycle</h3><p>Creates the cycle — managers fill in KPIs next.</p></div>
+                <label class="modal-close" for="newcycle3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="field-grid">
+                <div class="field"><label>Cycle name</label><input class="plain-input" value="H2 2026" /></div>
+                <div class="field"><label>Scope</label><select class="plain-input"><option>Company-wide</option><option>Engineering only</option><option>Design only</option><option>Finance only</option><option>Sales only</option><option>Single employee…</option></select></div>
+                <div class="field-grid two">
+                  <div class="field"><label>Cycle type</label><select class="plain-input"><option>Regular</option><option>PIP</option></select></div>
+                  <div class="field"><label>Period</label><select class="plain-input"><option>H2 2026 (Jul–Dec)</option><option>Custom range…</option></select></div>
+                </div>
+              </div>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="newcycle3">Cancel</label>
+                <label class="btn-primary" for="newcycle3">Create cycle</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Matches the actual data model and the actual recurring HR task — a cycle
+              (decisions/performance-review-kpi-based-not-form-builder.md's <code>cycle_type</code>/
+              <code>start_date</code>/<code>end_date</code>) is the thing HR opens and closes. "2/10 published"
+              answers "did H1 get done" directly, without tallying badges across a roster by hand — and PIPs
+              read naturally as their own short-lived cycles instead of a special-cased row.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>HR's job here really is running cycles to completion, not browsing people — the god-moments
+              read ("did the company complete this half's reviews") is answered by the page's own headline
+              numbers. Costs a click to find one specific person if you don't already know which cycle they're
+              in, the one thing Option 1's search solves instantly.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

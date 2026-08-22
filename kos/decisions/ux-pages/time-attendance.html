@@ -1,0 +1,790 @@
+<title>HRIS Time &amp; Attendance Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, Andrea Cruz — HR Admin) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.8125rem; flex: 0 0 auto; }
+
+  .greet-block { padding: 1.75rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  /* ---------- toolbar / filters ---------- */
+
+  .toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 1.25rem 2rem 0; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 300px; }
+  .search-wrap svg { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--neutral); }
+  .search-wrap input {
+    width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.1rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); background: var(--white);
+  }
+  .search-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip-filter {
+    flex: 0 0 auto; padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--white); font-size: 0.8125rem; font-weight: 600; color: var(--ink-light); cursor: pointer;
+    transition: background var(--t), color var(--t), border-color var(--t);
+  }
+  .chip-filter.is-active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+  .toolbar-spacer { flex: 1; }
+
+  /* ---------- stat strip ---------- */
+
+  .stat-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 1.25rem 2rem 0; }
+  .stat-tile { background: var(--white); padding: 0.95rem 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .stat-tile .num { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1; }
+  .stat-tile .lbl { font-size: 0.75rem; color: var(--neutral); }
+  .stat-tile.dot-positive .num { color: var(--badge-positive-fg); }
+  .stat-tile.dot-negative .num { color: var(--badge-negative-fg); }
+  .stat-tile.dot-caution .num { color: var(--badge-caution-fg); }
+  .stat-tile.dot-neutral .num { color: var(--ink-light); }
+
+  /* ---------- table (comfortable density) ---------- */
+
+  .table-wrap { overflow-x: auto; padding: 0 2rem; }
+  .cptable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 620px; }
+  .cptable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .cptable td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .cptable tbody tr:hover { background: var(--surface); }
+  .cptable tr:last-child td { border-bottom: none; }
+  .cptable .who { display: flex; align-items: center; gap: 0.65rem; }
+  .cptable .who h4 { font-size: 0.875rem; font-weight: 700; }
+  .cptable .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.05rem; }
+  .cptable .muted { color: var(--neutral); font-size: 0.8125rem; }
+
+  .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem 1.5rem; gap: 1rem; flex-wrap: wrap; }
+  .pagination-bar p { font-size: 0.8125rem; color: var(--neutral); }
+  .pagination-controls { display: flex; gap: 0.4rem; }
+
+  /* ---------- avatar stack ---------- */
+
+  .avatar-stack { display: flex; align-items: center; }
+  .avatar-stack .avatar { width: 28px; height: 28px; font-size: 0.6875rem; border: 2px solid var(--white); margin-left: -8px; }
+  .avatar-stack .avatar:first-child { margin-left: 0; }
+  .avatar-stack .more { width: 28px; height: 28px; border-radius: 999px; background: var(--surface); border: 2px solid var(--white); color: var(--neutral); font-size: 0.625rem; font-weight: 700; display: inline-flex; align-items: center; justify-content: center; margin-left: -8px; }
+
+  .icon-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); color: var(--neutral); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; transition: background var(--t), color var(--t), border-color var(--t); }
+  .icon-btn svg { width: 13px; height: 13px; }
+  .icon-btn:hover { background: var(--surface); color: var(--ink); }
+  .icon-btn.danger:hover { background: var(--badge-negative-bg); color: var(--badge-negative-fg); border-color: #F3C6C6; }
+  .icon-row { display: flex; gap: 0.4rem; }
+
+  /* ---------- section split (Option 1: stacked) ---------- */
+
+  .section-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; padding: 1.25rem 2rem 0; flex-wrap: wrap; }
+  .section-head h3 { font-size: 1rem; font-weight: 700; }
+  .section-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.15rem; }
+  .section-divider { height: 1px; background: var(--border); margin: 1.5rem 2rem 0; }
+
+  /* ---------- shift template cards (Option 2) ---------- */
+
+  .shift-card-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 0.9rem; padding: 1rem 2rem 1.5rem; }
+  .shift-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 1rem 1.1rem; display: flex; flex-direction: column; gap: 0.75rem; }
+  .shift-card .name-row { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .shift-card .name-row input[type="text"] { font-family: var(--font-display); font-weight: 700; font-size: 0.9375rem; color: var(--ink); border: 1px solid transparent; border-radius: 6px; padding: 0.2rem 0.4rem; width: 100%; background: transparent; }
+  .shift-card .name-row input[type="text"]:hover, .shift-card .name-row input[type="text"]:focus { border-color: var(--border); background: var(--surface); outline: none; }
+  .time-range { display: flex; align-items: center; gap: 0.4rem; }
+  .time-range input[type="time"] { font-family: var(--font-mono); font-size: 0.8125rem; border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.5rem; color: var(--ink); background: var(--surface); }
+  .time-range span { color: var(--neutral); font-size: 0.75rem; }
+  .shift-card .foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding-top: 0.6rem; border-top: 1px solid var(--border); }
+  .shift-card .foot .assigned-lbl { font-size: 0.75rem; color: var(--neutral); }
+  .add-shift-card { border: 1px dashed var(--border); border-radius: var(--radius); display: flex; align-items: center; justify-content: center; min-height: 128px; background: transparent; color: var(--neutral); font-weight: 600; font-size: 0.8125rem; cursor: pointer; gap: 0.4rem; transition: border-color var(--t), color var(--t), background var(--t); }
+  .add-shift-card:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,99,10,0.04); }
+  .add-shift-card svg { width: 15px; height: 15px; }
+
+  /* ---------- segmented sub-tabs (Option 2) ---------- */
+
+  .seg2 { display: flex; gap: 0.3rem; padding: 1.25rem 2rem 0; }
+  .seg2 label { padding: 0.5rem 0.95rem; border-radius: 999px; border: 1px solid var(--border); background: var(--white); font-size: 0.8125rem; font-weight: 600; color: var(--ink-light); cursor: pointer; transition: background var(--t), color var(--t), border-color var(--t); }
+  #subtab2a:checked ~ .page .frame-shell[data-n="2"] .seg2 label[for="subtab2a"],
+  #subtab2b:checked ~ .page .frame-shell[data-n="2"] .seg2 label[for="subtab2b"] { background: var(--ink); color: var(--white); border-color: var(--ink); }
+  .subview { display: none; }
+  #subtab2a:checked ~ .page .frame-shell[data-n="2"] .subview[data-v="templates"],
+  #subtab2b:checked ~ .page .frame-shell[data-n="2"] .subview[data-v="attendance"] { display: block; }
+
+  /* ---------- period selector ---------- */
+
+  .period-row { display: flex; align-items: center; gap: 0.6rem; padding: 1.25rem 2rem 0; flex-wrap: wrap; }
+  .period-row .today-label { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--neutral); margin-left: 0.15rem; }
+
+  /* ---------- shift tag on attendance rows ---------- */
+
+  .shift-tag { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; font-weight: 600; color: var(--ink-light); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.15rem 0.5rem; white-space: nowrap; }
+
+  /* ---------- Option 3: side drawer ---------- */
+
+  .tt-scrim { display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.32); z-index: 4; }
+  .tt-drawer { display: none; position: absolute; top: 0; right: 0; bottom: 0; width: min(320px, 88%); background: var(--white); border-left: 1px solid var(--border); box-shadow: var(--shadow-card); z-index: 5; flex-direction: column; overflow-y: auto; }
+  #drawer3:checked ~ .page .frame-shell[data-n="3"] .tt-scrim { display: block; }
+  #drawer3:checked ~ .page .frame-shell[data-n="3"] .tt-drawer { display: flex; }
+  .tt-drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 1.1rem 1.1rem 0.9rem; border-bottom: 1px solid var(--border); }
+  .tt-drawer-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .tt-drawer-body { padding: 1rem 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .tt-drawer-row { border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.85rem; display: flex; flex-direction: column; gap: 0.35rem; }
+  .tt-drawer-row .name-row { display: flex; align-items: center; justify-content: space-between; }
+  .tt-drawer-row .name-row h4 { font-size: 0.875rem; font-weight: 700; }
+  .tt-drawer-row .hours { font-size: 0.8125rem; color: var(--ink-light); }
+  .tt-drawer-row .assigned { font-size: 0.75rem; color: var(--neutral); }
+  .tt-drawer-add { border: 1px dashed var(--border); border-radius: 8px; padding: 0.65rem; text-align: center; color: var(--neutral); font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), color var(--t); }
+  .tt-drawer-add:hover { border-color: var(--accent); color: var(--accent); }
+
+  @media (max-width: 480px) {
+    .toolbar, .table-wrap, .stat-strip, .section-head, .section-divider, .shift-card-grid, .seg2, .period-row { padding-left: 1.25rem; padding-right: 1.25rem; margin-left: 0; margin-right: 0; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" checked />
+<input class="state" type="radio" name="subtab2" id="subtab2a" />
+<input class="state" type="radio" name="subtab2" id="subtab2b" checked />
+<input class="state" type="checkbox" id="drawer3" checked />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Time &amp; Attendance — Shift Templates + Attendance Records — three recommendations</h1>
+      <p class="sub">
+        The HR-Admin workspace under Company → Time &amp; Attendance
+        (decisions/ui/navigation-me-team-company.md), built against
+        projects/hris/features/time-attendance/PLAN.md. That plan bundles
+        two pieces under one feature: a short, company-maintained
+        <code>shift_templates</code> list (name + start/end time) and a
+        per-employee attendance list with a late/undertime flag. All three
+        options below show the same data — what changes is only how the
+        rarely-edited admin config (shift templates) and the frequently
+        checked operational list (attendance records) share one screen.
+      </p>
+      <div class="assumptions">
+        <b>Ahead of the backlog, on purpose:</b> Time &amp; Attendance is
+        post-MVP, customer-dependent (build only if a target customer has a
+        shift-based/hourly workforce) — this mockup exists to compare
+        screen shapes ahead of build. Viewing persona: Andrea Cruz, HR
+        Admin. 3 shift templates, 10 employees, today is Aug 22, 2026.
+        Per decisions/ui/badge-system-four-categories.md, On time gets no
+        badge (the default state) — a badge appears only for
+        <b>Late</b>/<b>Undertime</b> (Caution) or <b>Absent</b> (Negative).
+        Per the plan's own out-of-scope list: no biometric/geolocation
+        punch validation (clock times shown are illustrative digital/manual
+        entries), no rotating schedules or per-day overrides, no
+        auto-feed into payroll OT/deductions, and no night-differential or
+        holiday-pay computation — this is attendance tracking, not pay
+        computation. All content shown is static, illustrative — this is a
+        comparison mockup, not a wired form.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Stacked sections</label>
+      <label for="tab2"><span class="n">02</span> Segmented switch</label>
+      <label for="tab3"><span class="n">03</span> Attendance-first + drawer <span class="chosen-badge">Chosen</span></label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — STACKED SECTIONS, ONE PAGE ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Time &amp; attendance</h2>
+              <p>3 shift templates · 10 employees tracked today</p>
+            </div>
+          </div>
+
+          <div class="section-head">
+            <div>
+              <h3>Shift templates</h3>
+              <p>Company-defined schedules — add or edit as your shift patterns change.</p>
+            </div>
+            <button class="btn-primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>
+              Add shift template
+            </button>
+          </div>
+
+          <div class="table-wrap" style="margin-top:0.9rem;">
+            <table class="cptable">
+              <thead><tr><th>Template</th><th>Hours</th><th>Assigned</th><th>Actions</th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><h4 style="font-size:0.875rem;font-weight:700;">Dayshift</h4></td>
+                  <td class="mono">9:00 AM – 6:00 PM</td>
+                  <td>
+                    <div class="avatar-stack">
+                      <span class="avatar">DR</span><span class="avatar">CB</span><span class="avatar">IT</span><span class="avatar">GL</span>
+                      <span class="more">+3</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="icon-row">
+                      <button class="icon-btn" type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                      <button class="icon-btn danger" type="button" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><h4 style="font-size:0.875rem;font-weight:700;">Midshift</h4></td>
+                  <td class="mono">4:00 PM – 10:00 PM</td>
+                  <td>
+                    <div class="avatar-stack">
+                      <span class="avatar">MS</span><span class="avatar">RD</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="icon-row">
+                      <button class="icon-btn" type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                      <button class="icon-btn danger" type="button" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><h4 style="font-size:0.875rem;font-weight:700;">Graveyard</h4></td>
+                  <td class="mono">10:00 PM – 6:00 AM</td>
+                  <td>
+                    <div class="avatar-stack">
+                      <span class="avatar">PV</span>
+                    </div>
+                  </td>
+                  <td>
+                    <div class="icon-row">
+                      <button class="icon-btn" type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button>
+                      <button class="icon-btn danger" type="button" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="section-divider"></div>
+
+          <div class="section-head">
+            <div>
+              <h3>Attendance records</h3>
+              <p>Today, Aug 22, 2026 · manual and digital punch entries</p>
+            </div>
+            <button class="btn-primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>
+              Record attendance
+            </button>
+          </div>
+
+          <div class="period-row">
+            <span class="chip-filter is-active">Today</span>
+            <span class="chip-filter">This week</span>
+            <span class="chip-filter">This period</span>
+            <span class="today-label">Aug 22, 2026</span>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat-tile dot-positive"><span class="num">6</span><span class="lbl">On time</span></div>
+            <div class="stat-tile dot-caution"><span class="num">2</span><span class="lbl">Late</span></div>
+            <div class="stat-tile dot-caution"><span class="num">1</span><span class="lbl">Undertime</span></div>
+            <div class="stat-tile dot-negative"><span class="num">1</span><span class="lbl">Absent</span></div>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Search employee…" />
+            </div>
+            <div class="chip-row">
+              <span class="chip-filter is-active">All</span>
+              <span class="chip-filter">Late</span>
+              <span class="chip-filter">Undertime</span>
+              <span class="chip-filter">Absent</span>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="margin-top:1rem;">
+            <table class="cptable">
+              <thead><tr><th>Employee</th><th>Shift</th><th>Clock in</th><th>Clock out</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:18 AM</td><td class="mono">6:05 PM</td><td><span class="badge badge-caution">Late 18m</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">8:57 AM</td><td class="mono">6:00 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:02 AM</td><td class="mono">4:45 PM</td><td><span class="badge badge-caution">Undertime 1h15m</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">—</td><td class="mono">—</td><td><span class="badge badge-negative">Absent</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">8:50 AM</td><td class="mono">6:03 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">FO</span><div><h4>Ferdinand Ocampo</h4><p>Finance Manager</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:01 AM</td><td class="mono">6:00 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:00 AM</td><td class="mono">6:01 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div></td><td><span class="shift-tag">Midshift</span></td><td class="mono">4:00 PM</td><td class="mono">10:00 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">RD</span><div><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div></div></td><td><span class="shift-tag">Midshift</span></td><td class="mono">4:22 PM</td><td class="mono">10:00 PM</td><td><span class="badge badge-caution">Late 22m</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div></td><td><span class="shift-tag">Graveyard</span></td><td class="mono">10:05 PM</td><td class="mono">6:00 AM</td><td class="muted">On time</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-bar">
+            <p>Showing 1–10 of 10</p>
+            <div class="pagination-controls">
+              <button class="btn-ghost" type="button" disabled>Prev</button>
+              <button class="btn-ghost" type="button" disabled>Next</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Everything visible in one scroll, no clicks to reach either piece — a fair match for a
+              feature the plan frames as small on both sides (a short template list, a comparison-only
+              attendance flag). Reuses only components already decided elsewhere (stat-strip, cptable,
+              toolbar chips) plus one new avatar-stack cell.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Gives a config table edited maybe once a quarter the same visual weight and page-top
+              real estate as the list HR actually opens every day — and on a larger roster this page
+              gets long before the attendance table (the part that matters most, day to day) even
+              comes into view.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — SEGMENTED SWITCH ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Time &amp; attendance</h2>
+              <p>3 shift templates · 10 employees tracked today</p>
+            </div>
+          </div>
+
+          <div class="seg2">
+            <label for="subtab2a">Shift templates</label>
+            <label for="subtab2b">Attendance records</label>
+          </div>
+
+          <!-- SHIFT TEMPLATES subview -->
+          <div class="subview" data-v="templates">
+            <div class="shift-card-grid">
+              <div class="shift-card">
+                <div class="name-row">
+                  <input type="text" value="Dayshift" />
+                  <button class="icon-btn danger" type="button" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                </div>
+                <div class="time-range">
+                  <input type="time" value="09:00" /><span>–</span><input type="time" value="18:00" />
+                </div>
+                <div class="foot">
+                  <div class="avatar-stack">
+                    <span class="avatar">DR</span><span class="avatar">CB</span><span class="avatar">IT</span><span class="more">+4</span>
+                  </div>
+                  <span class="assigned-lbl">7 employees</span>
+                </div>
+              </div>
+              <div class="shift-card">
+                <div class="name-row">
+                  <input type="text" value="Midshift" />
+                  <button class="icon-btn danger" type="button" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                </div>
+                <div class="time-range">
+                  <input type="time" value="16:00" /><span>–</span><input type="time" value="22:00" />
+                </div>
+                <div class="foot">
+                  <div class="avatar-stack">
+                    <span class="avatar">MS</span><span class="avatar">RD</span>
+                  </div>
+                  <span class="assigned-lbl">2 employees</span>
+                </div>
+              </div>
+              <div class="shift-card">
+                <div class="name-row">
+                  <input type="text" value="Graveyard" />
+                  <button class="icon-btn danger" type="button" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button>
+                </div>
+                <div class="time-range">
+                  <input type="time" value="22:00" /><span>–</span><input type="time" value="06:00" />
+                </div>
+                <div class="foot">
+                  <div class="avatar-stack">
+                    <span class="avatar">PV</span>
+                  </div>
+                  <span class="assigned-lbl">1 employee</span>
+                </div>
+              </div>
+              <button class="add-shift-card" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>
+                Add shift template
+              </button>
+            </div>
+          </div>
+
+          <!-- ATTENDANCE RECORDS subview -->
+          <div class="subview" data-v="attendance">
+            <div class="period-row" style="padding-top:1rem;">
+              <span class="chip-filter is-active">Today</span>
+              <span class="chip-filter">This week</span>
+              <span class="chip-filter">This period</span>
+              <span class="today-label">Aug 22, 2026</span>
+              <span class="toolbar-spacer"></span>
+              <button class="btn-primary" type="button" style="margin-right:2rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>
+                Record attendance
+              </button>
+            </div>
+
+            <div class="stat-strip">
+              <div class="stat-tile dot-positive"><span class="num">6</span><span class="lbl">On time</span></div>
+              <div class="stat-tile dot-caution"><span class="num">2</span><span class="lbl">Late</span></div>
+              <div class="stat-tile dot-caution"><span class="num">1</span><span class="lbl">Undertime</span></div>
+              <div class="stat-tile dot-negative"><span class="num">1</span><span class="lbl">Absent</span></div>
+            </div>
+
+            <div class="toolbar">
+              <div class="search-wrap">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+                <input type="text" placeholder="Search employee…" />
+              </div>
+              <div class="chip-row">
+                <span class="chip-filter is-active">All</span>
+                <span class="chip-filter">Late</span>
+                <span class="chip-filter">Undertime</span>
+                <span class="chip-filter">Absent</span>
+              </div>
+            </div>
+
+            <div class="table-wrap" style="margin-top:1rem;">
+              <table class="cptable">
+                <thead><tr><th>Employee</th><th>Shift</th><th>Clock in</th><th>Clock out</th><th>Status</th></tr></thead>
+                <tbody>
+                  <tr><td><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:18 AM</td><td class="mono">6:05 PM</td><td><span class="badge badge-caution">Late 18m</span></td></tr>
+                  <tr><td><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">8:57 AM</td><td class="mono">6:00 PM</td><td class="muted">On time</td></tr>
+                  <tr><td><div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:02 AM</td><td class="mono">4:45 PM</td><td><span class="badge badge-caution">Undertime 1h15m</span></td></tr>
+                  <tr><td><div class="who"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">—</td><td class="mono">—</td><td><span class="badge badge-negative">Absent</span></td></tr>
+                  <tr><td><div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">8:50 AM</td><td class="mono">6:03 PM</td><td class="muted">On time</td></tr>
+                  <tr><td><div class="who"><span class="avatar">FO</span><div><h4>Ferdinand Ocampo</h4><p>Finance Manager</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:01 AM</td><td class="mono">6:00 PM</td><td class="muted">On time</td></tr>
+                  <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:00 AM</td><td class="mono">6:01 PM</td><td class="muted">On time</td></tr>
+                  <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div></td><td><span class="shift-tag">Midshift</span></td><td class="mono">4:00 PM</td><td class="mono">10:00 PM</td><td class="muted">On time</td></tr>
+                  <tr><td><div class="who"><span class="avatar">RD</span><div><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div></div></td><td><span class="shift-tag">Midshift</span></td><td class="mono">4:22 PM</td><td class="mono">10:00 PM</td><td><span class="badge badge-caution">Late 22m</span></td></tr>
+                  <tr><td><div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div></td><td><span class="shift-tag">Graveyard</span></td><td class="mono">10:05 PM</td><td class="mono">6:00 AM</td><td class="muted">On time</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="pagination-bar">
+              <p>Showing 1–10 of 10</p>
+              <div class="pagination-controls">
+                <button class="btn-ghost" type="button" disabled>Prev</button>
+                <button class="btn-ghost" type="button" disabled>Next</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Cleanly separates two genuinely different admin tasks so each gets full width — shift
+              cards get room for inline name/time editing, the attendance table isn't squeezed under a
+              second header. Defaults to Attendance records, since that's the list the plan describes
+              HR opening "daily/period," not the templates.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Reaching shift templates — e.g. right after adding a new hire who needs a shift assigned
+              — now takes a click instead of a scroll, and the two views can never be seen side by side
+              even though a template's own row (assigned count) is really a summary of the same
+              attendance data.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — ATTENDANCE-FIRST + TEMPLATES DRAWER ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Time &amp; attendance</h2>
+              <p>10 employees tracked today · 3 shift templates configured</p>
+            </div>
+          </div>
+
+          <div class="period-row">
+            <span class="chip-filter is-active">Today</span>
+            <span class="chip-filter">This week</span>
+            <span class="chip-filter">This period</span>
+            <span class="today-label">Aug 22, 2026</span>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat-tile dot-positive"><span class="num">6</span><span class="lbl">On time</span></div>
+            <div class="stat-tile dot-caution"><span class="num">2</span><span class="lbl">Late</span></div>
+            <div class="stat-tile dot-caution"><span class="num">1</span><span class="lbl">Undertime</span></div>
+            <div class="stat-tile dot-negative"><span class="num">1</span><span class="lbl">Absent</span></div>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Search employee…" />
+            </div>
+            <div class="chip-row">
+              <span class="chip-filter is-active">All</span>
+              <span class="chip-filter">Late</span>
+              <span class="chip-filter">Undertime</span>
+              <span class="chip-filter">Absent</span>
+            </div>
+            <div class="toolbar-spacer"></div>
+            <label for="drawer3" class="btn-ghost">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>
+              Manage shift templates
+            </label>
+            <button class="btn-primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5v14"/></svg>
+              Record attendance
+            </button>
+          </div>
+
+          <div class="table-wrap" style="margin-top:1rem;">
+            <table class="cptable">
+              <thead><tr><th>Employee</th><th>Shift</th><th>Clock in</th><th>Clock out</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:18 AM</td><td class="mono">6:05 PM</td><td><span class="badge badge-caution">Late 18m</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">8:57 AM</td><td class="mono">6:00 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:02 AM</td><td class="mono">4:45 PM</td><td><span class="badge badge-caution">Undertime 1h15m</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">—</td><td class="mono">—</td><td><span class="badge badge-negative">Absent</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">8:50 AM</td><td class="mono">6:03 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">FO</span><div><h4>Ferdinand Ocampo</h4><p>Finance Manager</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:01 AM</td><td class="mono">6:00 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div></td><td><span class="shift-tag">Dayshift</span></td><td class="mono">9:00 AM</td><td class="mono">6:01 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div></td><td><span class="shift-tag">Midshift</span></td><td class="mono">4:00 PM</td><td class="mono">10:00 PM</td><td class="muted">On time</td></tr>
+                <tr><td><div class="who"><span class="avatar">RD</span><div><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div></div></td><td><span class="shift-tag">Midshift</span></td><td class="mono">4:22 PM</td><td class="mono">10:00 PM</td><td><span class="badge badge-caution">Late 22m</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div></td><td><span class="shift-tag">Graveyard</span></td><td class="mono">10:05 PM</td><td class="mono">6:00 AM</td><td class="muted">On time</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-bar">
+            <p>Showing 1–10 of 10</p>
+            <div class="pagination-controls">
+              <button class="btn-ghost" type="button" disabled>Prev</button>
+              <button class="btn-ghost" type="button" disabled>Next</button>
+            </div>
+          </div>
+
+          <div class="tt-scrim"></div>
+          <div class="tt-drawer">
+            <div class="tt-drawer-head">
+              <h3>Shift templates</h3>
+              <label for="drawer3" class="icon-btn" title="Close" style="cursor:pointer;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>
+              </label>
+            </div>
+            <div class="tt-drawer-body">
+              <div class="tt-drawer-row">
+                <div class="name-row"><h4>Dayshift</h4><button class="icon-btn" type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button></div>
+                <p class="hours mono">9:00 AM – 6:00 PM</p>
+                <p class="assigned">7 employees assigned</p>
+              </div>
+              <div class="tt-drawer-row">
+                <div class="name-row"><h4>Midshift</h4><button class="icon-btn" type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button></div>
+                <p class="hours mono">4:00 PM – 10:00 PM</p>
+                <p class="assigned">2 employees assigned</p>
+              </div>
+              <div class="tt-drawer-row">
+                <div class="name-row"><h4>Graveyard</h4><button class="icon-btn" type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg></button></div>
+                <p class="hours mono">10:00 PM – 6:00 AM</p>
+                <p class="assigned">1 employee assigned</p>
+              </div>
+              <div class="tt-drawer-add">+ Add shift template</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Matches actual usage frequency: attendance is what HR opens daily/weekly per the plan's
+              own wording, shift templates are a "short company-maintained list" edited occasionally —
+              so config sits one click away in a drawer instead of sharing the primary sightline. The
+              Shift column tag on every row keeps the template→employee link visible without a second
+              screen. Drawer shown open here purely for this comparison.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>The drawer floats over the table rather than sitting beside it, so editing a template
+              while cross-checking a specific attendance row means opening and closing it repeatedly;
+              on a narrow viewport it would also cover most of the table width underneath.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

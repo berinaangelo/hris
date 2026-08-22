@@ -1,0 +1,642 @@
+<title>HRIS Add Employee Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  .demo-strip { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: var(--neutral); flex-wrap: wrap; }
+  .demo-strip label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--white); }
+  .demo-strip input { accent-color: var(--accent); }
+
+  /* ---------- shared app nav (Company active) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+  .back-link { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: #C7CEDE; text-decoration: none; }
+  .back-link svg { width: 14px; height: 14px; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.6rem 1rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+  .btn-ghost:disabled { opacity: 0.4; cursor: not-allowed; }
+
+  .btn-text { background: none; border: none; color: var(--accent); font-weight: 600; font-size: 0.8125rem; cursor: pointer; padding: 0.3rem 0.1rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+  .btn-text svg { width: 13px; height: 13px; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.8125rem; flex: 0 0 auto; }
+
+  /* ---------- form primitives ---------- */
+
+  .form-head { padding: 1.75rem 2rem 0; }
+  .form-head h2 { font-size: 1.25rem; font-weight: 700; }
+  .form-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.3rem; }
+
+  .form-section { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+  .form-section:last-child { border-bottom: none; }
+  .form-section h3 { font-size: 0.9375rem; font-weight: 700; margin-bottom: 1rem; }
+
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.1rem; }
+  .field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .field label { font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+  .field label .opt { font-weight: 500; color: var(--neutral); text-transform: none; }
+  .plain-input {
+    width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  select.plain-input { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23697488' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.6rem center; background-size: 16px; padding-right: 2.2rem; }
+  .plain-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .field-error { display: none; font-size: 0.75rem; color: var(--danger); margin-top: 0.15rem; }
+
+  .upload-zone { border: 1px dashed var(--border); border-radius: 8px; padding: 1.25rem; display: flex; flex-direction: column; align-items: center; gap: 0.5rem; text-align: center; color: var(--neutral); }
+  .upload-zone svg { width: 22px; height: 22px; opacity: 0.7; }
+  .upload-zone p { font-size: 0.8125rem; }
+  .doc-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--border); }
+  .doc-row:last-child { border-bottom: none; }
+  .doc-row svg.file { width: 17px; height: 17px; color: var(--neutral); flex: 0 0 auto; }
+  .doc-row .txt { flex: 1; font-size: 0.875rem; }
+  .icon-btn { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-light); cursor: pointer; }
+  .icon-btn:hover { background: var(--surface); }
+  .icon-btn svg { width: 14px; height: 14px; }
+
+  .save-bar { display: flex; gap: 0.6rem; justify-content: flex-end; padding: 1.25rem 2rem; }
+
+  /* err preview: wrong field via :has() where the trigger is a true ancestor input */
+  .frame-shell:has(#err1:checked) .ae1-email-input,
+  .frame-shell:has(#err2:checked) .ae2-email-input,
+  .frame-shell:has(#err3:checked) .ae3-email-input { border-color: var(--danger); box-shadow: 0 0 0 3px rgba(220,38,38,0.12); }
+  .frame-shell:has(#err1:checked) .ae1-email-error,
+  .frame-shell:has(#err2:checked) .ae2-email-error,
+  .frame-shell:has(#err3:checked) .ae3-email-error { display: block; }
+
+  /* ---------- Option 2: multi-step wizard ---------- */
+
+  .steps-bar { display: flex; align-items: center; gap: 0.5rem; padding: 1.5rem 2rem 0; }
+  .step-dot { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; font-weight: 600; color: var(--neutral); }
+  .step-dot .n { width: 24px; height: 24px; border-radius: 999px; background: var(--surface); color: var(--neutral); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.75rem; flex: 0 0 auto; }
+  .step-dot.is-active { color: var(--ink); }
+  .step-dot.is-active .n { background: var(--accent); color: var(--white); }
+  .step-dot.is-done .n { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .step-line { flex: 1; height: 1px; background: var(--border); min-width: 16px; }
+
+  .wizard-step { display: none; }
+  #wiz1:checked ~ .page .frame-shell[data-n="2"] .wizard-step[data-w="1"],
+  #wiz2:checked ~ .page .frame-shell[data-n="2"] .wizard-step[data-w="2"],
+  #wiz3:checked ~ .page .frame-shell[data-n="2"] .wizard-step[data-w="3"],
+  #wiz4:checked ~ .page .frame-shell[data-n="2"] .wizard-step[data-w="4"] { display: block; }
+  #wiz1:checked ~ .page .frame-shell[data-n="2"] .step-dot[data-w="1"],
+  #wiz2:checked ~ .page .frame-shell[data-n="2"] .step-dot[data-w="2"],
+  #wiz3:checked ~ .page .frame-shell[data-n="2"] .step-dot[data-w="3"],
+  #wiz4:checked ~ .page .frame-shell[data-n="2"] .step-dot[data-w="4"] { color: var(--ink); }
+  #wiz1:checked ~ .page .frame-shell[data-n="2"] .step-dot[data-w="1"] .n,
+  #wiz2:checked ~ .page .frame-shell[data-n="2"] .step-dot[data-w="2"] .n,
+  #wiz3:checked ~ .page .frame-shell[data-n="2"] .step-dot[data-w="3"] .n,
+  #wiz4:checked ~ .page .frame-shell[data-n="2"] .step-dot[data-w="4"] .n { background: var(--accent); color: var(--white); }
+
+  .review-list { display: flex; flex-direction: column; gap: 0.6rem; }
+  .review-list .row { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.875rem; padding: 0.5rem 0; border-bottom: 1px solid var(--border); }
+  .review-list .row span:first-child { color: var(--neutral); }
+  .review-list .row span:last-child { font-weight: 600; text-align: right; }
+
+  /* ---------- Option 3: split, form + live preview ---------- */
+
+  .op3-cols { display: grid; grid-template-columns: 1fr 300px; }
+  @media (max-width: 820px) { .op3-cols { grid-template-columns: 1fr; } }
+  .op3-form { }
+  .op3-preview-col { border-left: 1px solid var(--border); padding: 1.75rem 1.5rem; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.6rem; }
+  @media (max-width: 820px) { .op3-preview-col { border-left: none; border-top: 1px solid var(--border); } }
+  .op3-preview-col .preview-label { align-self: flex-start; }
+  .preview-card { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem; }
+  .preview-card .avatar-lg { width: 44px; height: 44px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.9375rem; }
+  .preview-card h4 { font-size: 0.9375rem; font-weight: 700; }
+  .preview-card .role { font-size: 0.8125rem; color: var(--neutral); }
+  .preview-card .foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+  .preview-card .dept-tag { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--ink-light); background: var(--surface); padding: 0.2rem 0.5rem; border-radius: 999px; }
+  .preview-facts { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.25rem; }
+  .preview-facts .row { display: flex; justify-content: space-between; font-size: 0.75rem; gap: 0.5rem; }
+  .preview-facts .row span:first-child { color: var(--neutral); }
+  .preview-facts .row span:last-child { font-family: var(--font-mono); color: var(--ink); text-align: right; }
+  .preview-note { font-size: 0.75rem; color: var(--neutral); margin-top: 0.4rem; }
+
+  @media (max-width: 480px) {
+    .form-head, .form-section, .save-bar, .steps-bar, .op3-preview-col { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" checked />
+<input class="state" type="radio" name="wiz" id="wiz1" checked />
+<input class="state" type="radio" name="wiz" id="wiz2" />
+<input class="state" type="radio" name="wiz" id="wiz3" />
+<input class="state" type="radio" name="wiz" id="wiz4" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Add Employee — three recommendations</h1>
+      <p class="sub">
+        The HR-Admin creation form under Company → People Directory
+        (decisions/ux-pages/people-directory.html) — the "Add" step of
+        the v1 primary flow: "HR adds an employee once: profile +
+        manager, an onboarding checklist, and any starting documents."
+        What changes across the three is how much structure sits
+        between opening the form and creating the record: one
+        continuous form, a guided multi-step wizard, or a form paired
+        with a live preview of the record being created.
+      </p>
+      <div class="assumptions">
+        <b>Field scope, not yet a decision on file:</b> this form
+        captures only what HR actually knows at hiring time — legal
+        name, a personal email (to send the account-setup invite), and
+        employment facts (title, department, manager, start date, type).
+        Birthdate, mobile, home address, and emergency contact are left
+        for the employee to fill in on first login, per
+        decisions/ui/my-profile-summary-plus-modal.md's existing
+        "employee edits contact/emergency info" split. The onboarding
+        checklist is not configured here — it's a fixed list
+        auto-attached on creation, matching the
+        `Employees::AttachOnboardingChecklist` step in
+        decisions/rails-thin-controllers-organizer-interactor-pattern.md.
+        Starting documents are optional at creation — can always be
+        added later from Employee Detail.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Single-page form</label>
+      <label for="tab2"><span class="n">02</span> Multi-step wizard</label>
+      <label for="tab3"><span class="n">03</span> Split, form + live preview <span class="chosen-badge">Chosen</span></label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — SINGLE-PAGE FORM ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label><input type="checkbox" id="err1" /> Preview validation error</label>
+          <span>— per decisions/ui/form-validation-inline-only.md</span>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <a class="back-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>People Directory</a>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="form-head">
+            <h2>Add employee</h2>
+            <p>Creates the record, routes approvals to the manager you pick, and attaches the standard onboarding checklist automatically.</p>
+          </div>
+
+          <div class="form-section">
+            <h3>Identity &amp; contact</h3>
+            <div class="field-grid">
+              <div class="field"><label for="a1-name">Full legal name</label><input class="plain-input" id="a1-name" type="text" value="Kevin Alonzo" /></div>
+              <div class="field">
+                <label for="a1-email">Personal email <span class="opt">— for the account-setup invite</span></label>
+                <input class="plain-input ae1-email-input" id="a1-email" type="email" value="kevin.alonzo@gmail" />
+                <p class="field-error ae1-email-error">Enter a valid email address.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Org position</h3>
+            <div class="field-grid">
+              <div class="field"><label for="a1-title">Job title</label><input class="plain-input" id="a1-title" type="text" value="Backend Engineer" /></div>
+              <div class="field"><label for="a1-dept">Department</label><input class="plain-input" id="a1-dept" type="text" value="Engineering" /></div>
+              <div class="field">
+                <label for="a1-mgr">Manager <span class="opt">— optional</span></label>
+                <select class="plain-input" id="a1-mgr">
+                  <option>Ramon Dela Cruz — Engineering Manager</option>
+                  <option>Ferdinand Ocampo — Finance Manager</option>
+                  <option>Miguel Santos — Sales Lead</option>
+                  <option>No manager (reports to leadership)</option>
+                </select>
+              </div>
+              <div class="field"><label for="a1-start">Start date</label><input class="plain-input" id="a1-start" type="text" value="Sep 1, 2026" /></div>
+              <div class="field">
+                <label for="a1-type">Employment type</label>
+                <select class="plain-input" id="a1-type">
+                  <option>Regular</option>
+                  <option>Probationary</option>
+                  <option>Project-Based</option>
+                </select>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-section">
+            <h3>Starting documents <span class="opt" style="font-weight:500;font-size:0.8125rem;">— optional, can add later</span></h3>
+            <div class="doc-row">
+              <svg class="file" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg>
+              <span class="txt">Employment_Contract_Kevin_Alonzo.pdf</span>
+              <button class="icon-btn" title="Remove"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
+            </div>
+            <div class="upload-zone" style="margin-top:0.75rem;">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+              <p>Drag files here, or <span class="btn-text" style="display:inline;padding:0;">browse</span></p>
+            </div>
+          </div>
+
+          <div class="save-bar">
+            <button class="btn-ghost" type="button">Cancel</button>
+            <button class="btn-primary" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add employee</button>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Fastest to build and fastest to use — HR already knows every fact before opening this
+              form (it comes from the hiring decision itself), so there's nothing to progressively
+              disclose. Seven fields plus an optional upload doesn't need pacing.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>An admin adding employees regularly wants to move fast. Less forgiving for someone doing
+              this for the first time — the whole form is visible at once, with no guidance on order.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — MULTI-STEP WIZARD ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label><input type="checkbox" id="err2" /> Preview validation error</label>
+          <span>— per decisions/ui/form-validation-inline-only.md; select step 1 to see it</span>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <a class="back-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>People Directory</a>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="form-head" style="padding-bottom:0;">
+            <h2>Add employee</h2>
+          </div>
+
+          <div class="steps-bar">
+            <label class="step-dot" data-w="1" for="wiz1"><span class="n">1</span>Identity</label>
+            <div class="step-line"></div>
+            <label class="step-dot" data-w="2" for="wiz2"><span class="n">2</span>Org Position</label>
+            <div class="step-line"></div>
+            <label class="step-dot" data-w="3" for="wiz3"><span class="n">3</span>Documents</label>
+            <div class="step-line"></div>
+            <label class="step-dot" data-w="4" for="wiz4"><span class="n">4</span>Review</label>
+          </div>
+
+          <div class="wizard-step" data-w="1">
+            <div class="form-section" style="border-bottom:none;">
+              <h3>Identity &amp; contact</h3>
+              <div class="field-grid">
+                <div class="field"><label for="a2-name">Full legal name</label><input class="plain-input" id="a2-name" type="text" value="Kevin Alonzo" /></div>
+                <div class="field">
+                  <label for="a2-email">Personal email <span class="opt">— for the account-setup invite</span></label>
+                  <input class="plain-input ae2-email-input" id="a2-email" type="email" value="kevin.alonzo@gmail" />
+                  <p class="field-error ae2-email-error">Enter a valid email address.</p>
+                </div>
+              </div>
+            </div>
+            <div class="save-bar">
+              <label class="btn-ghost" for="wiz2">Next: Org Position</label>
+            </div>
+          </div>
+
+          <div class="wizard-step" data-w="2">
+            <div class="form-section" style="border-bottom:none;">
+              <h3>Org position</h3>
+              <div class="field-grid">
+                <div class="field"><label for="a2-title">Job title</label><input class="plain-input" id="a2-title" type="text" value="Backend Engineer" /></div>
+                <div class="field"><label for="a2-dept">Department</label><input class="plain-input" id="a2-dept" type="text" value="Engineering" /></div>
+                <div class="field">
+                  <label for="a2-mgr">Manager <span class="opt">— optional</span></label>
+                  <select class="plain-input" id="a2-mgr">
+                    <option>Ramon Dela Cruz — Engineering Manager</option>
+                    <option>Ferdinand Ocampo — Finance Manager</option>
+                    <option>Miguel Santos — Sales Lead</option>
+                    <option>No manager (reports to leadership)</option>
+                  </select>
+                </div>
+                <div class="field"><label for="a2-start">Start date</label><input class="plain-input" id="a2-start" type="text" value="Sep 1, 2026" /></div>
+                <div class="field">
+                  <label for="a2-type">Employment type</label>
+                  <select class="plain-input" id="a2-type">
+                    <option>Regular</option>
+                    <option>Probationary</option>
+                    <option>Project-Based</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div class="save-bar">
+              <label class="btn-ghost" for="wiz1">Back</label>
+              <label class="btn-ghost" for="wiz3">Next: Documents</label>
+            </div>
+          </div>
+
+          <div class="wizard-step" data-w="3">
+            <div class="form-section" style="border-bottom:none;">
+              <h3>Starting documents <span class="opt" style="font-weight:500;font-size:0.8125rem;">— optional</span></h3>
+              <div class="upload-zone">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+                <p>Drag files here, or <span class="btn-text" style="display:inline;padding:0;">browse</span></p>
+              </div>
+            </div>
+            <div class="save-bar">
+              <label class="btn-ghost" for="wiz2">Back</label>
+              <label class="btn-ghost" for="wiz4">Skip for now</label>
+              <label class="btn-primary" for="wiz4">Next: Review</label>
+            </div>
+          </div>
+
+          <div class="wizard-step" data-w="4">
+            <div class="form-section" style="border-bottom:none;">
+              <h3>Review</h3>
+              <div class="review-list">
+                <div class="row"><span>Full legal name</span><span>Kevin Alonzo</span></div>
+                <div class="row"><span>Personal email</span><span>kevin.alonzo@gmail.com</span></div>
+                <div class="row"><span>Job title</span><span>Backend Engineer</span></div>
+                <div class="row"><span>Department</span><span>Engineering</span></div>
+                <div class="row"><span>Manager</span><span>Ramon Dela Cruz</span></div>
+                <div class="row"><span>Start date</span><span class="mono">Sep 1, 2026</span></div>
+                <div class="row"><span>Employment type</span><span>Regular</span></div>
+                <div class="row"><span>Documents</span><span>None added</span></div>
+              </div>
+            </div>
+            <div class="save-bar">
+              <label class="btn-ghost" for="wiz3">Back</label>
+              <button class="btn-primary" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add employee</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Breaks the form into digestible steps and makes the documents step's optional, skippable
+              nature explicit rather than implied by a label. A Review step catches mistakes before the
+              record is created.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Someone new to the system benefits from guidance. At seven fields total, this is arguably
+              more ceremony than the form needs — the same "don't build more structure than the content
+              requires" reasoning the project has used against configurable multi-step approval chains.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — SPLIT, FORM + LIVE PREVIEW ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label><input type="checkbox" id="err3" /> Preview validation error</label>
+          <span>— per decisions/ui/form-validation-inline-only.md</span>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <a class="back-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>People Directory</a>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="op3-cols">
+            <div class="op3-form">
+              <div class="form-head">
+                <h2>Add employee</h2>
+                <p>The card on the right shows exactly how this record will look in the People Directory.</p>
+              </div>
+
+              <div class="form-section">
+                <h3>Identity &amp; contact</h3>
+                <div class="field-grid">
+                  <div class="field"><label for="a3-name">Full legal name</label><input class="plain-input" id="a3-name" type="text" value="Kevin Alonzo" /></div>
+                  <div class="field">
+                    <label for="a3-email">Personal email <span class="opt">— for the account-setup invite</span></label>
+                    <input class="plain-input ae3-email-input" id="a3-email" type="email" value="kevin.alonzo@gmail" />
+                    <p class="field-error ae3-email-error">Enter a valid email address.</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>Org position</h3>
+                <div class="field-grid">
+                  <div class="field"><label for="a3-title">Job title</label><input class="plain-input" id="a3-title" type="text" value="Backend Engineer" /></div>
+                  <div class="field"><label for="a3-dept">Department</label><input class="plain-input" id="a3-dept" type="text" value="Engineering" /></div>
+                  <div class="field">
+                    <label for="a3-mgr">Manager <span class="opt">— optional</span></label>
+                    <select class="plain-input" id="a3-mgr">
+                      <option>Ramon Dela Cruz — Engineering Manager</option>
+                      <option>Ferdinand Ocampo — Finance Manager</option>
+                      <option>Miguel Santos — Sales Lead</option>
+                      <option>No manager (reports to leadership)</option>
+                    </select>
+                  </div>
+                  <div class="field"><label for="a3-start">Start date</label><input class="plain-input" id="a3-start" type="text" value="Sep 1, 2026" /></div>
+                  <div class="field">
+                    <label for="a3-type">Employment type</label>
+                    <select class="plain-input" id="a3-type">
+                      <option>Regular</option>
+                      <option>Probationary</option>
+                      <option>Project-Based</option>
+                    </select>
+                  </div>
+                </div>
+              </div>
+
+              <div class="form-section">
+                <h3>Starting documents <span class="opt" style="font-weight:500;font-size:0.8125rem;">— optional, can add later</span></h3>
+                <div class="upload-zone">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5M12 3v12"/></svg>
+                  <p>Drag files here, or <span class="btn-text" style="display:inline;padding:0;">browse</span></p>
+                </div>
+              </div>
+
+              <div class="save-bar">
+                <button class="btn-ghost" type="button">Cancel</button>
+                <button class="btn-primary" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add employee</button>
+              </div>
+            </div>
+
+            <div class="op3-preview-col">
+              <p class="card-label preview-label">Directory preview</p>
+              <div class="preview-card">
+                <span class="avatar-lg">KA</span>
+                <h4>Kevin Alonzo</h4>
+                <p class="role">Backend Engineer</p>
+                <div class="foot"><span class="dept-tag">Engineering</span><span class="mono" style="font-size:0.75rem;color:var(--neutral);">2026</span></div>
+              </div>
+              <div class="preview-facts">
+                <div class="row"><span>Manager</span><span>Ramon Dela Cruz</span></div>
+                <div class="row"><span>Start date</span><span>Sep 1, 2026</span></div>
+                <div class="row"><span>Type</span><span>Regular</span></div>
+              </div>
+              <p class="preview-note">Updates as you fill in the form — nothing is saved until "Add employee."</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Shows the result, not just the inputs — the exact card this person will get in the People
+              Directory, updating live. Catches a wrong department or misspelled title before it becomes
+              the record every other screen relies on.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Getting it right matters more than raw speed — true here, since the plan's own god moment is
+              "HR adds a hire once and it's correct everywhere, never edited twice." Costs a two-column
+              layout no other v1 form needs, and the live-updating card needs real wiring to actually work
+              (shown here in a filled-in static state).</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

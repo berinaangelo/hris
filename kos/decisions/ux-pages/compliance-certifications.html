@@ -1,0 +1,563 @@
+<title>HRIS Compliance/Certifications Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, Andrea Cruz — HR Admin) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.8125rem; flex: 0 0 auto; }
+
+  .greet-block { padding: 1.75rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  /* ---------- toolbar / filters ---------- */
+
+  .toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 1.25rem 2rem 0; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 300px; }
+  .search-wrap svg { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--neutral); }
+  .search-wrap input {
+    width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.1rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); background: var(--white);
+  }
+  .search-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip-filter {
+    flex: 0 0 auto; padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--white); font-size: 0.8125rem; font-weight: 600; color: var(--ink-light); cursor: pointer;
+    transition: background var(--t), color var(--t), border-color var(--t);
+  }
+  .chip-filter.is-active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+  .toolbar-spacer { flex: 1; }
+
+  /* ---------- stat strip ---------- */
+
+  .stat-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 1.25rem 2rem 0; }
+  .stat-tile { background: var(--white); padding: 0.95rem 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .stat-tile .num { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1; }
+  .stat-tile .lbl { font-size: 0.75rem; color: var(--neutral); }
+  .stat-tile.dot-negative .num { color: var(--badge-negative-fg); }
+  .stat-tile.dot-caution .num { color: var(--badge-caution-fg); }
+  .stat-tile.dot-neutral .num { color: var(--ink-light); }
+
+  /* ---------- table (comfortable density) ---------- */
+
+  .table-wrap { overflow-x: auto; padding: 0 2rem; }
+  .cptable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 620px; }
+  .cptable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .cptable td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .cptable tbody tr:hover { background: var(--surface); }
+  .cptable tr:last-child td { border-bottom: none; }
+  .cptable .who { display: flex; align-items: center; gap: 0.65rem; }
+  .cptable .who h4 { font-size: 0.875rem; font-weight: 700; }
+  .cptable .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.05rem; }
+  .cptable .muted { color: var(--neutral); font-size: 0.8125rem; }
+  .expiry-cell { display: flex; flex-direction: column; gap: 0.15rem; }
+  .expiry-cell .rel { font-size: 0.75rem; color: var(--neutral); }
+  .expiry-cell.is-negative .rel { color: var(--badge-negative-fg); }
+  .expiry-cell.is-caution .rel { color: var(--badge-caution-fg); }
+
+  /* ---------- Option 1: flat sorted table ---------- */
+
+  .pagination-bar { display: flex; align-items: center; justify-content: space-between; padding: 1.25rem 2rem 1.5rem; gap: 1rem; flex-wrap: wrap; }
+  .pagination-bar p { font-size: 0.8125rem; color: var(--neutral); }
+  .pagination-controls { display: flex; gap: 0.4rem; }
+
+  /* ---------- Option 2: urgency-grouped sections ---------- */
+
+  .urgency-section { border-bottom: 1px solid var(--border); }
+  .urgency-section:last-child { border-bottom: none; }
+  .urgency-head { display: flex; align-items: center; gap: 0.75rem; padding: 0.9rem 2rem; }
+  .urgency-head .dot { width: 8px; height: 8px; border-radius: 999px; flex: 0 0 auto; }
+  .urgency-head.negative .dot { background: var(--badge-negative-fg); }
+  .urgency-head.caution .dot { background: var(--badge-caution-fg); }
+  .urgency-head.neutral .dot { background: var(--neutral); }
+  .urgency-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .urgency-head .count { font-family: var(--font-mono); font-size: 0.75rem; color: var(--neutral); }
+  .urgency-head .spacer { flex: 1; }
+  .urgency-head.is-toggle { cursor: pointer; user-select: none; }
+  .urgency-head .chevron { width: 16px; height: 16px; color: var(--neutral); transition: transform var(--t); flex: 0 0 auto; }
+  .urgency-body { display: flex; flex-direction: column; padding: 0 2rem 1rem; gap: 0.15rem; }
+  .urow { display: flex; align-items: center; gap: 0.75rem; padding: 0.6rem 0.75rem; border-radius: 8px; flex-wrap: wrap; }
+  .urow:hover { background: var(--surface); }
+  .urow .who { display: flex; align-items: center; gap: 0.6rem; flex: 1 1 220px; min-width: 0; }
+  .urow .who h4 { font-size: 0.8125rem; font-weight: 600; }
+  .urow .who p { font-size: 0.75rem; color: var(--neutral); }
+  .urow .cert { font-size: 0.8125rem; color: var(--ink-light); flex: 1 1 200px; }
+  .urow .when { display: flex; align-items: center; gap: 0.6rem; flex: 0 0 auto; }
+
+  #validbody2:checked ~ .page .frame-shell[data-n="2"] .urgency-body[data-u="valid"] { display: flex; }
+  #validbody2:checked ~ .page .frame-shell[data-n="2"] .urgency-head[data-u="valid"] .chevron { transform: rotate(90deg); }
+
+  /* ---------- Option 3: pinned needs-attention + full list ---------- */
+
+  .attn-panel { margin: 1.25rem 2rem 0; padding: 1rem 1.1rem; background: var(--badge-caution-bg); border: 1px solid #F4D9AE; border-radius: var(--radius); }
+  .attn-panel-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem; }
+  .attn-panel-head svg { width: 16px; height: 16px; color: var(--badge-caution-fg); flex: 0 0 auto; }
+  .attn-panel-head h3 { font-size: 0.8125rem; font-weight: 700; color: var(--badge-caution-fg); }
+  .attn-strip { display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 0.15rem; }
+  .attn-chip { flex: 0 0 auto; display: flex; align-items: center; gap: 0.55rem; background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.75rem; min-width: 200px; }
+  .attn-chip .avatar { width: 28px; height: 28px; font-size: 0.6875rem; }
+  .attn-chip .txt h5 { font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+  .attn-chip .txt p { font-size: 0.6875rem; color: var(--neutral); white-space: nowrap; margin-top: 0.1rem; }
+  .attn-chip.is-negative .txt p { color: var(--badge-negative-fg); }
+  .attn-chip.is-caution .txt p { color: var(--badge-caution-fg); }
+
+  @media (max-width: 480px) {
+    .toolbar, .table-wrap, .urgency-head, .urgency-body, .stat-strip, .attn-panel { padding-left: 1.25rem; padding-right: 1.25rem; margin-left: 0; margin-right: 0; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" checked />
+<input class="state" type="checkbox" id="validbody2" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Compliance / Certifications — three recommendations</h1>
+      <p class="sub">
+        The HR-Admin workspace under Company → Compliance
+        (decisions/ui/navigation-me-team-company.md), built against
+        projects/hris/features/compliance-certification-tracking/PLAN.md.
+        Per that plan the scope is deliberately tiny — two fields
+        (<code>cert_name</code>, <code>expiry_date</code>) per employee
+        and one HR-facing list sorted by soonest-expiring. All three
+        options below show that same single sorted list; what changes
+        is only how urgency is surfaced within it, since restructuring
+        the list itself (department rollups, a cycle/detail split,
+        etc.) would be scope the plan explicitly doesn't ask for.
+      </p>
+      <div class="assumptions">
+        <b>Ahead of the backlog, on purpose:</b> compliance/certification
+        tracking is post-MVP, customer-dependent (build only if a target
+        customer has licensed staff) — this mockup exists to compare
+        list shapes ahead of build. Viewing persona: Andrea Cruz, HR
+        Admin. 10 certifications on file across 9 employees, today is
+        Aug 22, 2026, notice window is a fixed 30 days (no per-cert
+        configuration, per the plan). Per
+        decisions/ui/badge-system-four-categories.md, a valid
+        certification gets no badge — a badge appears only for
+        <b>Expiring soon</b> (Caution, ≤30 days out) or
+        <b>Expired</b> (Negative). No issuing body, cert number, or
+        document upload — out of scope per the plan. No row detail,
+        edit modal, or employee-facing view is wired here; this is a
+        heads-up list, not an enforcement mechanism. All content shown
+        is static, illustrative — this is a comparison mockup, not a
+        wired form.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Flat sorted list</label>
+      <label for="tab2"><span class="n">02</span> Grouped by urgency</label>
+      <label for="tab3"><span class="n">03</span> Pinned attention + full list <span class="chosen-badge">Chosen</span></label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — FLAT SORTED LIST ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Compliance &amp; certifications</h2>
+              <p>10 certifications on file · 2 expired · 3 expiring within 30 days</p>
+            </div>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat-tile dot-negative"><span class="num">2</span><span class="lbl">Expired</span></div>
+            <div class="stat-tile dot-caution"><span class="num">3</span><span class="lbl">Expiring ≤30 days</span></div>
+            <div class="stat-tile dot-neutral"><span class="num">5</span><span class="lbl">Valid</span></div>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Search employee or certification…" />
+            </div>
+            <div class="chip-row">
+              <span class="chip-filter is-active">All</span>
+              <span class="chip-filter">Expired</span>
+              <span class="chip-filter">Expiring soon</span>
+              <span class="chip-filter">Valid</span>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="margin-top:1rem;">
+            <table class="cptable">
+              <thead><tr><th>Employee</th><th>Certification</th><th>Expiry</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div></td><td class="muted">Forklift Operator Certification</td><td><div class="expiry-cell is-negative"><span class="mono">Jul 15, 2026</span><span class="rel">Expired 38 days ago</span></div></td><td><span class="badge badge-negative">Expired</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div></td><td class="muted">Fire Safety Officer Certification</td><td><div class="expiry-cell is-negative"><span class="mono">Aug 1, 2026</span><span class="rel">Expired 21 days ago</span></div></td><td><span class="badge badge-negative">Expired</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div></td><td class="muted">CPA License Renewal</td><td><div class="expiry-cell is-caution"><span class="mono">Aug 30, 2026</span><span class="rel">Expires in 8 days</span></div></td><td><span class="badge badge-caution">Expiring soon</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div></td><td class="muted">Professional Driver's License</td><td><div class="expiry-cell is-caution"><span class="mono">Sep 5, 2026</span><span class="rel">Expires in 14 days</span></div></td><td><span class="badge badge-caution">Expiring soon</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div></td><td class="muted">First Aid &amp; BLS Certification</td><td><div class="expiry-cell is-caution"><span class="mono">Sep 18, 2026</span><span class="rel">Expires in 27 days</span></div></td><td><span class="badge badge-caution">Expiring soon</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div></td><td class="muted">Security Guard License</td><td><div class="expiry-cell"><span class="mono">Oct 10, 2026</span></div></td><td class="muted">—</td></tr>
+                <tr><td><div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div></td><td class="muted">Forklift Operator Certification</td><td><div class="expiry-cell"><span class="mono">Nov 20, 2026</span></div></td><td class="muted">—</td></tr>
+                <tr><td><div class="who"><span class="avatar">FO</span><div><h4>Ferdinand Ocampo</h4><p>Finance Manager</p></div></div></td><td class="muted">PRC License (Accountancy)</td><td><div class="expiry-cell"><span class="mono">Dec 2, 2026</span></div></td><td class="muted">—</td></tr>
+                <tr><td><div class="who"><span class="avatar">RD</span><div><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div></div></td><td class="muted">NBI Clearance (Employment)</td><td><div class="expiry-cell"><span class="mono">Jan 15, 2027</span></div></td><td class="muted">—</td></tr>
+                <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div></td><td class="muted">First Aid &amp; BLS Certification</td><td><div class="expiry-cell"><span class="mono">Mar 3, 2027</span></div></td><td class="muted">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-bar">
+            <p>Showing 1–10 of 10</p>
+            <div class="pagination-controls">
+              <button class="btn-ghost" type="button" disabled>Prev</button>
+              <button class="btn-ghost" type="button" disabled>Next</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The most literal read of the plan's own wording — "one HR-facing list, sorted by
+              soonest-expiring." No new structure over that list, just the same table/toolbar/badge
+              components already decided elsewhere in the app (people-directory.html,
+              company-reviews.html). Filter chips and the search box are the only affordances added,
+              both reused patterns, not new ones.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>On a long roster, the two expired rows sit at the very top only because expiry sorts
+              ascending — nothing visually separates "already lapsed" from "coming up," so a skimming
+              HR admin could miss the line between them without reading the Status column.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — GROUPED BY URGENCY ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Compliance &amp; certifications</h2>
+              <p>10 certifications on file · 2 expired · 3 expiring within 30 days</p>
+            </div>
+          </div>
+
+          <div class="toolbar" style="padding-bottom:0.5rem;">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Search employee or certification…" />
+            </div>
+          </div>
+
+          <div style="margin-top:0.5rem;">
+
+            <div class="urgency-section">
+              <div class="urgency-head negative"><span class="dot"></span><h3>Expired</h3><span class="count mono">2</span></div>
+              <div class="urgency-body" data-u="expired" style="display:flex;">
+                <div class="urow"><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div><div class="cert">Forklift Operator Certification</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Jul 15, 2026</span><span class="badge badge-negative">38d ago</span></div></div>
+                <div class="urow"><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div><div class="cert">Fire Safety Officer Certification</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Aug 1, 2026</span><span class="badge badge-negative">21d ago</span></div></div>
+              </div>
+            </div>
+
+            <div class="urgency-section">
+              <div class="urgency-head caution"><span class="dot"></span><h3>Expiring within 30 days</h3><span class="count mono">3</span></div>
+              <div class="urgency-body" data-u="soon" style="display:flex;">
+                <div class="urow"><div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div><div class="cert">CPA License Renewal</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Aug 30, 2026</span><span class="badge badge-caution">8d left</span></div></div>
+                <div class="urow"><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div><div class="cert">Professional Driver's License</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Sep 5, 2026</span><span class="badge badge-caution">14d left</span></div></div>
+                <div class="urow"><div class="who"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div><div class="cert">First Aid &amp; BLS Certification</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Sep 18, 2026</span><span class="badge badge-caution">27d left</span></div></div>
+              </div>
+            </div>
+
+            <div class="urgency-section">
+              <label class="urgency-head neutral is-toggle" for="validbody2" data-u="valid">
+                <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                <span class="dot"></span><h3>Valid</h3><span class="count mono">5</span>
+                <span class="spacer"></span>
+                <span class="muted" style="font-size:0.75rem;">Click to expand</span>
+              </label>
+              <div class="urgency-body" data-u="valid">
+                <div class="urow"><div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div><div class="cert">Security Guard License</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Oct 10, 2026</span></div></div>
+                <div class="urow"><div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div><div class="cert">Forklift Operator Certification</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Nov 20, 2026</span></div></div>
+                <div class="urow"><div class="who"><span class="avatar">FO</span><div><h4>Ferdinand Ocampo</h4><p>Finance Manager</p></div></div><div class="cert">PRC License (Accountancy)</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Dec 2, 2026</span></div></div>
+                <div class="urow"><div class="who"><span class="avatar">RD</span><div><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div></div><div class="cert">NBI Clearance (Employment)</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Jan 15, 2027</span></div></div>
+                <div class="urow"><div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div><div class="cert">First Aid &amp; BLS Certification</div><div class="when"><span class="mono" style="font-size:0.8125rem;">Mar 3, 2027</span></div></div>
+              </div>
+            </div>
+
+          </div>
+          <div style="height:1.5rem;"></div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Same 10 rows, same expiry sort within each band — but the two bands that actually need
+              HR action (Expired, Expiring soon) are always open and visually separated by a colored
+              rail, while the five Valid rows collapse behind a click since there's nothing to do
+              about them. Reads as a triage list, not a plain roster dump.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Adds one interaction (the collapse) that Option 1 doesn't need, and the "list sorted by
+              soonest-expiring" from the plan becomes three lists instead of one — a small
+              reinterpretation of a spec that says "one list."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — PINNED ATTENTION + FULL LIST ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <div>
+              <h2>Compliance &amp; certifications</h2>
+              <p>10 certifications on file · 2 expired · 3 expiring within 30 days</p>
+            </div>
+          </div>
+
+          <div class="attn-panel">
+            <div class="attn-panel-head">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg>
+              <h3>Needs attention — 5 of 10</h3>
+            </div>
+            <div class="attn-strip">
+              <div class="attn-chip is-negative"><span class="avatar">DR</span><div class="txt"><h5>Diego Reyes</h5><p>Forklift Cert · expired 38d ago</p></div></div>
+              <div class="attn-chip is-negative"><span class="avatar">CB</span><div class="txt"><h5>Carlo Bautista</h5><p>Fire Safety Cert · expired 21d ago</p></div></div>
+              <div class="attn-chip is-caution"><span class="avatar">IT</span><div class="txt"><h5>Isabel Torres</h5><p>CPA License · 8 days left</p></div></div>
+              <div class="attn-chip is-caution"><span class="avatar">MS</span><div class="txt"><h5>Miguel Santos</h5><p>Driver's License · 14 days left</p></div></div>
+              <div class="attn-chip is-caution"><span class="avatar">BF</span><div class="txt"><h5>Bea Fernandez</h5><p>First Aid Cert · 27 days left</p></div></div>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Search employee or certification…" />
+            </div>
+            <div class="chip-row">
+              <span class="chip-filter is-active">All</span>
+              <span class="chip-filter">Expired</span>
+              <span class="chip-filter">Expiring soon</span>
+              <span class="chip-filter">Valid</span>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="margin-top:1rem;">
+            <table class="cptable">
+              <thead><tr><th>Employee</th><th>Certification</th><th>Expiry</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div></td><td class="muted">Forklift Operator Certification</td><td><div class="expiry-cell is-negative"><span class="mono">Jul 15, 2026</span><span class="rel">Expired 38 days ago</span></div></td><td><span class="badge badge-negative">Expired</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div></td><td class="muted">Fire Safety Officer Certification</td><td><div class="expiry-cell is-negative"><span class="mono">Aug 1, 2026</span><span class="rel">Expired 21 days ago</span></div></td><td><span class="badge badge-negative">Expired</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div></td><td class="muted">CPA License Renewal</td><td><div class="expiry-cell is-caution"><span class="mono">Aug 30, 2026</span><span class="rel">Expires in 8 days</span></div></td><td><span class="badge badge-caution">Expiring soon</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div></td><td class="muted">Professional Driver's License</td><td><div class="expiry-cell is-caution"><span class="mono">Sep 5, 2026</span><span class="rel">Expires in 14 days</span></div></td><td><span class="badge badge-caution">Expiring soon</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div></td><td class="muted">First Aid &amp; BLS Certification</td><td><div class="expiry-cell is-caution"><span class="mono">Sep 18, 2026</span><span class="rel">Expires in 27 days</span></div></td><td><span class="badge badge-caution">Expiring soon</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div></td><td class="muted">Security Guard License</td><td><div class="expiry-cell"><span class="mono">Oct 10, 2026</span></div></td><td class="muted">—</td></tr>
+                <tr><td><div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div></td><td class="muted">Forklift Operator Certification</td><td><div class="expiry-cell"><span class="mono">Nov 20, 2026</span></div></td><td class="muted">—</td></tr>
+                <tr><td><div class="who"><span class="avatar">FO</span><div><h4>Ferdinand Ocampo</h4><p>Finance Manager</p></div></div></td><td class="muted">PRC License (Accountancy)</td><td><div class="expiry-cell"><span class="mono">Dec 2, 2026</span></div></td><td class="muted">—</td></tr>
+                <tr><td><div class="who"><span class="avatar">RD</span><div><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div></div></td><td class="muted">NBI Clearance (Employment)</td><td><div class="expiry-cell"><span class="mono">Jan 15, 2027</span></div></td><td class="muted">—</td></tr>
+                <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div></td><td class="muted">First Aid &amp; BLS Certification</td><td><div class="expiry-cell"><span class="mono">Mar 3, 2027</span></div></td><td class="muted">—</td></tr>
+              </tbody>
+            </table>
+          </div>
+          <div class="pagination-bar">
+            <p>Showing 1–10 of 10</p>
+            <div class="pagination-controls">
+              <button class="btn-ghost" type="button" disabled>Prev</button>
+              <button class="btn-ghost" type="button" disabled>Next</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Keeps Option 1's single continuously-sorted list completely intact — nothing about the
+              table changes — and adds a horizontally-scrolling strip above it that's purely a glanceable
+              summary of the same five rows, not a second data source. Closest to "one list" while still
+              giving expired/expiring items a visual entry point before any scrolling.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>The chip strip and the table below it repeat the same 5 rows in two different visual
+              forms — more surface to keep in sync (illustratively, at least) for a feature the plan
+              frames as "close to zero" cost specifically because it's this small.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
