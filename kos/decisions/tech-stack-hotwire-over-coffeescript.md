@@ -26,4 +26,21 @@ swap. Only reach for a heavier JS framework (React/Vue + esbuild) later,
 for one specific screen, if it turns out to genuinely need client-side
 state beyond what Stimulus covers — not upfront.
 
+**Addendum (2026-08-22): no Alpine.js, no jQuery.** Explicitly
+considered and rejected Alpine.js as a state-management layer — it
+overlaps Stimulus almost entirely (both are "sprinkle interactivity on
+server-rendered HTML" tools) and running both would fragment where UI
+state lives with no capability gain. jQuery is out for the same
+reason and because it'd pull in a dependency the importmap-based setup
+doesn't need. Note the distinction this project runs on: Hotwire gives
+*DOM* reactivity (an event — user action via Stimulus, or a server
+push via Turbo Streams — triggers an explicit DOM patch), not *data*
+reactivity (no `x-data`-style dependency graph that auto-rerenders on
+variable change). That gap only matters for fine-grained client-only
+computed values, which this app's screens don't need. Server cost of
+Turbo Streams (Action Cable connections) is a non-issue at HRIS
+traffic scale (bounded by headcount); reserve Streams for genuinely
+live server-push updates and use Turbo Frames for everything else, to
+keep connection count down.
+
 Final stack: Rails, Hotwire (Turbo + Stimulus), SCSS, Bulma, MySQL.

@@ -26,7 +26,9 @@ structure below. Read this first; open only the files you actually need.
 
 ## Decisions
 - [tech-stack-hotwire-over-coffeescript](decisions/tech-stack-hotwire-over-coffeescript.md)
-  — Turbo+Stimulus over legacy CoffeeScript/Sprockets
+  — Turbo+Stimulus over legacy CoffeeScript/Sprockets; no Alpine.js, no
+  jQuery (DOM reactivity via Stimulus/Turbo Streams, not a client data
+  store)
 - [rails-thin-controllers-organizer-interactor-pattern](decisions/rails-thin-controllers-organizer-interactor-pattern.md)
   — thin controllers + single-purpose Interactors composed by an
   Organizer, carried over from the user's own past practice, to apply
@@ -80,6 +82,13 @@ structure below. Read this first; open only the files you actually need.
 - [rails-pagination-and-batch-export-processing](decisions/rails-pagination-and-batch-export-processing.md)
   — sanitized page/page_size params via Pagy, streaming vs
   background-job batching for exports depending on size
+- [rails-datatable-pagy-turbo-frame-pattern](decisions/rails-datatable-pagy-turbo-frame-pattern.md)
+  — server-rendered tables via Pagy + Turbo Frames + Query Objects, no
+  DataTables/Tabulator/Grid.js/AG Grid by default
+- [rails-viewcomponent-for-reusable-ui](decisions/rails-viewcomponent-for-reusable-ui.md)
+  — component-based views via the ViewComponent gem; admin pages
+  render through an enforced `Layouts::AdminComponent` shell instead
+  of `content_for` regions
 - [statutory-deductions-as-editable-data-not-code](decisions/statutory-deductions-as-editable-data-not-code.md)
   — SSS/PhilHealth/Pag-IBIG/BIR rate tables stored as admin-editable
   data, never hardcoded formulas
