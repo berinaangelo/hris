@@ -1,0 +1,1055 @@
+<title>HRIS Job Opening Detail Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+    --caret: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2324344C' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><path d='m6 9 6 6 6-6'/></svg>");
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+  textarea { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 74ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, Andrea Cruz — HR Admin) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+  .crumb { padding: 1rem 2rem 0; font-size: 0.75rem; color: var(--neutral); }
+  .crumb b { color: var(--ink-light); font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.6rem 0.95rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .btn-sm { padding: 0.4rem 0.7rem; font-size: 0.75rem; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- opening header (shared across all 3 options) ---------- */
+
+  .opening-head { padding: 1.5rem 2rem 0; display: flex; flex-direction: column; gap: 0.65rem; }
+  .opening-head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .opening-title-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; }
+  .opening-title-row h2 { font-size: 1.35rem; font-weight: 700; }
+  .opening-desc { font-size: 0.8125rem; color: var(--ink-light); max-width: 68ch; line-height: 1.5; }
+  .opening-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+  .opening-meta-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; font-size: 0.75rem; color: var(--neutral); }
+
+  .link-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.6rem; border-radius: 6px;
+    background: var(--surface); border: 1px solid var(--border); font-size: 0.75rem; color: var(--ink-light);
+    cursor: pointer; font-family: var(--font-mono); max-width: 100%; overflow: hidden;
+  }
+  .link-chip span.url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .link-chip svg { width: 12px; height: 12px; flex: 0 0 auto; color: var(--neutral); }
+
+  .pipeline-mini { display: flex; flex-wrap: wrap; gap: 0.5rem 0.85rem; font-size: 0.8125rem; color: var(--ink-light); padding: 0.15rem 0; }
+  .pipeline-mini b { color: var(--ink); font-family: var(--font-mono); font-weight: 500; }
+
+  .hired-callout {
+    display: flex; align-items: center; gap: 0.5rem; padding: 0.55rem 0.75rem; border-radius: 8px;
+    background: var(--badge-positive-bg); color: var(--badge-positive-fg); font-size: 0.75rem; font-weight: 600;
+  }
+  .hired-callout svg { width: 14px; height: 14px; flex: 0 0 auto; }
+  .hired-callout a { text-decoration: underline; cursor: pointer; }
+
+  /* ---------- stage select (shared) — colored per badge-system-four-categories mapping ---------- */
+
+  .stage-select {
+    font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase;
+    border: none; border-radius: 999px; padding: 0.28rem 1.7rem 0.28rem 0.6rem; cursor: pointer;
+    appearance: none; -webkit-appearance: none; background-repeat: no-repeat; background-position: right 0.55rem center;
+    background-size: 10px; background-image: var(--caret);
+  }
+  .stage-select-positive { background-color: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .stage-select-caution  { background-color: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .stage-select-negative { background-color: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .stage-select-neutral  { background-color: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- toolbar / filters (Option 2) ---------- */
+
+  .toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 1.1rem 2rem 0; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 280px; }
+  .search-wrap svg { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--neutral); }
+  .search-wrap input {
+    width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.1rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); background: var(--white);
+  }
+  .search-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip-filter {
+    flex: 0 0 auto; padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--white); font-size: 0.8125rem; font-weight: 600; color: var(--ink-light); cursor: pointer;
+    transition: background var(--t), color var(--t), border-color var(--t);
+  }
+  .chip-filter.is-active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+  /* ---------- Option 1: kanban-style stage columns (no drag-and-drop) ---------- */
+
+  .board-wrap { overflow-x: auto; padding: 1.1rem 2rem 1.5rem; }
+  .pipeline-board { display: flex; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; min-width: 1080px; }
+  .pipeline-col { background: var(--surface); min-width: 205px; flex: 1 1 205px; display: flex; flex-direction: column; }
+  .pipeline-col-head { padding: 0.7rem 0.85rem; background: var(--white); border-bottom: 2px solid var(--border-accent, var(--border)); display: flex; align-items: baseline; justify-content: space-between; gap: 0.4rem; }
+  .pipeline-col-head h4 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+  .pipeline-col-head .count { font-family: var(--font-mono); font-size: 0.75rem; color: var(--neutral); }
+  .pipeline-col[data-stage="new"] .pipeline-col-head { border-bottom-color: #9AA3B5; }
+  .pipeline-col[data-stage="interviewing"] .pipeline-col-head,
+  .pipeline-col[data-stage="offer"] .pipeline-col-head { border-bottom-color: var(--badge-caution-fg); }
+  .pipeline-col[data-stage="hired"] .pipeline-col-head { border-bottom-color: var(--badge-positive-fg); }
+  .pipeline-col[data-stage="rejected"] .pipeline-col-head { border-bottom-color: var(--badge-negative-fg); }
+  .pipeline-col-body { padding: 0.7rem; display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+
+  .candidate-card { background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.45rem; }
+  .candidate-card .cc-name { font-size: 0.8125rem; font-weight: 700; }
+  .candidate-card .cc-meta { font-size: 0.6875rem; color: var(--neutral); }
+  .candidate-card .cc-note { font-size: 0.75rem; color: var(--ink-light); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .candidate-card .cc-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; margin-top: auto; padding-top: 0.35rem; flex-wrap: wrap; }
+  .candidate-card .cc-hired-tag { font-size: 0.6875rem; font-weight: 600; color: var(--badge-positive-fg); display: flex; align-items: center; gap: 0.3rem; }
+  .candidate-card .cc-hired-tag svg { width: 12px; height: 12px; }
+
+  /* ---------- Option 2: flat filterable candidate table ---------- */
+
+  .table-wrap { overflow-x: auto; padding: 0 2rem; }
+  .cantable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 880px; }
+  .cantable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .cantable td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .cantable tbody tr:hover { background: var(--surface); }
+  .cantable tr:last-child td { border-bottom: none; }
+  .cantable .cand-name { font-weight: 600; white-space: nowrap; }
+  .cantable .cand-email { font-size: 0.75rem; color: var(--neutral); white-space: nowrap; }
+  .cantable .muted { color: var(--neutral); font-size: 0.8125rem; white-space: nowrap; }
+  .cantable .note-cell { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8125rem; color: var(--ink-light); }
+  .cantable .actions-cell { display: flex; gap: 0.4rem; white-space: nowrap; }
+
+  /* ---------- Option 3: split, roster + candidate detail panel ---------- */
+
+  .roster-cols { display: grid; grid-template-columns: 260px 1fr; }
+  @media (max-width: 780px) { .roster-cols { grid-template-columns: 1fr; } }
+  .roster-list { border-right: 1px solid var(--border); padding: 0.75rem; display: flex; flex-direction: column; gap: 0.3rem; max-height: 640px; overflow-y: auto; }
+  @media (max-width: 780px) { .roster-list { border-right: none; border-bottom: 1px solid var(--border); flex-direction: row; overflow-x: auto; max-height: none; } }
+  .roster-list label {
+    display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.6rem; border-radius: 8px; cursor: pointer;
+    transition: background var(--t); white-space: nowrap;
+  }
+  .roster-list label:hover { background: var(--surface); }
+  .roster-list label .avatar { width: 30px; height: 30px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.6875rem; font-weight: 600; flex: 0 0 auto; }
+  .roster-list label .meta-col { display: flex; flex-direction: column; gap: 0.2rem; }
+  .roster-list label .name { font-size: 0.8125rem; font-weight: 600; white-space: nowrap; }
+  .roster-list label .meta { font-size: 0.75rem; color: var(--neutral); display: flex; align-items: center; gap: 0.35rem; }
+  .roster-detail { padding: 1.5rem; }
+  .roster-detail-panel { display: none; flex-direction: column; gap: 1rem; }
+  .cand-detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .cand-detail-head h3 { font-size: 1.05rem; font-weight: 700; }
+  .cand-detail-head .applied { font-size: 0.75rem; color: var(--neutral); margin-top: 0.2rem; }
+  .contact-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0.75rem; font-size: 0.8125rem; }
+  .contact-grid .field-label { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); margin-bottom: 0.15rem; }
+  .contact-grid .field-value { font-family: var(--font-mono); color: var(--ink); }
+  .applicant-note { background: var(--surface); border-left: 3px solid var(--border); border-radius: 0 8px 8px 0; padding: 0.7rem 0.85rem; font-size: 0.8125rem; color: var(--ink-light); line-height: 1.5; font-style: italic; }
+  .plain-textarea { width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.7rem; font-size: 0.8125rem; color: var(--ink); background: var(--white); line-height: 1.5; resize: vertical; min-height: 4.5rem; }
+  .plain-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .stage-control-row { display: flex; align-items: center; gap: 0.75rem; flex-wrap: wrap; padding-top: 0.25rem; border-top: 1px solid var(--border); margin-top: 0.25rem; }
+  .offer-nudge { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; padding: 0.65rem 0.85rem; border-radius: 8px; background: var(--badge-caution-bg); flex-wrap: wrap; }
+  .offer-nudge p { font-size: 0.8125rem; color: var(--badge-caution-fg); font-weight: 600; }
+
+  #r3-renz:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-renz"],
+  #r3-bianca:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-bianca"],
+  #r3-kevin:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-kevin"],
+  #r3-jasmine:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-jasmine"],
+  #r3-miguel:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-miguel"],
+  #r3-anna:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-anna"],
+  #r3-ramil:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-ramil"],
+  #r3-cathy:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-cathy"],
+  #r3-leo:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-leo"],
+  #r3-patricia:checked ~ .page .frame-shell[data-n="3"] .roster-list label[for="r3-patricia"] {
+    background: var(--surface);
+  }
+  #r3-renz:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="renz"],
+  #r3-bianca:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="bianca"],
+  #r3-kevin:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="kevin"],
+  #r3-jasmine:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="jasmine"],
+  #r3-miguel:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="miguel"],
+  #r3-anna:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="anna"],
+  #r3-ramil:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="ramil"],
+  #r3-cathy:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="cathy"],
+  #r3-leo:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="leo"],
+  #r3-patricia:checked ~ .page .frame-shell[data-n="3"] .roster-detail-panel[data-p="patricia"] {
+    display: flex;
+  }
+
+  @media (max-width: 480px) {
+    .toolbar, .table-wrap, .board-wrap, .opening-head, .roster-detail, .crumb { padding-left: 1.25rem; padding-right: 1.25rem; margin-left: 0; margin-right: 0; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" checked />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="radio" name="r3" id="r3-renz" checked />
+<input class="state" type="radio" name="r3" id="r3-bianca" />
+<input class="state" type="radio" name="r3" id="r3-kevin" />
+<input class="state" type="radio" name="r3" id="r3-jasmine" />
+<input class="state" type="radio" name="r3" id="r3-miguel" />
+<input class="state" type="radio" name="r3" id="r3-anna" />
+<input class="state" type="radio" name="r3" id="r3-ramil" />
+<input class="state" type="radio" name="r3" id="r3-cathy" />
+<input class="state" type="radio" name="r3" id="r3-leo" />
+<input class="state" type="radio" name="r3" id="r3-patricia" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Job Opening Detail + Candidate Pipeline — three recommendations</h1>
+      <p class="sub">
+        Where "View pipeline" from Job Openings lands — one opening's full
+        detail plus every candidate against the plan's fixed New →
+        Interviewing → Offer → Hired/Rejected stages
+        (projects/hris/features/recruitment-ats/PLAN.md). Stage changes are a
+        dropdown per candidate, not drag-and-drop, per the plan's own
+        wording. Marking someone Hired is the plan's payoff moment — it
+        auto-creates their employee record, so every option surfaces that
+        outcome distinctly rather than treating Hired as just another badge.
+      </p>
+      <div class="assumptions">
+        <b>Same opening, same ten candidates, identical tokens across all
+        three options:</b> Senior Backend Engineer — 3 New, 3 Interviewing,
+        2 Offer, 1 Hired, 1 Rejected. Viewing persona: Andrea Cruz, HR
+        Admin, today is Aug 22, 2026. The opening's link is an
+        application-form URL, not a public job-ad page — HR posts the
+        actual ad on JobStreet/Indeed/LinkedIn and points its Apply button
+        here. Résumé links and the application link are illustrative, no
+        file storage or real subdomain wired. Per-candidate notes shown are
+        the free-text field
+        from decisions/ats-checker-reuse-parked-for-recruitment.md's parent
+        plan — interview feedback, not a structured scorecard. Marking a
+        candidate Hired opening a confirmation step before creating the
+        employee record is out of scope for this layout comparison — assume
+        a lightweight confirm, not modeled here. Stage badge colors follow
+        decisions/ui/badge-system-four-categories.md's own Recruitment
+        mapping: New → Neutral, Interviewing/Offer → Caution, Hired →
+        Positive, Rejected → Negative.
+      </div>
+      <nav class="tabbar">
+        <label for="tab1"><span class="n">01</span> Kanban-style stage columns <span class="chosen-badge">Chosen</span></label>
+        <label for="tab2"><span class="n">02</span> Flat filterable table</label>
+        <label for="tab3"><span class="n">03</span> Split roster + candidate detail</label>
+      </nav>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — KANBAN-STYLE STAGE COLUMNS ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Recruitment → Job Openings → <b>Senior Backend Engineer</b></p>
+
+          <div class="opening-head">
+            <div class="opening-head-top">
+              <div>
+                <div class="opening-title-row">
+                  <h2>Senior Backend Engineer</h2>
+                  <span class="badge badge-positive">Open</span>
+                </div>
+                <p class="opening-desc" style="margin-top:0.4rem;">Own the Rails monolith's payroll and payments services. 5+ years backend, Ruby/Rails preferred, comfortable with on-call rotation.</p>
+              </div>
+              <div class="opening-actions">
+                <button class="btn-ghost btn-sm" type="button">Edit opening</button>
+                <button class="btn-ghost btn-sm" type="button">Close posting</button>
+              </div>
+            </div>
+            <div class="opening-meta-row">
+              <span>Posted Aug 10, 2026 · 12 days ago</span>
+              <span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/senior-backend-engineer</span></span>
+            </div>
+            <div class="pipeline-mini"><b>3</b>&nbsp;New · <b>3</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer · <b>1</b>&nbsp;Hired · <b>1</b>&nbsp;Rejected · <b>10</b>&nbsp;total</div>
+          </div>
+
+          <div class="board-wrap">
+            <div class="pipeline-board">
+
+              <div class="pipeline-col" data-stage="new">
+                <div class="pipeline-col-head"><h4>New</h4><span class="count">3</span></div>
+                <div class="pipeline-col-body">
+                  <div class="candidate-card">
+                    <p class="cc-name">Renz Aquino</p>
+                    <p class="cc-meta">Applied 2 days ago · renz.aquino@gmail.com</p>
+                    <p class="cc-note">5 yrs backend, mostly Node — interested in the Rails work specifically.</p>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-neutral"><option selected>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                      <button class="btn-ghost btn-sm" type="button">View</button>
+                    </div>
+                  </div>
+                  <div class="candidate-card">
+                    <p class="cc-name">Bianca Mercado</p>
+                    <p class="cc-meta">Applied 3 days ago · bianca.mercado@yahoo.com</p>
+                    <p class="cc-note">Referred by a current employee (didn't specify who).</p>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-neutral"><option selected>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                      <button class="btn-ghost btn-sm" type="button">View</button>
+                    </div>
+                  </div>
+                  <div class="candidate-card">
+                    <p class="cc-name">Kevin Tan</p>
+                    <p class="cc-meta">Applied 5 days ago · kevin.tan88@gmail.com</p>
+                    <p class="cc-note" style="color:var(--neutral); font-style:italic;">No note left with application.</p>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-neutral"><option selected>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                      <button class="btn-ghost btn-sm" type="button">View</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pipeline-col" data-stage="interviewing">
+                <div class="pipeline-col-head"><h4>Interviewing</h4><span class="count">3</span></div>
+                <div class="pipeline-col-body">
+                  <div class="candidate-card">
+                    <p class="cc-name">Jasmine Ocampo</p>
+                    <p class="cc-meta">Applied 8 days ago · jasmine.ocampo@gmail.com</p>
+                    <p class="cc-note">Panel Aug 21 — strong system design, weaker Rails specifics. Second interview scheduled.</p>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-caution"><option>New</option><option selected>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                      <button class="btn-ghost btn-sm" type="button">View</button>
+                    </div>
+                  </div>
+                  <div class="candidate-card">
+                    <p class="cc-name">Miguel Torres</p>
+                    <p class="cc-meta">Applied 9 days ago · miguel.torres@outlook.com</p>
+                    <p class="cc-note">Technical screen passed. Culture-fit interview pending.</p>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-caution"><option>New</option><option selected>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                      <button class="btn-ghost btn-sm" type="button">View</button>
+                    </div>
+                  </div>
+                  <div class="candidate-card">
+                    <p class="cc-name">Anna Padilla</p>
+                    <p class="cc-meta">Applied 10 days ago · anna.padilla@gmail.com</p>
+                    <p class="cc-note">Take-home exercise submitted, reviewing.</p>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-caution"><option>New</option><option selected>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                      <button class="btn-ghost btn-sm" type="button">View</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pipeline-col" data-stage="offer">
+                <div class="pipeline-col-head"><h4>Offer</h4><span class="count">2</span></div>
+                <div class="pipeline-col-body">
+                  <div class="candidate-card">
+                    <p class="cc-name">Ramil Espino</p>
+                    <p class="cc-meta">Applied 12 days ago · ramil.espino@gmail.com</p>
+                    <p class="cc-note">Offer sent Aug 20, ₱95,000/mo, awaiting response by Aug 27.</p>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-caution"><option>New</option><option>Interviewing</option><option selected>Offer</option><option>Hired</option><option>Rejected</option></select>
+                      <button class="btn-primary btn-sm" type="button">Mark Hired</button>
+                    </div>
+                  </div>
+                  <div class="candidate-card">
+                    <p class="cc-name">Cathy Buenaventura</p>
+                    <p class="cc-meta">Applied 11 days ago · cathy.buenaventura@gmail.com</p>
+                    <p class="cc-note">Offer sent Aug 21, countered on start date only — negotiating.</p>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-caution"><option>New</option><option>Interviewing</option><option selected>Offer</option><option>Hired</option><option>Rejected</option></select>
+                      <button class="btn-primary btn-sm" type="button">Mark Hired</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pipeline-col" data-stage="hired">
+                <div class="pipeline-col-head"><h4>Hired</h4><span class="count">1</span></div>
+                <div class="pipeline-col-body">
+                  <div class="candidate-card">
+                    <p class="cc-name">Leo Fajardo</p>
+                    <p class="cc-meta">Applied Aug 1 · Hired Aug 15, 2026</p>
+                    <p class="cc-note">Accepted immediately, start date Sep 1, 2026.</p>
+                    <div class="cc-hired-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Employee record created</div>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-positive"><option>New</option><option>Interviewing</option><option>Offer</option><option selected>Hired</option><option>Rejected</option></select>
+                      <button class="btn-ghost btn-sm" type="button">View profile</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="pipeline-col" data-stage="rejected">
+                <div class="pipeline-col-head"><h4>Rejected</h4><span class="count">1</span></div>
+                <div class="pipeline-col-body">
+                  <div class="candidate-card">
+                    <p class="cc-name">Patricia Villar</p>
+                    <p class="cc-meta">Applied Jul 28 · Rejected Aug 12, 2026</p>
+                    <p class="cc-note">Not enough backend depth for senior level — encouraged to reapply mid-level.</p>
+                    <div class="cc-foot">
+                      <select class="stage-select stage-select-negative"><option>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option selected>Rejected</option></select>
+                      <button class="btn-ghost btn-sm" type="button">View</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+          <div style="height:0.75rem;"></div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The pipeline's shape is visible at a glance across all five stages at once — matches
+              how HR actually thinks about "who's stuck where" without opening anything. Stage still
+              changes through a per-card dropdown, never a drag, exactly matching the plan's own "a
+              dropdown, not a drag-and-drop pipeline builder" wording.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Five columns eat horizontal space and need a scroll under ~1080px. Each card only fits
+              a two-line note excerpt — reading a candidate's full interview feedback or updating
+              longer HR notes needs a click into a detail view this option doesn't model.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — FLAT FILTERABLE TABLE ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Recruitment → Job Openings → <b>Senior Backend Engineer</b></p>
+
+          <div class="opening-head">
+            <div class="opening-head-top">
+              <div>
+                <div class="opening-title-row">
+                  <h2>Senior Backend Engineer</h2>
+                  <span class="badge badge-positive">Open</span>
+                </div>
+                <p class="opening-desc" style="margin-top:0.4rem;">Own the Rails monolith's payroll and payments services. 5+ years backend, Ruby/Rails preferred, comfortable with on-call rotation.</p>
+              </div>
+              <div class="opening-actions">
+                <button class="btn-ghost btn-sm" type="button">Edit opening</button>
+                <button class="btn-ghost btn-sm" type="button">Close posting</button>
+              </div>
+            </div>
+            <div class="opening-meta-row">
+              <span>Posted Aug 10, 2026 · 12 days ago</span>
+              <span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/senior-backend-engineer</span></span>
+            </div>
+            <div class="pipeline-mini"><b>3</b>&nbsp;New · <b>3</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer · <b>1</b>&nbsp;Hired · <b>1</b>&nbsp;Rejected · <b>10</b>&nbsp;total</div>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Search candidates…" />
+            </div>
+            <div class="chip-row">
+              <span class="chip-filter is-active">All</span>
+              <span class="chip-filter">New</span>
+              <span class="chip-filter">Interviewing</span>
+              <span class="chip-filter">Offer</span>
+              <span class="chip-filter">Hired</span>
+              <span class="chip-filter">Rejected</span>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="margin-top:1rem;">
+            <table class="cantable">
+              <thead><tr><th>Candidate</th><th>Phone</th><th>Applied</th><th>Résumé</th><th>Note</th><th>Stage</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><p class="cand-name">Renz Aquino</p><p class="cand-email">renz.aquino@gmail.com</p></td>
+                  <td class="mono muted">0917 234 5566</td>
+                  <td class="muted">2 days ago</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell" title="5 yrs backend, mostly Node — interested in the Rails work specifically.">5 yrs backend, mostly Node — interested…</td>
+                  <td><select class="stage-select stage-select-neutral"><option selected>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View</button></td>
+                </tr>
+                <tr>
+                  <td><p class="cand-name">Bianca Mercado</p><p class="cand-email">bianca.mercado@yahoo.com</p></td>
+                  <td class="mono muted">0918 345 6677</td>
+                  <td class="muted">3 days ago</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell" title="Referred by a current employee (didn't specify who).">Referred by a current employee…</td>
+                  <td><select class="stage-select stage-select-neutral"><option selected>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View</button></td>
+                </tr>
+                <tr>
+                  <td><p class="cand-name">Kevin Tan</p><p class="cand-email">kevin.tan88@gmail.com</p></td>
+                  <td class="mono muted">0919 456 7788</td>
+                  <td class="muted">5 days ago</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell muted" style="font-style:italic;">No note left</td>
+                  <td><select class="stage-select stage-select-neutral"><option selected>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View</button></td>
+                </tr>
+                <tr>
+                  <td><p class="cand-name">Jasmine Ocampo</p><p class="cand-email">jasmine.ocampo@gmail.com</p></td>
+                  <td class="mono muted">0920 567 8899</td>
+                  <td class="muted">8 days ago</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell" title="Panel Aug 21 — strong system design, weaker Rails specifics. Second interview scheduled.">Panel Aug 21 — strong system design…</td>
+                  <td><select class="stage-select stage-select-caution"><option>New</option><option selected>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View</button></td>
+                </tr>
+                <tr>
+                  <td><p class="cand-name">Miguel Torres</p><p class="cand-email">miguel.torres@outlook.com</p></td>
+                  <td class="mono muted">0921 678 9900</td>
+                  <td class="muted">9 days ago</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell" title="Technical screen passed. Culture-fit interview pending.">Technical screen passed. Culture-fit…</td>
+                  <td><select class="stage-select stage-select-caution"><option>New</option><option selected>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View</button></td>
+                </tr>
+                <tr>
+                  <td><p class="cand-name">Anna Padilla</p><p class="cand-email">anna.padilla@gmail.com</p></td>
+                  <td class="mono muted">0922 789 0011</td>
+                  <td class="muted">10 days ago</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell" title="Take-home exercise submitted, reviewing.">Take-home exercise submitted, reviewing.</td>
+                  <td><select class="stage-select stage-select-caution"><option>New</option><option selected>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View</button></td>
+                </tr>
+                <tr>
+                  <td><p class="cand-name">Ramil Espino</p><p class="cand-email">ramil.espino@gmail.com</p></td>
+                  <td class="mono muted">0923 890 1122</td>
+                  <td class="muted">12 days ago</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell" title="Offer sent Aug 20, ₱95,000/mo, awaiting response by Aug 27.">Offer sent Aug 20, ₱95,000/mo…</td>
+                  <td><select class="stage-select stage-select-caution"><option>New</option><option>Interviewing</option><option selected>Offer</option><option>Hired</option><option>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-primary btn-sm" type="button">Mark Hired</button></td>
+                </tr>
+                <tr>
+                  <td><p class="cand-name">Cathy Buenaventura</p><p class="cand-email">cathy.buenaventura@gmail.com</p></td>
+                  <td class="mono muted">0924 901 2233</td>
+                  <td class="muted">11 days ago</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell" title="Offer sent Aug 21, countered on start date only — negotiating.">Offer sent Aug 21, countered…</td>
+                  <td><select class="stage-select stage-select-caution"><option>New</option><option>Interviewing</option><option selected>Offer</option><option>Hired</option><option>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-primary btn-sm" type="button">Mark Hired</button></td>
+                </tr>
+                <tr>
+                  <td><p class="cand-name">Leo Fajardo</p><p class="cand-email">leo.fajardo@gmail.com</p></td>
+                  <td class="mono muted">0925 012 3344</td>
+                  <td class="muted">Aug 1</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell" title="Accepted immediately, start date Sep 1, 2026.">Accepted immediately, start Sep 1…</td>
+                  <td><select class="stage-select stage-select-positive"><option>New</option><option>Interviewing</option><option>Offer</option><option selected>Hired</option><option>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">Employee profile →</button></td>
+                </tr>
+                <tr>
+                  <td><p class="cand-name">Patricia Villar</p><p class="cand-email">patricia.villar@gmail.com</p></td>
+                  <td class="mono muted">0926 123 4455</td>
+                  <td class="muted">Jul 28</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé</span></td>
+                  <td class="note-cell" title="Not enough backend depth for senior level — encouraged to reapply mid-level.">Not enough backend depth…</td>
+                  <td><select class="stage-select stage-select-negative"><option>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option selected>Rejected</option></select></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <div style="height:1.5rem;"></div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Reuses the exact table+toolbar+chip-filter language from Job Openings' own flat-table
+              option and decisions/ui/data-tables-comfortable-density.md's default shape — one
+              scannable, sortable, filterable list, no new pattern to build. Every candidate's stage
+              is editable inline without leaving the row.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>The pipeline's shape — how many candidates are piling up at which stage — isn't visible
+              without filtering or manually scanning the Stage column. No spatial grouping at all,
+              unlike Option 1.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — SPLIT, ROSTER + CANDIDATE DETAIL ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Recruitment → Job Openings → <b>Senior Backend Engineer</b></p>
+
+          <div class="opening-head">
+            <div class="opening-head-top">
+              <div>
+                <div class="opening-title-row">
+                  <h2>Senior Backend Engineer</h2>
+                  <span class="badge badge-positive">Open</span>
+                </div>
+                <p class="opening-desc" style="margin-top:0.4rem;">Own the Rails monolith's payroll and payments services. 5+ years backend, Ruby/Rails preferred, comfortable with on-call rotation.</p>
+              </div>
+              <div class="opening-actions">
+                <button class="btn-ghost btn-sm" type="button">Edit opening</button>
+                <button class="btn-ghost btn-sm" type="button">Close posting</button>
+              </div>
+            </div>
+            <div class="opening-meta-row">
+              <span>Posted Aug 10, 2026 · 12 days ago</span>
+              <span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/senior-backend-engineer</span></span>
+            </div>
+            <div class="pipeline-mini"><b>3</b>&nbsp;New · <b>3</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer · <b>1</b>&nbsp;Hired · <b>1</b>&nbsp;Rejected · <b>10</b>&nbsp;total</div>
+          </div>
+
+          <div class="roster-cols" style="margin-top:1rem;">
+            <div class="roster-list">
+              <label for="r3-renz">
+                <span class="avatar">RA</span>
+                <span class="meta-col"><span class="name">Renz Aquino</span><span class="meta"><span class="badge badge-neutral">New</span> 2d ago</span></span>
+              </label>
+              <label for="r3-bianca">
+                <span class="avatar">BM</span>
+                <span class="meta-col"><span class="name">Bianca Mercado</span><span class="meta"><span class="badge badge-neutral">New</span> 3d ago</span></span>
+              </label>
+              <label for="r3-kevin">
+                <span class="avatar">KT</span>
+                <span class="meta-col"><span class="name">Kevin Tan</span><span class="meta"><span class="badge badge-neutral">New</span> 5d ago</span></span>
+              </label>
+              <label for="r3-jasmine">
+                <span class="avatar">JO</span>
+                <span class="meta-col"><span class="name">Jasmine Ocampo</span><span class="meta"><span class="badge badge-caution">Interviewing</span></span></span>
+              </label>
+              <label for="r3-miguel">
+                <span class="avatar">MT</span>
+                <span class="meta-col"><span class="name">Miguel Torres</span><span class="meta"><span class="badge badge-caution">Interviewing</span></span></span>
+              </label>
+              <label for="r3-anna">
+                <span class="avatar">AP</span>
+                <span class="meta-col"><span class="name">Anna Padilla</span><span class="meta"><span class="badge badge-caution">Interviewing</span></span></span>
+              </label>
+              <label for="r3-ramil">
+                <span class="avatar">RE</span>
+                <span class="meta-col"><span class="name">Ramil Espino</span><span class="meta"><span class="badge badge-caution">Offer</span></span></span>
+              </label>
+              <label for="r3-cathy">
+                <span class="avatar">CB</span>
+                <span class="meta-col"><span class="name">Cathy Buenaventura</span><span class="meta"><span class="badge badge-caution">Offer</span></span></span>
+              </label>
+              <label for="r3-leo">
+                <span class="avatar">LF</span>
+                <span class="meta-col"><span class="name">Leo Fajardo</span><span class="meta"><span class="badge badge-positive">Hired</span></span></span>
+              </label>
+              <label for="r3-patricia">
+                <span class="avatar">PV</span>
+                <span class="meta-col"><span class="name">Patricia Villar</span><span class="meta"><span class="badge badge-negative">Rejected</span></span></span>
+              </label>
+            </div>
+
+            <div class="roster-detail">
+
+              <div class="roster-detail-panel" data-p="renz">
+                <div class="cand-detail-head">
+                  <div><h3>Renz Aquino</h3><p class="applied">Applied Aug 20, 2026 · 2 days ago</p></div>
+                  <span class="badge badge-neutral">New</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">renz.aquino@gmail.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0917 234 5566</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note">"5 yrs backend, mostly Node — interested in the Rails work specifically."</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea" placeholder="Interview feedback, screening notes…"></textarea>
+                </div>
+                <div class="stage-control-row">
+                  <span class="card-label" style="margin-bottom:0;">Stage</span>
+                  <select class="stage-select stage-select-neutral"><option selected>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                  <button class="btn-ghost btn-sm" type="button">Save</button>
+                </div>
+              </div>
+
+              <div class="roster-detail-panel" data-p="bianca">
+                <div class="cand-detail-head">
+                  <div><h3>Bianca Mercado</h3><p class="applied">Applied Aug 19, 2026 · 3 days ago</p></div>
+                  <span class="badge badge-neutral">New</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">bianca.mercado@yahoo.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0918 345 6677</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note">"Referred by a current employee (didn't specify who)."</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea" placeholder="Interview feedback, screening notes…"></textarea>
+                </div>
+                <div class="stage-control-row">
+                  <span class="card-label" style="margin-bottom:0;">Stage</span>
+                  <select class="stage-select stage-select-neutral"><option selected>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                  <button class="btn-ghost btn-sm" type="button">Save</button>
+                </div>
+              </div>
+
+              <div class="roster-detail-panel" data-p="kevin">
+                <div class="cand-detail-head">
+                  <div><h3>Kevin Tan</h3><p class="applied">Applied Aug 17, 2026 · 5 days ago</p></div>
+                  <span class="badge badge-neutral">New</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">kevin.tan88@gmail.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0919 456 7788</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note" style="color:var(--neutral);">No note left with application.</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea" placeholder="Interview feedback, screening notes…"></textarea>
+                </div>
+                <div class="stage-control-row">
+                  <span class="card-label" style="margin-bottom:0;">Stage</span>
+                  <select class="stage-select stage-select-neutral"><option selected>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                  <button class="btn-ghost btn-sm" type="button">Save</button>
+                </div>
+              </div>
+
+              <div class="roster-detail-panel" data-p="jasmine">
+                <div class="cand-detail-head">
+                  <div><h3>Jasmine Ocampo</h3><p class="applied">Applied Aug 14, 2026 · 8 days ago</p></div>
+                  <span class="badge badge-caution">Interviewing</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">jasmine.ocampo@gmail.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0920 567 8899</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note">"5+ years Rails, currently at a fintech, looking for more ownership."</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea">Panel interview Aug 21 — strong on system design, weaker on Rails specifics. Second interview scheduled Aug 26 with the payroll team.</textarea>
+                </div>
+                <div class="stage-control-row">
+                  <span class="card-label" style="margin-bottom:0;">Stage</span>
+                  <select class="stage-select stage-select-caution"><option>New</option><option selected>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                  <button class="btn-ghost btn-sm" type="button">Save</button>
+                </div>
+              </div>
+
+              <div class="roster-detail-panel" data-p="miguel">
+                <div class="cand-detail-head">
+                  <div><h3>Miguel Torres</h3><p class="applied">Applied Aug 13, 2026 · 9 days ago</p></div>
+                  <span class="badge badge-caution">Interviewing</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">miguel.torres@outlook.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0921 678 9900</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note">"Ex-Shopee, looking to relocate back to Manila."</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea">Technical screen passed Aug 19 — solid on distributed systems. Culture-fit interview pending, scheduling with the team lead.</textarea>
+                </div>
+                <div class="stage-control-row">
+                  <span class="card-label" style="margin-bottom:0;">Stage</span>
+                  <select class="stage-select stage-select-caution"><option>New</option><option selected>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                  <button class="btn-ghost btn-sm" type="button">Save</button>
+                </div>
+              </div>
+
+              <div class="roster-detail-panel" data-p="anna">
+                <div class="cand-detail-head">
+                  <div><h3>Anna Padilla</h3><p class="applied">Applied Aug 12, 2026 · 10 days ago</p></div>
+                  <span class="badge badge-caution">Interviewing</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">anna.padilla@gmail.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0922 789 0011</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note">"Open to hybrid, currently freelancing."</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea">Take-home exercise submitted Aug 20, reviewing with the backend team before scheduling a follow-up.</textarea>
+                </div>
+                <div class="stage-control-row">
+                  <span class="card-label" style="margin-bottom:0;">Stage</span>
+                  <select class="stage-select stage-select-caution"><option>New</option><option selected>Interviewing</option><option>Offer</option><option>Hired</option><option>Rejected</option></select>
+                  <button class="btn-ghost btn-sm" type="button">Save</button>
+                </div>
+              </div>
+
+              <div class="roster-detail-panel" data-p="ramil">
+                <div class="cand-detail-head">
+                  <div><h3>Ramil Espino</h3><p class="applied">Applied Aug 10, 2026 · 12 days ago</p></div>
+                  <span class="badge badge-caution">Offer</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">ramil.espino@gmail.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0923 890 1122</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note">"8 yrs Rails, led a small backend team at a logistics startup."</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea">Offer sent Aug 20, ₱95,000/mo, awaiting response by Aug 27. Strongest candidate in the pool so far.</textarea>
+                </div>
+                <div class="offer-nudge">
+                  <p>Offer outstanding — mark Hired once accepted to create the employee record.</p>
+                  <button class="btn-primary btn-sm" type="button">Mark Hired</button>
+                </div>
+                <div class="stage-control-row">
+                  <span class="card-label" style="margin-bottom:0;">Stage</span>
+                  <select class="stage-select stage-select-caution"><option>New</option><option>Interviewing</option><option selected>Offer</option><option>Hired</option><option>Rejected</option></select>
+                  <button class="btn-ghost btn-sm" type="button">Save</button>
+                </div>
+              </div>
+
+              <div class="roster-detail-panel" data-p="cathy">
+                <div class="cand-detail-head">
+                  <div><h3>Cathy Buenaventura</h3><p class="applied">Applied Aug 11, 2026 · 11 days ago</p></div>
+                  <span class="badge badge-caution">Offer</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">cathy.buenaventura@gmail.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0924 901 2233</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note">"6 yrs backend, strong on payments infra specifically."</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea">Offer sent Aug 21, countered on start date only (wants Sep 15 vs our Sep 1) — negotiating, otherwise ready to accept.</textarea>
+                </div>
+                <div class="offer-nudge">
+                  <p>Offer outstanding — mark Hired once accepted to create the employee record.</p>
+                  <button class="btn-primary btn-sm" type="button">Mark Hired</button>
+                </div>
+                <div class="stage-control-row">
+                  <span class="card-label" style="margin-bottom:0;">Stage</span>
+                  <select class="stage-select stage-select-caution"><option>New</option><option>Interviewing</option><option selected>Offer</option><option>Hired</option><option>Rejected</option></select>
+                  <button class="btn-ghost btn-sm" type="button">Save</button>
+                </div>
+              </div>
+
+              <div class="roster-detail-panel" data-p="leo">
+                <div class="cand-detail-head">
+                  <div><h3>Leo Fajardo</h3><p class="applied">Applied Aug 1, 2026 · Hired Aug 15, 2026</p></div>
+                  <span class="badge badge-positive">Hired</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">leo.fajardo@gmail.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0925 012 3344</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note">"7 yrs Rails, currently freelancing, ready to start immediately."</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea">Accepted immediately, no negotiation. Start date Sep 1, 2026.</textarea>
+                </div>
+                <div class="hired-callout">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>
+                  Hired Aug 15, 2026 — employee record created. <a>View employee profile →</a>
+                </div>
+              </div>
+
+              <div class="roster-detail-panel" data-p="patricia">
+                <div class="cand-detail-head">
+                  <div><h3>Patricia Villar</h3><p class="applied">Applied Jul 28, 2026 · Rejected Aug 12, 2026</p></div>
+                  <span class="badge badge-negative">Rejected</span>
+                </div>
+                <div class="contact-grid">
+                  <div><p class="field-label">Email</p><p class="field-value">patricia.villar@gmail.com</p></div>
+                  <div><p class="field-label">Phone</p><p class="field-value">0926 123 4455</p></div>
+                  <div><p class="field-label">Résumé</p><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21.44 11.05 12.25 20.24a5.5 5.5 0 0 1-7.78-7.78l9.19-9.19a3.67 3.67 0 0 1 5.19 5.19L9.66 17.65a1.83 1.83 0 0 1-2.6-2.6l8.49-8.49"/></svg>View résumé (PDF)</span></div>
+                </div>
+                <div class="applicant-note">"3 yrs backend, mostly frontend-adjacent work."</div>
+                <div>
+                  <label class="card-label" style="display:block;margin-bottom:0.35rem;">HR notes</label>
+                  <textarea class="plain-textarea">Not enough backend depth for senior level — encouraged to reapply for mid-level roles when one opens.</textarea>
+                </div>
+                <div class="stage-control-row">
+                  <span class="card-label" style="margin-bottom:0;">Stage</span>
+                  <select class="stage-select stage-select-negative"><option>New</option><option>Interviewing</option><option>Offer</option><option>Hired</option><option selected>Rejected</option></select>
+                  <button class="btn-ghost btn-sm" type="button">Save</button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Reuses Team Reviews' exact roster-list + detail-panel mechanic — one line per candidate
+              on the left (name, applied recency, stage badge), full contact info, résumé, applicant
+              note, editable HR notes, and the stage control together on the right, no separate page
+              or modal. The natural fit for reading interview feedback and updating one candidate at
+              a time, and gives Offer-stage candidates a dedicated "Mark Hired" nudge tied to their
+              own notes.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Only one candidate is fully visible at a time — comparing two candidates side by side
+              (both Offer-stage, say) means clicking back and forth, unlike Options 1–2 where every
+              card or row is on screen together.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

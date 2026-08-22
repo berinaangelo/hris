@@ -1,0 +1,629 @@
+<title>HRIS Payroll Settings Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+  select { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 70ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, Andrea Cruz — HR Admin) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+  .crumb { padding: 1rem 2rem 0; font-size: 0.75rem; color: var(--neutral); }
+  .crumb b { color: var(--ink-light); font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; gap: 0.3rem; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge svg { width: 11px; height: 11px; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+  .btn-primary.danger { background: var(--danger); }
+  .btn-primary.danger:hover { background: #B91C1C; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .link-btn { background: none; border: none; padding: 0; color: var(--accent); font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; }
+  .link-btn svg { width: 14px; height: 14px; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .greet-block { padding: 1.5rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  /* ---------- generic settings card / row ---------- */
+
+  .settings-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); margin: 1.25rem 2rem 0; overflow: hidden; }
+  .settings-row { display: flex; align-items: flex-start; justify-content: space-between; gap: 1.25rem; padding: 1.25rem 1.5rem; flex-wrap: wrap; }
+  .settings-row h3 { font-size: 0.9375rem; font-weight: 700; }
+  .settings-row .settings-desc { font-size: 0.8125rem; color: var(--ink-light); margin-top: 0.35rem; line-height: 1.55; max-width: 54ch; }
+  .settings-row .settings-desc + .settings-desc { margin-top: 0.25rem; }
+  .settings-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 1rem; padding: 0 1.5rem 1.25rem; }
+  .settings-field label { display: block; font-size: 0.75rem; color: var(--neutral); font-weight: 500; margin-bottom: 0.25rem; }
+  .settings-field .val { font-size: 0.9375rem; color: var(--ink); }
+  .settings-link-row { display: flex; align-items: center; gap: 1rem; padding: 1.15rem 1.5rem; flex-wrap: wrap; }
+  .settings-link-row .ic { width: 36px; height: 36px; border-radius: 8px; background: var(--surface); color: var(--ink-light); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .settings-link-row .ic svg { width: 18px; height: 18px; }
+  .settings-link-row .txt { flex: 1; min-width: 160px; }
+  .settings-link-row .txt h3 { font-size: 0.9375rem; font-weight: 700; }
+  .settings-link-row .txt p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+  .section-caption { font-size: 0.75rem; color: var(--neutral); padding: 0 1.5rem 1.15rem; margin-top: -0.5rem; }
+
+  /* ---------- toggle switch (shared visual, state lives in top-level checkboxes) ---------- */
+
+  .toggle-switch { display: inline-flex; align-items: center; gap: 0.65rem; cursor: pointer; flex: 0 0 auto; }
+  .toggle-track { width: 42px; height: 24px; border-radius: 999px; background: var(--border); position: relative; transition: background var(--t); flex: 0 0 auto; }
+  .toggle-track .thumb { position: absolute; top: 2px; left: 2px; width: 20px; height: 20px; border-radius: 999px; background: var(--white); box-shadow: 0 1px 2px rgba(27,42,74,0.3); transition: transform var(--t); }
+  .toggle-state-lbl { font-size: 0.8125rem; font-weight: 600; color: var(--neutral); }
+
+  /* ---------- Option 1: plain toggle row ---------- */
+
+  #t1-enabled:checked ~ .page .frame-shell[data-n="1"] .toggle-track { background: var(--accent); }
+  #t1-enabled:checked ~ .page .frame-shell[data-n="1"] .toggle-track .thumb { transform: translateX(18px); }
+  #t1-enabled:checked ~ .page .frame-shell[data-n="1"] .toggle-state-lbl { color: var(--ink); }
+  .frame-shell[data-n="1"] .toggle-state-lbl.off-lbl { display: inline; }
+  .frame-shell[data-n="1"] .toggle-state-lbl.on-lbl { display: none; }
+  #t1-enabled:checked ~ .page .frame-shell[data-n="1"] .toggle-state-lbl.off-lbl { display: none; }
+  #t1-enabled:checked ~ .page .frame-shell[data-n="1"] .toggle-state-lbl.on-lbl { display: inline; }
+
+  /* ---------- Option 2: toggle + inline payout preview ---------- */
+
+  #t2-enabled:checked ~ .page .frame-shell[data-n="2"] .toggle-track { background: var(--accent); }
+  #t2-enabled:checked ~ .page .frame-shell[data-n="2"] .toggle-track .thumb { transform: translateX(18px); }
+  .frame-shell[data-n="2"] .payout-preview { display: none; }
+  .frame-shell[data-n="2"] .disabled-note { display: block; }
+  #t2-enabled:checked ~ .page .frame-shell[data-n="2"] .payout-preview { display: block; }
+  #t2-enabled:checked ~ .page .frame-shell[data-n="2"] .disabled-note { display: none; }
+
+  .payout-preview { padding: 0 1.5rem 1.25rem; }
+  .payout-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; margin-top: 0.9rem; }
+  .payout-stat { background: var(--surface); padding: 0.85rem 1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .payout-stat .num { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 500; line-height: 1; }
+  .payout-stat .lbl { font-size: 0.6875rem; color: var(--neutral); }
+  .formula-line { font-size: 0.8125rem; color: var(--ink-light); background: var(--surface); border: 1px dashed var(--border); border-radius: 8px; padding: 0.65rem 0.85rem; margin-top: 0.9rem; }
+  .formula-line b { color: var(--ink); font-weight: 600; font-family: var(--font-mono); }
+  .disabled-note { padding: 0 1.5rem 1.25rem; font-size: 0.8125rem; color: var(--neutral); }
+
+  /* ---------- Option 3: compliance-guarded toggle ---------- */
+
+  .compliance-card { border: 1px solid var(--border); border-left: 3px solid var(--ink); border-radius: 0 var(--radius) var(--radius) 0; margin: 1.25rem 2rem 0; background: var(--white); overflow: hidden; }
+  .compliance-head { display: flex; align-items: center; gap: 0.6rem; padding: 1.1rem 1.5rem 0; }
+  .compliance-head .ic { width: 30px; height: 30px; border-radius: 8px; background: var(--surface); color: var(--ink-light); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .compliance-head .ic svg { width: 15px; height: 15px; }
+  .compliance-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .compliance-head .spacer { flex: 1; }
+
+  .frame-shell[data-n="3"] .badge.compliant-badge { display: none; }
+  .frame-shell[data-n="3"] .badge.exempt-badge { display: none; }
+  #t3-enabled:checked ~ .page .frame-shell[data-n="3"] .badge.compliant-badge { display: inline-flex; }
+  #t3-enabled:not(:checked) ~ .page .frame-shell[data-n="3"] .badge.exempt-badge { display: inline-flex; }
+
+  .frame-shell[data-n="3"] .exemption-line { display: none; }
+  #t3-enabled:not(:checked) ~ .page .frame-shell[data-n="3"] .exemption-line { display: block; }
+
+  .frame-shell[data-n="3"] .toggle-off-link { display: inline-flex; }
+  .frame-shell[data-n="3"] .toggle-on-link { display: none; }
+  #t3-enabled:not(:checked) ~ .page .frame-shell[data-n="3"] .toggle-off-link { display: none; }
+  #t3-enabled:not(:checked) ~ .page .frame-shell[data-n="3"] .toggle-on-link { display: inline-flex; }
+
+  #t3-enabled:checked ~ .page .frame-shell[data-n="3"] .toggle-track { background: var(--accent); }
+  #t3-enabled:checked ~ .page .frame-shell[data-n="3"] .toggle-track .thumb { transform: translateX(18px); }
+
+  .exemption-modal-scrim, .exemption-modal { display: none; }
+  #t3-enabled:checked ~ #t3-modal:checked ~ .page .frame-shell[data-n="3"] .exemption-modal-scrim,
+  #t3-enabled:not(:checked) ~ #t3-modal:checked ~ .page .frame-shell[data-n="3"] .exemption-modal-scrim {
+    display: block; position: absolute; inset: 0; background: rgba(27,42,74,0.32); z-index: 4;
+  }
+  #t3-enabled:checked ~ #t3-modal:checked ~ .page .frame-shell[data-n="3"] .exemption-modal.mode-off {
+    display: flex;
+  }
+  #t3-enabled:not(:checked) ~ #t3-modal:checked ~ .page .frame-shell[data-n="3"] .exemption-modal.mode-on {
+    display: flex;
+  }
+  .exemption-modal {
+    position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: min(420px, 90%);
+    background: var(--white); border-radius: 12px; box-shadow: var(--shadow-card); z-index: 5;
+    flex-direction: column; gap: 1rem; padding: 1.35rem 1.5rem 1.5rem;
+  }
+  .exemption-modal-head { display: flex; align-items: flex-start; gap: 0.6rem; }
+  .exemption-modal-head .ic { width: 34px; height: 34px; border-radius: 999px; background: var(--badge-caution-bg); color: var(--badge-caution-fg); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .exemption-modal-head .ic svg { width: 17px; height: 17px; }
+  .exemption-modal-head h4 { font-size: 0.9375rem; font-weight: 700; }
+  .exemption-modal-head p { font-size: 0.8125rem; color: var(--ink-light); margin-top: 0.3rem; line-height: 1.5; }
+  .exemption-modal .field label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--neutral); margin-bottom: 0.3rem; }
+  .exemption-modal select, .exemption-modal .plain-input {
+    width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); background: var(--white);
+  }
+  .exemption-modal-foot { display: flex; justify-content: flex-end; gap: 0.6rem; padding-top: 0.2rem; }
+  .close-x { position: absolute; top: 0.9rem; right: 0.9rem; width: 26px; height: 26px; border-radius: 999px; border: none; background: var(--surface); color: var(--neutral); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; }
+  .close-x svg { width: 13px; height: 13px; }
+
+  @media (max-width: 480px) {
+    .greet-block, .settings-card, .compliance-card, .crumb { margin-left: 0; margin-right: 0; }
+    .greet-block, .crumb { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" checked />
+<input class="tab" type="radio" name="tab" id="tab3" />
+
+<input class="state" type="checkbox" id="t1-enabled" checked />
+<input class="state" type="checkbox" id="t2-enabled" checked />
+<input class="state" type="checkbox" id="t3-enabled" checked />
+<input class="state" type="checkbox" id="t3-modal" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>13th Month Pay — three recommendations</h1>
+      <p class="sub">
+        Not a standalone page — a company-level toggle
+        (<code>thirteenth_month_pay_enabled</code>, default true) that lives
+        on the Payroll Settings screen, per
+        decisions/thirteenth-month-pay-mandatory-in-ph.md. 13th month pay is
+        legally mandated for rank-and-file private-sector employees in the
+        Philippines (PD 851) with only narrow exemptions — managerial staff,
+        or an employer already paying an equivalent benefit under another
+        name. All three options sit on the same Payroll Settings shell; what
+        changes is how much weight the toggle itself carries.
+      </p>
+      <div class="assumptions">
+        <b>Pay Schedule and Rate Tables sections are shown for page context
+        only</b> — identical across all three options, not the subject of
+        this comparison (Rate Tables already has its own decision, see
+        decisions/ui/rate-tables-landing-cards-edit-drawer.md). Projected
+        payout figures are illustrative mock data, not computed. Viewing
+        persona: Andrea Cruz, HR Admin, today is Aug 22, 2026 — the toggle
+        starts ON (the legally-expected default) in every option; click it
+        to preview the OFF state.
+      </div>
+      <nav class="tabbar">
+        <label for="tab1"><span class="n">01</span> Plain toggle row</label>
+        <label for="tab2"><span class="n">02</span> Toggle + inline payout preview <span class="chosen-badge">Chosen</span></label>
+        <label for="tab3"><span class="n">03</span> Compliance-guarded toggle</label>
+      </nav>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — PLAIN TOGGLE ROW ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Payroll → <b>Settings</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Payroll Settings</h2>
+              <p>Company-wide payroll configuration — pay schedule, statutory tables, 13th month pay</p>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div>
+                <h3>Pay Schedule</h3>
+                <p class="settings-desc">Semi-monthly, the PH standard — one schedule per company for v2.</p>
+              </div>
+              <span class="badge badge-neutral">Fixed for v2</span>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field"><label>Cutoff periods</label><p class="val">1st–15th, 16th–end of month</p></div>
+              <div class="settings-field"><label>Pay dates</label><p class="val">5th &amp; 20th</p></div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-link-row">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/></svg></span>
+              <div class="txt">
+                <h3>Statutory Rate Tables</h3>
+                <p>SSS, PhilHealth, Pag-IBIG, BIR withholding — 1 of 4 not reviewed in over a year</p>
+              </div>
+              <button class="link-btn" type="button">Open Rate Tables <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div>
+                <h3>13th Month Pay</h3>
+                <p class="settings-desc">Mandated for rank-and-file employees under PD 851. Prorated (total basic salary ÷ 12), computed automatically each December.</p>
+              </div>
+              <label class="toggle-switch" for="t1-enabled">
+                <span class="toggle-state-lbl off-lbl">Off</span>
+                <span class="toggle-state-lbl on-lbl">On</span>
+                <span class="toggle-track"><span class="thumb"></span></span>
+              </label>
+            </div>
+          </div>
+
+          <div style="height:1.25rem;"></div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Zero extra weight — a settings toggle looks and behaves exactly like every other
+              switch on this screen. Fastest to build, fastest to scan, matches the "it's just a
+              company preference" mental model most settings rows carry.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Nothing distinguishes this from an ordinary preference toggle — no signal that
+              flipping it off is a legal decision with narrow exemptions, not a style choice. An
+              HR admin exploring settings could switch it off by accident with no friction at all.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — TOGGLE + INLINE PAYOUT PREVIEW ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Payroll → <b>Settings</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Payroll Settings</h2>
+              <p>Company-wide payroll configuration — pay schedule, statutory tables, 13th month pay</p>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div>
+                <h3>Pay Schedule</h3>
+                <p class="settings-desc">Semi-monthly, the PH standard — one schedule per company for v2.</p>
+              </div>
+              <span class="badge badge-neutral">Fixed for v2</span>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field"><label>Cutoff periods</label><p class="val">1st–15th, 16th–end of month</p></div>
+              <div class="settings-field"><label>Pay dates</label><p class="val">5th &amp; 20th</p></div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-link-row">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/></svg></span>
+              <div class="txt">
+                <h3>Statutory Rate Tables</h3>
+                <p>SSS, PhilHealth, Pag-IBIG, BIR withholding — 1 of 4 not reviewed in over a year</p>
+              </div>
+              <button class="link-btn" type="button">Open Rate Tables <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div>
+                <h3>13th Month Pay</h3>
+                <p class="settings-desc">Mandated for rank-and-file employees under PD 851, with narrow exemptions only.</p>
+              </div>
+              <label class="toggle-switch" for="t2-enabled">
+                <span class="toggle-track"><span class="thumb"></span></span>
+              </label>
+            </div>
+
+            <div class="payout-preview">
+              <div class="formula-line">Formula: <b>total basic salary earned in 2026 ÷ 12</b>, prorated by months worked.</div>
+              <div class="payout-stats">
+                <div class="payout-stat"><span class="num">42</span><span class="lbl">Employees covered</span></div>
+                <div class="payout-stat"><span class="num">₱2,184,600.00</span><span class="lbl">Projected 2026 payout (run-rate)</span></div>
+                <div class="payout-stat"><span class="num">Dec 24, 2026</span><span class="lbl">Legal payout deadline</span></div>
+              </div>
+            </div>
+            <p class="disabled-note">13th month pay is currently <b>disabled</b> for this company — no payout will be computed at year-end.</p>
+          </div>
+
+          <div style="height:1.25rem;"></div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Turns a bare on/off into useful information: how many employees this touches, roughly
+              what it'll cost this year, and when it's legally due — the kind of glance-and-know
+              detail that makes the toggle worth having its own settings section instead of one row
+              in a list.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>More surface for a switch that, per the mandate, should almost always stay on — the
+              payout preview is genuinely useful, but it doesn't address the actual risk of this
+              screen: someone flipping the switch off with no acknowledgment of why that's normally
+              not allowed.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — COMPLIANCE-GUARDED TOGGLE ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Payroll → <b>Settings</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Payroll Settings</h2>
+              <p>Company-wide payroll configuration — pay schedule, statutory tables, 13th month pay</p>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-row">
+              <div>
+                <h3>Pay Schedule</h3>
+                <p class="settings-desc">Semi-monthly, the PH standard — one schedule per company for v2.</p>
+              </div>
+              <span class="badge badge-neutral">Fixed for v2</span>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field"><label>Cutoff periods</label><p class="val">1st–15th, 16th–end of month</p></div>
+              <div class="settings-field"><label>Pay dates</label><p class="val">5th &amp; 20th</p></div>
+            </div>
+          </div>
+
+          <div class="settings-card">
+            <div class="settings-link-row">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/></svg></span>
+              <div class="txt">
+                <h3>Statutory Rate Tables</h3>
+                <p>SSS, PhilHealth, Pag-IBIG, BIR withholding — 1 of 4 not reviewed in over a year</p>
+              </div>
+              <button class="link-btn" type="button">Open Rate Tables <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></button>
+            </div>
+          </div>
+
+          <div class="compliance-card">
+            <div class="compliance-head">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10Z"/></svg></span>
+              <h3>13th Month Pay</h3>
+              <span class="spacer"></span>
+              <span class="badge badge-positive compliant-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg>Compliant · PD 851</span>
+              <span class="badge badge-caution exempt-badge"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>Exempted</span>
+            </div>
+
+            <div class="settings-row">
+              <div>
+                <p class="settings-desc">Mandated for rank-and-file employees under Presidential Decree 851. Only two exemptions apply: managerial employees, or an equivalent benefit already paid under a different name — this isn't a company style preference.</p>
+              </div>
+              <label class="toggle-switch" for="t3-modal">
+                <span class="toggle-track"><span class="thumb"></span></span>
+              </label>
+            </div>
+
+            <p class="exemption-line" style="padding:0 1.5rem 1.15rem; font-size:0.8125rem; color:var(--ink-light);">
+              <b style="color:var(--ink); font-weight:600;">Exemption on file:</b> All employees are managerial · recorded by Andrea Cruz, Aug 22, 2026
+            </p>
+          </div>
+
+          <div style="height:1.25rem;"></div>
+
+          <!-- confirm-to-disable modal -->
+          <div class="exemption-modal-scrim"></div>
+          <div class="exemption-modal mode-off">
+            <button class="close-x" type="button" title="Cancel"><label for="t3-modal" style="cursor:pointer; display:flex;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></label></button>
+            <div class="exemption-modal-head">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg></span>
+              <div>
+                <h4>Turn off 13th month pay?</h4>
+                <p>PD 851 mandates this for rank-and-file employees. Only turn this off if your company qualifies for one of the narrow legal exemptions below.</p>
+              </div>
+            </div>
+            <div class="field">
+              <label for="exempt-reason">Reason for exemption</label>
+              <select id="exempt-reason">
+                <option>All employees are managerial</option>
+                <option>Equivalent benefit already paid under a different name</option>
+                <option>Other (specify)</option>
+              </select>
+            </div>
+            <div class="exemption-modal-foot">
+              <label class="btn-ghost" for="t3-modal">Cancel</label>
+              <label class="btn-primary danger" for="t3-enabled"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg>Confirm &amp; turn off</label>
+            </div>
+          </div>
+
+          <!-- re-enable modal -->
+          <div class="exemption-modal mode-on">
+            <button class="close-x" type="button" title="Cancel"><label for="t3-modal" style="cursor:pointer; display:flex;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18"/><path d="M6 6l12 12"/></svg></label></button>
+            <div class="exemption-modal-head">
+              <span class="ic" style="background:var(--badge-positive-bg); color:var(--badge-positive-fg);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="M22 4 12 14.01l-3-3"/></svg></span>
+              <div>
+                <h4>Turn on 13th month pay?</h4>
+                <p>This clears the exemption on file and resumes the prorated December payout for all rank-and-file employees.</p>
+              </div>
+            </div>
+            <div class="exemption-modal-foot">
+              <label class="btn-ghost" for="t3-modal">Cancel</label>
+              <label class="btn-primary" for="t3-enabled"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Turn on</label>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Treats the toggle as the compliance decision it actually is — clicking it open a
+              confirmation naming PD 851 and requiring an exemption reason before it takes effect,
+              the same weight decisions/rails-db-transactions-locking-idempotency.md gives to
+              payroll finalization's own irreversible steps. A "Compliant · PD 851" badge is the
+              default steady state; a caution badge and the recorded reason only show up on the
+              deviation, matching decisions/ui/badge-system-four-categories.md's own rule.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>One more click and a required field to turn it off, versus Options 1–2's instant
+              toggle — the right amount of friction only if disabling this really is rare and
+              consequential enough to warrant a recorded reason, not routine housekeeping.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

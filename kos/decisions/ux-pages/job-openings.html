@@ -1,0 +1,757 @@
+<title>HRIS Job Openings Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 70ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, Andrea Cruz — HR Admin) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+  .crumb { padding: 1rem 2rem 0; font-size: 0.75rem; color: var(--neutral); }
+  .crumb b { color: var(--ink-light); font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.6rem 0.95rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .btn-sm { padding: 0.4rem 0.7rem; font-size: 0.75rem; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .greet-block { padding: 1.5rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  /* ---------- toolbar / filters ---------- */
+
+  .toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 1.25rem 2rem 0; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 200px; max-width: 280px; }
+  .search-wrap svg { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--neutral); }
+  .search-wrap input {
+    width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.1rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); background: var(--white);
+  }
+  .search-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip-filter {
+    flex: 0 0 auto; padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--white); font-size: 0.8125rem; font-weight: 600; color: var(--ink-light); cursor: pointer;
+    transition: background var(--t), color var(--t), border-color var(--t);
+  }
+  .chip-filter.is-active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+  .toolbar-spacer { flex: 1; }
+
+  /* ---------- pipeline mini summary (shared) ---------- */
+
+  .pipeline-mini { display: flex; flex-wrap: wrap; gap: 0.5rem 0.85rem; font-size: 0.75rem; color: var(--ink-light); }
+  .pipeline-mini b { color: var(--ink); font-family: var(--font-mono); font-weight: 500; }
+
+  .link-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.6rem; border-radius: 6px;
+    background: var(--surface); border: 1px solid var(--border); font-size: 0.75rem; color: var(--ink-light);
+    cursor: pointer; font-family: var(--font-mono); max-width: 100%; overflow: hidden;
+  }
+  .link-chip span.url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .link-chip svg { width: 12px; height: 12px; flex: 0 0 auto; color: var(--neutral); }
+
+  /* ---------- Option 1: flat table + toolbar ---------- */
+
+  .table-wrap { overflow-x: auto; padding: 0 2rem; }
+  .jotable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 760px; }
+  .jotable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .jotable td { padding: 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .jotable tbody tr:hover { background: var(--surface); }
+  .jotable tr:last-child td { border-bottom: none; }
+  .jotable .title-cell { font-weight: 600; white-space: nowrap; }
+  .jotable .muted { color: var(--neutral); font-size: 0.8125rem; white-space: nowrap; }
+  .jotable .actions-cell { display: flex; gap: 0.4rem; white-space: nowrap; }
+
+  /* ---------- Option 2: card grid ---------- */
+
+  .opening-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 1.25rem 2rem 0; }
+  .opening-card { background: var(--white); padding: 1.15rem 1.2rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .opening-card.is-closed { background: var(--surface); }
+  .opening-card .oc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+  .opening-card h4 { font-size: 0.9375rem; font-weight: 700; }
+  .opening-card .posted { font-size: 0.75rem; color: var(--neutral); margin-top: 0.2rem; }
+  .opening-card .card-foot { margin-top: auto; padding-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+  /* card/list view toggle on Option 2 — chosen, card is the default, reuses
+     decisions/ui/people-directory-card-grid-with-list-toggle.md's mechanic */
+  .view-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex: 0 0 auto; }
+  .view-toggle-btn { display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 34px; cursor: pointer; color: var(--neutral); background: var(--white); transition: background var(--t), color var(--t); }
+  .view-toggle-btn:first-child { border-right: 1px solid var(--border); }
+  .view-toggle-btn svg { width: 15px; height: 15px; }
+  .view-list-panel { display: none; }
+  #view2-list:checked ~ .page .frame-shell[data-n="2"] .view-card-panel { display: none; }
+  #view2-list:checked ~ .page .frame-shell[data-n="2"] .view-list-panel { display: block; }
+  #view2-card:checked ~ .page .frame-shell[data-n="2"] .view-toggle-btn[for="view2-card"],
+  #view2-list:checked ~ .page .frame-shell[data-n="2"] .view-toggle-btn[for="view2-list"] { background: var(--ink); color: var(--white); }
+
+  /* ---------- Option 3: open section (cards) + collapsible closed archive ---------- */
+
+  .oh-stats { padding: 1.25rem 2rem 0; font-size: 0.8125rem; color: var(--ink-light); }
+  .oh-stats b { color: var(--ink); font-family: var(--font-mono); font-weight: 500; }
+  .section-heading { display: flex; align-items: center; gap: 0.6rem; padding: 1.5rem 2rem 0; }
+  .section-heading h3 { font-size: 0.8125rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+
+  .closed-toggle-row { padding: 1.5rem 2rem 0; }
+  .closed-toggle-lbl { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; font-weight: 600; color: var(--ink-light); cursor: pointer; }
+  .closed-toggle-lbl svg { width: 14px; height: 14px; transition: transform var(--t); }
+  .closed-toggle-lbl .txt-closed { display: inline; }
+  .closed-toggle-lbl .txt-open { display: none; }
+  .closed-archive { display: none; margin-top: 0.9rem; }
+  #show-closed3:checked ~ .page .frame-shell[data-n="3"] .closed-archive { display: block; }
+  #show-closed3:checked ~ .page .frame-shell[data-n="3"] .closed-toggle-lbl svg { transform: rotate(180deg); }
+  #show-closed3:checked ~ .page .frame-shell[data-n="3"] .closed-toggle-lbl .txt-closed { display: none; }
+  #show-closed3:checked ~ .page .frame-shell[data-n="3"] .closed-toggle-lbl .txt-open { display: inline; }
+
+  @media (max-width: 480px) {
+    .toolbar, .table-wrap, .opening-grid, .oh-stats, .section-heading, .closed-toggle-row, .greet-block, .crumb { padding-left: 1.25rem; padding-right: 1.25rem; margin-left: 0; margin-right: 0; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" checked />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="checkbox" id="show-closed3" />
+<input class="state" type="radio" name="view2" id="view2-card" checked />
+<input class="state" type="radio" name="view2" id="view2-list" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Job Openings — three recommendations</h1>
+      <p class="sub">
+        The HR-Admin landing page for Recruitment (Company → Recruitment,
+        decisions/ui/navigation-me-team-company.md), first screen of
+        projects/hris/features/recruitment-ats/PLAN.md's core flow — "HR
+        creates a job opening." One row/card per opening: title, open/closed
+        status, and how far along its candidates are in the fixed New →
+        Interviewing → Offer → Hired/Rejected pipeline. Clicking into an
+        opening goes to Job Opening Detail + Candidate Pipeline, a separate
+        not-yet-built page — nothing here edits a candidate's stage
+        directly. Unlike Payroll Runs, more than one opening can be open at
+        the same time, so there's no single "the one active run" to pin.
+      </p>
+      <div class="assumptions">
+        <b>Deliberately deferred, built anyway for comparison:</b> per
+        kos/decisions/ats-checker-reuse-parked-for-recruitment.md and the
+        user's own roadmap, Recruitment stays last in the build order until
+        the public candidate-facing application form exists — this mockup
+        covers only the HR-Admin list. Viewing persona: Andrea Cruz, HR
+        Admin, today is Aug 22, 2026. The link is an application-form URL,
+        not a public job-ad page — HR posts the actual ad on
+        JobStreet/Indeed/LinkedIn and points its Apply button here; shown
+        as illustrative (hris.app/apply/…), no real subdomain wired. Status
+        badges follow
+        decisions/ui/badge-system-four-categories.md: Open (actively
+        hiring) reads Positive since it's the wanted working state, Closed
+        reads Neutral — no judgment on a filled-vs-cancelled opening,
+        that detail lives on the Detail page. Pipeline counts are
+        illustrative placeholders, not computed.
+        <b>Option 02's card grid also carries a card/list view toggle</b>,
+        card selected by default — reusing
+        decisions/ui/people-directory-card-grid-with-list-toggle.md's exact
+        mechanic rather than inventing a new one.
+      </div>
+      <nav class="tabbar">
+        <label for="tab1"><span class="n">01</span> Flat table + toolbar</label>
+        <label for="tab2"><span class="n">02</span> Card grid, with a list view toggle <span class="chosen-badge">Chosen</span></label>
+        <label for="tab3"><span class="n">03</span> Open section + collapsible closed archive</label>
+      </nav>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — FLAT TABLE + TOOLBAR ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Recruitment → <b>Job Openings</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Job Openings</h2>
+              <p>3 open · 23 applicants across all stages · 6 closed</p>
+            </div>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input type="text" placeholder="Search by title…" />
+            </div>
+            <div class="chip-row">
+              <span class="chip-filter is-active">All</span>
+              <span class="chip-filter">Open</span>
+              <span class="chip-filter">Closed</span>
+            </div>
+            <div class="toolbar-spacer"></div>
+            <button class="btn-primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              New job opening
+            </button>
+          </div>
+
+          <div class="table-wrap" style="margin-top:1rem;">
+            <table class="jotable">
+              <thead><tr><th>Title</th><th>Status</th><th>Pipeline</th><th>Posted</th><th>Application link</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td class="title-cell">Senior Backend Engineer</td>
+                  <td><span class="badge badge-positive">Open</span></td>
+                  <td class="pipeline-mini"><b>5</b>&nbsp;New · <b>4</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer</td>
+                  <td class="muted">Aug 10, 2026</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/senior-backend-engineer</span></span></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                </tr>
+                <tr>
+                  <td class="title-cell">Customer Support Representative</td>
+                  <td><span class="badge badge-positive">Open</span></td>
+                  <td class="pipeline-mini"><b>6</b>&nbsp;New · <b>2</b>&nbsp;Interviewing</td>
+                  <td class="muted">Aug 15, 2026</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/customer-support-rep</span></span></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                </tr>
+                <tr>
+                  <td class="title-cell">Payroll Specialist</td>
+                  <td><span class="badge badge-positive">Open</span></td>
+                  <td class="pipeline-mini"><b>3</b>&nbsp;New</td>
+                  <td class="muted">Aug 18, 2026</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/payroll-specialist</span></span></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                </tr>
+                <tr>
+                  <td class="title-cell">Warehouse Associate</td>
+                  <td><span class="badge badge-neutral">Closed</span></td>
+                  <td class="pipeline-mini"><b>2</b>&nbsp;Hired · <b>5</b>&nbsp;Rejected</td>
+                  <td class="muted">Jul 1, 2026</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/warehouse-associate</span></span></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                </tr>
+                <tr>
+                  <td class="title-cell">Marketing Coordinator</td>
+                  <td><span class="badge badge-neutral">Closed</span></td>
+                  <td class="pipeline-mini"><b>1</b>&nbsp;Hired · <b>3</b>&nbsp;Rejected</td>
+                  <td class="muted">Jun 10, 2026</td>
+                  <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/marketing-coordinator</span></span></td>
+                  <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+          <p style="padding:0.75rem 2rem 1.5rem; font-size:0.75rem; color:var(--neutral);">Showing 5 of 9 openings — 4 more closed postings not shown in this mockup.</p>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Every opening, open or closed, on one sortable/filterable surface — matches
+              decisions/ui/rails-datatable-pagy-turbo-frame-pattern.md's default table shape and is
+              the fastest to build. Good when the list is mostly flat browsing.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Open and closed postings compete for the same rows at the same visual weight — the
+              thing HR actually opens this page to check ("what am I hiring for right now") isn't
+              separated from postings nobody needs to look at again.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — CARD GRID ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Recruitment → <b>Job Openings</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Job Openings</h2>
+              <p>3 open · 23 applicants across all stages · 6 closed</p>
+            </div>
+            <div style="display:flex; gap:0.6rem; align-items:center;">
+              <div class="view-toggle">
+                <label class="view-toggle-btn" for="view2-card" title="Card view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg></label>
+                <label class="view-toggle-btn" for="view2-list" title="List view"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></label>
+              </div>
+              <button class="btn-primary" type="button">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+                New job opening
+              </button>
+            </div>
+          </div>
+
+          <div class="view-card-panel">
+            <div class="opening-grid">
+              <div class="opening-card">
+                <div class="oc-head">
+                  <div>
+                    <h4>Senior Backend Engineer</h4>
+                    <p class="posted">Posted Aug 10, 2026</p>
+                  </div>
+                  <span class="badge badge-positive">Open</span>
+                </div>
+                <div class="pipeline-mini"><b>5</b>&nbsp;New · <b>4</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer</div>
+                <div class="card-foot">
+                  <button class="btn-primary btn-sm" type="button">View pipeline</button>
+                  <span class="link-chip" title="hris.app/apply/senior-backend-engineer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy apply link</span>
+                </div>
+              </div>
+
+              <div class="opening-card">
+                <div class="oc-head">
+                  <div>
+                    <h4>Customer Support Representative</h4>
+                    <p class="posted">Posted Aug 15, 2026</p>
+                  </div>
+                  <span class="badge badge-positive">Open</span>
+                </div>
+                <div class="pipeline-mini"><b>6</b>&nbsp;New · <b>2</b>&nbsp;Interviewing</div>
+                <div class="card-foot">
+                  <button class="btn-primary btn-sm" type="button">View pipeline</button>
+                  <span class="link-chip" title="hris.app/apply/customer-support-rep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy apply link</span>
+                </div>
+              </div>
+
+              <div class="opening-card">
+                <div class="oc-head">
+                  <div>
+                    <h4>Payroll Specialist</h4>
+                    <p class="posted">Posted Aug 18, 2026</p>
+                  </div>
+                  <span class="badge badge-positive">Open</span>
+                </div>
+                <div class="pipeline-mini"><b>3</b>&nbsp;New</div>
+                <div class="card-foot">
+                  <button class="btn-primary btn-sm" type="button">View pipeline</button>
+                  <span class="link-chip" title="hris.app/apply/payroll-specialist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy apply link</span>
+                </div>
+              </div>
+
+              <div class="opening-card is-closed">
+                <div class="oc-head">
+                  <div>
+                    <h4>Warehouse Associate</h4>
+                    <p class="posted">Posted Jul 1, 2026 · Closed Jul 28, 2026</p>
+                  </div>
+                  <span class="badge badge-neutral">Closed</span>
+                </div>
+                <div class="pipeline-mini"><b>2</b>&nbsp;Hired · <b>5</b>&nbsp;Rejected</div>
+                <div class="card-foot">
+                  <button class="btn-ghost btn-sm" type="button">View pipeline</button>
+                </div>
+              </div>
+
+              <div class="opening-card is-closed">
+                <div class="oc-head">
+                  <div>
+                    <h4>Marketing Coordinator</h4>
+                    <p class="posted">Posted Jun 10, 2026 · Closed Jul 5, 2026</p>
+                  </div>
+                  <span class="badge badge-neutral">Closed</span>
+                </div>
+                <div class="pipeline-mini"><b>1</b>&nbsp;Hired · <b>3</b>&nbsp;Rejected</div>
+                <div class="card-foot">
+                  <button class="btn-ghost btn-sm" type="button">View pipeline</button>
+                </div>
+              </div>
+
+              <div class="opening-card is-closed">
+                <div class="oc-head">
+                  <div>
+                    <h4>Junior QA Engineer</h4>
+                    <p class="posted">Posted May 1, 2026 · Closed Jun 1, 2026</p>
+                  </div>
+                  <span class="badge badge-neutral">Closed</span>
+                </div>
+                <div class="pipeline-mini"><b>0</b>&nbsp;Hired · <b>4</b>&nbsp;Rejected</div>
+                <div class="card-foot">
+                  <button class="btn-ghost btn-sm" type="button">View pipeline</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="view-list-panel">
+            <div class="table-wrap" style="margin-top:1.25rem;">
+              <table class="jotable">
+                <thead><tr><th>Title</th><th>Status</th><th>Pipeline</th><th>Posted</th><th>Application link</th><th></th></tr></thead>
+                <tbody>
+                  <tr>
+                    <td class="title-cell">Senior Backend Engineer</td>
+                    <td><span class="badge badge-positive">Open</span></td>
+                    <td class="pipeline-mini"><b>5</b>&nbsp;New · <b>4</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer</td>
+                    <td class="muted">Aug 10, 2026</td>
+                    <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/senior-backend-engineer</span></span></td>
+                    <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                  </tr>
+                  <tr>
+                    <td class="title-cell">Customer Support Representative</td>
+                    <td><span class="badge badge-positive">Open</span></td>
+                    <td class="pipeline-mini"><b>6</b>&nbsp;New · <b>2</b>&nbsp;Interviewing</td>
+                    <td class="muted">Aug 15, 2026</td>
+                    <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/customer-support-rep</span></span></td>
+                    <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                  </tr>
+                  <tr>
+                    <td class="title-cell">Payroll Specialist</td>
+                    <td><span class="badge badge-positive">Open</span></td>
+                    <td class="pipeline-mini"><b>3</b>&nbsp;New</td>
+                    <td class="muted">Aug 18, 2026</td>
+                    <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/payroll-specialist</span></span></td>
+                    <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                  </tr>
+                  <tr>
+                    <td class="title-cell">Warehouse Associate</td>
+                    <td><span class="badge badge-neutral">Closed</span></td>
+                    <td class="pipeline-mini"><b>2</b>&nbsp;Hired · <b>5</b>&nbsp;Rejected</td>
+                    <td class="muted">Jul 1, 2026</td>
+                    <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/warehouse-associate</span></span></td>
+                    <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                  </tr>
+                  <tr>
+                    <td class="title-cell">Marketing Coordinator</td>
+                    <td><span class="badge badge-neutral">Closed</span></td>
+                    <td class="pipeline-mini"><b>1</b>&nbsp;Hired · <b>3</b>&nbsp;Rejected</td>
+                    <td class="muted">Jun 10, 2026</td>
+                    <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/marketing-coordinator</span></span></td>
+                    <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                  </tr>
+                  <tr>
+                    <td class="title-cell">Junior QA Engineer</td>
+                    <td><span class="badge badge-neutral">Closed</span></td>
+                    <td class="pipeline-mini"><b>0</b>&nbsp;Hired · <b>4</b>&nbsp;Rejected</td>
+                    <td class="muted">May 1, 2026</td>
+                    <td><span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg><span class="url">hris.app/apply/junior-qa-engineer</span></span></td>
+                    <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <p style="padding:0.75rem 2rem 1.5rem; font-size:0.75rem; color:var(--neutral);">Showing 6 of 9 openings — 3 more closed postings not shown in this mockup.</p>
+          </div>
+
+          <div style="height:1.5rem;"></div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Reuses the card-grid language already shipped on People Directory and Rate Tables —
+              each opening reads as a self-contained unit (title, status, pipeline shape, one-click
+              actions), and closed cards are visually muted rather than removed, so nothing
+              disappears from view. Card stays the default per
+              decisions/ui/people-directory-card-grid-with-list-toggle.md's own reasoning — friendly
+              for a small, growing list — but the same view toggle puts a denser, sortable table one
+              click away for whoever wants to scan every posting at once.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Two view states to keep visually consistent instead of one — the list view has to
+              carry the same title/status/pipeline/link columns the cards show, or switching views
+              would feel like a different page. Chosen anyway: the same trade was already accepted
+              once for People Directory, and it's cheap to reuse the identical mechanic here.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — OPEN SECTION + COLLAPSIBLE CLOSED ARCHIVE ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Recruitment → <b>Job Openings</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Job Openings</h2>
+              <p>What you're hiring for right now, and its full history below</p>
+            </div>
+            <button class="btn-primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              New job opening
+            </button>
+          </div>
+
+          <div class="section-heading"><h3>Open now · 3</h3></div>
+          <p class="oh-stats"><b>23</b> applicants across all stages · oldest posting <b>12 days</b> ago</p>
+
+          <div class="opening-grid" style="margin-top:0.85rem;">
+            <div class="opening-card">
+              <div class="oc-head">
+                <div>
+                  <h4>Senior Backend Engineer</h4>
+                  <p class="posted">Posted Aug 10, 2026 · 12 days ago</p>
+                </div>
+                <span class="badge badge-positive">Open</span>
+              </div>
+              <div class="pipeline-mini"><b>5</b>&nbsp;New · <b>4</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer</div>
+              <div class="card-foot">
+                <button class="btn-primary btn-sm" type="button">View pipeline</button>
+                <span class="link-chip" title="hris.app/apply/senior-backend-engineer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy apply link</span>
+              </div>
+            </div>
+
+            <div class="opening-card">
+              <div class="oc-head">
+                <div>
+                  <h4>Customer Support Representative</h4>
+                  <p class="posted">Posted Aug 15, 2026 · 7 days ago</p>
+                </div>
+                <span class="badge badge-positive">Open</span>
+              </div>
+              <div class="pipeline-mini"><b>6</b>&nbsp;New · <b>2</b>&nbsp;Interviewing</div>
+              <div class="card-foot">
+                <button class="btn-primary btn-sm" type="button">View pipeline</button>
+                <span class="link-chip" title="hris.app/apply/customer-support-rep"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy apply link</span>
+              </div>
+            </div>
+
+            <div class="opening-card">
+              <div class="oc-head">
+                <div>
+                  <h4>Payroll Specialist</h4>
+                  <p class="posted">Posted Aug 18, 2026 · 4 days ago</p>
+                </div>
+                <span class="badge badge-positive">Open</span>
+              </div>
+              <div class="pipeline-mini"><b>3</b>&nbsp;New</div>
+              <div class="card-foot">
+                <button class="btn-primary btn-sm" type="button">View pipeline</button>
+                <span class="link-chip" title="hris.app/apply/payroll-specialist"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy apply link</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="closed-toggle-row">
+            <label class="closed-toggle-lbl" for="show-closed3">
+              <span class="txt-closed">Show closed postings (6)</span>
+              <span class="txt-open">Hide closed postings</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+            </label>
+
+            <div class="closed-archive">
+              <div class="table-wrap" style="padding:0;">
+                <table class="jotable">
+                  <thead><tr><th>Title</th><th>Status</th><th>Outcome</th><th>Posted</th><th>Closed</th><th></th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td class="title-cell">Warehouse Associate</td>
+                      <td><span class="badge badge-neutral">Closed</span></td>
+                      <td class="pipeline-mini"><b>2</b>&nbsp;Hired · <b>5</b>&nbsp;Rejected</td>
+                      <td class="muted">Jul 1, 2026</td>
+                      <td class="muted">Jul 28, 2026</td>
+                      <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                    </tr>
+                    <tr>
+                      <td class="title-cell">Marketing Coordinator</td>
+                      <td><span class="badge badge-neutral">Closed</span></td>
+                      <td class="pipeline-mini"><b>1</b>&nbsp;Hired · <b>3</b>&nbsp;Rejected</td>
+                      <td class="muted">Jun 10, 2026</td>
+                      <td class="muted">Jul 5, 2026</td>
+                      <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                    </tr>
+                    <tr>
+                      <td class="title-cell">Junior QA Engineer</td>
+                      <td><span class="badge badge-neutral">Closed</span></td>
+                      <td class="pipeline-mini"><b>0</b>&nbsp;Hired · <b>4</b>&nbsp;Rejected</td>
+                      <td class="muted">May 1, 2026</td>
+                      <td class="muted">Jun 1, 2026</td>
+                      <td class="actions-cell"><button class="btn-ghost btn-sm" type="button">View pipeline</button></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <p style="padding:0.75rem 0 1.5rem; font-size:0.75rem; color:var(--neutral);">Showing 3 of 6 closed postings — 3 more not shown in this mockup.</p>
+            </div>
+          </div>
+
+          <div style="height:0.5rem;"></div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Separates "what am I actively hiring for" from archive the same way
+              decisions/ui/compliance-certifications-pinned-attention-full-list.md separates
+              needs-attention from the full sorted list — open postings get full-card weight up
+              top with pipeline counts visible without a click; closed postings collapse behind one
+              disclosure toggle, closed by default, so the page opens on exactly what needs a
+              decision today.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>An extra click to see anything closed — fine if HR genuinely never revisits filled
+              roles, but if there's a habit of double-checking past postings (comp benchmarking,
+              reposting a similar role), that history is one step further away than Options 1–2.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

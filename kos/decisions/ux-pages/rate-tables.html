@@ -1,0 +1,1044 @@
+<title>HRIS Rate Tables Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, Andrea Cruz — HR Admin) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+  .crumb { padding: 1rem 2rem 0; font-size: 0.75rem; color: var(--neutral); }
+  .crumb b { color: var(--ink-light); font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .icon-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-light); cursor: pointer; flex: 0 0 auto; }
+  .icon-btn:hover { background: var(--surface); }
+  .icon-btn svg { width: 14px; height: 14px; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .greet-block { padding: 1.5rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  /* ---------- stat strip ---------- */
+
+  .stat-strip { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 1.25rem 2rem 0; }
+  .stat-tile { background: var(--white); padding: 0.95rem 1.1rem; display: flex; flex-direction: column; gap: 0.3rem; }
+  .stat-tile .num { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1; }
+  .stat-tile .lbl { font-size: 0.75rem; color: var(--neutral); }
+  .stat-tile.dot-caution .num { color: var(--badge-caution-fg); }
+
+  /* ---------- notice / disclaimer ---------- */
+
+  .notice-band { display: flex; align-items: flex-start; gap: 0.6rem; margin: 1.25rem 2rem 0; padding: 0.85rem 1rem; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); font-size: 0.8125rem; line-height: 1.5; color: var(--ink-light); }
+  .notice-band svg { width: 16px; height: 16px; color: var(--neutral); flex: 0 0 auto; margin-top: 0.1rem; }
+  .notice-band b { color: var(--ink); font-weight: 600; }
+
+  /* ---------- rate card: shared head / meta / view-edit ---------- */
+
+  .rt-card { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+  .rt-card:last-child { border-bottom: none; }
+  .rt-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap; margin-bottom: 1.1rem; }
+  .rt-head-txt h3 { font-size: 1rem; font-weight: 700; }
+  .rt-meta { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.35rem; font-size: 0.75rem; color: var(--neutral); }
+  .rt-meta .dot-sep { width: 3px; height: 3px; border-radius: 999px; background: var(--border); flex: 0 0 auto; }
+  .rt-meta .stale { color: var(--badge-caution-fg); font-weight: 600; }
+
+  .rt-panel .rt-view { display: block; }
+  .rt-panel .rt-edit { display: none; }
+
+  .rt-fields { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 1.1rem; }
+  .rt-field label { display: block; font-size: 0.75rem; color: var(--neutral); font-weight: 500; margin-bottom: 0.25rem; }
+  .rt-field .val { font-size: 0.9375rem; color: var(--ink); }
+  .rt-field .val.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .plain-input {
+    width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .plain-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+
+  .save-row { display: flex; gap: 0.6rem; justify-content: flex-end; padding-top: 1rem; margin-top: 1rem; border-top: 1px dashed var(--border); }
+
+  /* ---------- bracket table ---------- */
+
+  .table-wrap { overflow-x: auto; }
+  .bracket-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; min-width: 520px; }
+  .bracket-table th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.55rem 0.65rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .bracket-table td { padding: 0.6rem 0.65rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .bracket-table td.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .bracket-table tr:last-child td { border-bottom: none; }
+  .bracket-table .cell-input { width: 100%; min-width: 96px; padding: 0.4rem 0.5rem; border: 1px solid var(--border); border-radius: 6px; font-family: var(--font-mono); font-size: 0.8125rem; color: var(--ink); background: var(--white); }
+  .bracket-table .cell-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .bracket-table .row-del { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); display: inline-flex; align-items: center; justify-content: center; color: var(--neutral); cursor: pointer; }
+  .bracket-table .row-del:hover { background: var(--badge-negative-bg); color: var(--badge-negative-fg); border-color: transparent; }
+  .bracket-table .row-del svg { width: 13px; height: 13px; }
+  .more-rows-note { font-size: 0.75rem; color: var(--neutral); padding: 0.6rem 0.65rem 0; }
+  .add-row-btn { display: inline-flex; align-items: center; gap: 0.4rem; margin-top: 0.85rem; font-size: 0.8125rem; font-weight: 600; color: var(--accent); cursor: pointer; background: none; border: none; padding: 0; }
+  .add-row-btn svg { width: 14px; height: 14px; }
+
+  /* ---------- Option 1: segmented agency switch ---------- */
+
+  .seg-switch { display: inline-flex; gap: 2px; padding: 3px; background: var(--surface); border-radius: 999px; border: 1px solid var(--border); }
+  .seg-switch label { padding: 0.5rem 0.9rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: var(--ink-light); cursor: pointer; transition: background var(--t), color var(--t); }
+  .seg-switch label:hover { color: var(--ink); }
+
+  #ag1-sss:checked ~ .page .frame-shell[data-n="1"] .seg-switch label[for="ag1-sss"],
+  #ag1-ph:checked  ~ .page .frame-shell[data-n="1"] .seg-switch label[for="ag1-ph"],
+  #ag1-pi:checked  ~ .page .frame-shell[data-n="1"] .seg-switch label[for="ag1-pi"],
+  #ag1-bir:checked ~ .page .frame-shell[data-n="1"] .seg-switch label[for="ag1-bir"] { background: var(--ink); color: var(--white); }
+
+  .rt-panel { display: none; }
+  #ag1-sss:checked ~ .page .frame-shell[data-n="1"] .rt-panel[data-ag="sss"],
+  #ag1-ph:checked  ~ .page .frame-shell[data-n="1"] .rt-panel[data-ag="ph"],
+  #ag1-pi:checked  ~ .page .frame-shell[data-n="1"] .rt-panel[data-ag="pi"],
+  #ag1-bir:checked ~ .page .frame-shell[data-n="1"] .rt-panel[data-ag="bir"] { display: block; }
+
+  #edit1-sss:checked ~ .page .frame-shell[data-n="1"] [data-ag="sss"] .rt-view,
+  #edit1-ph:checked  ~ .page .frame-shell[data-n="1"] [data-ag="ph"] .rt-view,
+  #edit1-pi:checked  ~ .page .frame-shell[data-n="1"] [data-ag="pi"] .rt-view,
+  #edit1-bir:checked ~ .page .frame-shell[data-n="1"] [data-ag="bir"] .rt-view { display: none; }
+  #edit1-sss:checked ~ .page .frame-shell[data-n="1"] [data-ag="sss"] .rt-edit,
+  #edit1-ph:checked  ~ .page .frame-shell[data-n="1"] [data-ag="ph"] .rt-edit,
+  #edit1-pi:checked  ~ .page .frame-shell[data-n="1"] [data-ag="pi"] .rt-edit,
+  #edit1-bir:checked ~ .page .frame-shell[data-n="1"] [data-ag="bir"] .rt-edit { display: block; }
+
+  /* ---------- Option 2: stacked accordion ---------- */
+
+  .acc-head { display: flex; align-items: center; gap: 0.75rem; padding: 1.1rem 2rem; cursor: pointer; user-select: none; }
+  .acc-head .chevron { width: 16px; height: 16px; color: var(--neutral); transition: transform var(--t); flex: 0 0 auto; }
+  .acc-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .acc-head .rt-meta { margin-top: 0.15rem; }
+  .acc-head .spacer { flex: 1; }
+  .acc-body { display: none; padding: 0 2rem 1.5rem; }
+
+  #exp2-sss:checked ~ .page .frame-shell[data-n="2"] [data-ag="sss"] .acc-body,
+  #exp2-ph:checked  ~ .page .frame-shell[data-n="2"] [data-ag="ph"] .acc-body,
+  #exp2-pi:checked  ~ .page .frame-shell[data-n="2"] [data-ag="pi"] .acc-body,
+  #exp2-bir:checked ~ .page .frame-shell[data-n="2"] [data-ag="bir"] .acc-body { display: block; }
+  #exp2-sss:checked ~ .page .frame-shell[data-n="2"] [data-ag="sss"] .acc-head .chevron,
+  #exp2-ph:checked  ~ .page .frame-shell[data-n="2"] [data-ag="ph"] .acc-head .chevron,
+  #exp2-pi:checked  ~ .page .frame-shell[data-n="2"] [data-ag="pi"] .acc-head .chevron,
+  #exp2-bir:checked ~ .page .frame-shell[data-n="2"] [data-ag="bir"] .acc-head .chevron { transform: rotate(90deg); }
+
+  #edit2-sss:checked ~ .page .frame-shell[data-n="2"] [data-ag="sss"] .rt-view,
+  #edit2-ph:checked  ~ .page .frame-shell[data-n="2"] [data-ag="ph"] .rt-view,
+  #edit2-pi:checked  ~ .page .frame-shell[data-n="2"] [data-ag="pi"] .rt-view,
+  #edit2-bir:checked ~ .page .frame-shell[data-n="2"] [data-ag="bir"] .rt-view { display: none; }
+  #edit2-sss:checked ~ .page .frame-shell[data-n="2"] [data-ag="sss"] .rt-edit,
+  #edit2-ph:checked  ~ .page .frame-shell[data-n="2"] [data-ag="ph"] .rt-edit,
+  #edit2-pi:checked  ~ .page .frame-shell[data-n="2"] [data-ag="pi"] .rt-edit,
+  #edit2-bir:checked ~ .page .frame-shell[data-n="2"] [data-ag="bir"] .rt-edit { display: block; }
+
+  /* ---------- Option 3: landing cards + edit drawer ---------- */
+
+  .agency-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 1.25rem 2rem 0; }
+  .agency-card { background: var(--white); padding: 1.15rem 1.2rem; display: flex; flex-direction: column; gap: 0.65rem; }
+  .agency-card .ic { width: 34px; height: 34px; border-radius: 8px; background: var(--surface); color: var(--ink-light); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .agency-card .ic svg { width: 18px; height: 18px; }
+  .agency-card h4 { font-size: 0.9375rem; font-weight: 700; }
+  .agency-card .cnt { font-size: 0.8125rem; color: var(--ink-light); }
+  .agency-card .card-foot { margin-top: auto; padding-top: 0.4rem; }
+
+  .tt-scrim { display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.32); z-index: 4; }
+  .tt-drawer { display: none; position: absolute; top: 0; right: 0; bottom: 0; width: min(420px, 94%); background: var(--white); border-left: 1px solid var(--border); box-shadow: var(--shadow-card); z-index: 5; flex-direction: column; overflow-y: auto; }
+  .tt-drawer-body { padding: 1.1rem 1.25rem 1.5rem; display: none; flex-direction: column; gap: 1.1rem; }
+  .tt-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; padding-bottom: 0.9rem; margin-bottom: 0.2rem; border-bottom: 1px solid var(--border); }
+  .tt-drawer-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .tt-drawer-head .rt-meta { margin-top: 0.3rem; }
+  .tt-drawer-section h5 { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); margin-bottom: 0.6rem; }
+
+  #drw3-sss:checked ~ .page .frame-shell[data-n="3"] .tt-scrim,
+  #drw3-ph:checked  ~ .page .frame-shell[data-n="3"] .tt-scrim,
+  #drw3-pi:checked  ~ .page .frame-shell[data-n="3"] .tt-scrim,
+  #drw3-bir:checked ~ .page .frame-shell[data-n="3"] .tt-scrim,
+  #drw3-sss:checked ~ .page .frame-shell[data-n="3"] .tt-drawer,
+  #drw3-ph:checked  ~ .page .frame-shell[data-n="3"] .tt-drawer,
+  #drw3-pi:checked  ~ .page .frame-shell[data-n="3"] .tt-drawer,
+  #drw3-bir:checked ~ .page .frame-shell[data-n="3"] .tt-drawer { display: flex; }
+
+  #drw3-sss:checked ~ .page .frame-shell[data-n="3"] .tt-drawer-body[data-p="sss"],
+  #drw3-ph:checked  ~ .page .frame-shell[data-n="3"] .tt-drawer-body[data-p="ph"],
+  #drw3-pi:checked  ~ .page .frame-shell[data-n="3"] .tt-drawer-body[data-p="pi"],
+  #drw3-bir:checked ~ .page .frame-shell[data-n="3"] .tt-drawer-body[data-p="bir"] { display: flex; }
+
+  @media (max-width: 480px) {
+    .greet-block, .notice-band, .stat-strip, .agency-grid, .rt-card, .acc-head, .acc-body, .crumb { padding-left: 1.25rem; padding-right: 1.25rem; margin-left: 0; margin-right: 0; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" checked />
+
+<input class="state" type="radio" name="ag1" id="ag1-sss" checked />
+<input class="state" type="radio" name="ag1" id="ag1-ph" />
+<input class="state" type="radio" name="ag1" id="ag1-pi" />
+<input class="state" type="radio" name="ag1" id="ag1-bir" />
+<input class="state" type="checkbox" id="edit1-sss" />
+<input class="state" type="checkbox" id="edit1-ph" />
+<input class="state" type="checkbox" id="edit1-pi" />
+<input class="state" type="checkbox" id="edit1-bir" />
+
+<input class="state" type="checkbox" id="exp2-sss" checked />
+<input class="state" type="checkbox" id="exp2-ph" />
+<input class="state" type="checkbox" id="exp2-pi" />
+<input class="state" type="checkbox" id="exp2-bir" />
+<input class="state" type="checkbox" id="edit2-sss" />
+<input class="state" type="checkbox" id="edit2-ph" />
+<input class="state" type="checkbox" id="edit2-pi" />
+<input class="state" type="checkbox" id="edit2-bir" />
+
+<input class="state" type="radio" name="drw3" id="drw3-none" checked />
+<input class="state" type="radio" name="drw3" id="drw3-sss" />
+<input class="state" type="radio" name="drw3" id="drw3-ph" />
+<input class="state" type="radio" name="drw3" id="drw3-pi" />
+<input class="state" type="radio" name="drw3" id="drw3-bir" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Rate Tables — three recommendations</h1>
+      <p class="sub">
+        The HR-Admin screen under Company → Payroll → Rate Tables, where
+        SSS/PhilHealth/Pag-IBIG/BIR withholding are stored as
+        admin-editable data
+        (decisions/statutory-deductions-as-editable-data-not-code.md)
+        instead of hardcoded formulas — this is the "separate not-yet-built
+        page" referenced from Payroll Run Detail's read-only statutory
+        section. All three options below hold the same four agencies and
+        the same underlying figures; what changes is how you get from
+        "browsing the current rates" to "editing one agency's table."
+      </p>
+      <div class="assumptions">
+        <b>Illustrative rates — not verified against current circulars.</b>
+        SSS/PhilHealth/Pag-IBIG figures approximate recent public bracket
+        tables for shape only; BIR uses TRAIN law's withholding structure.
+        Do not use these numbers for real payroll — HR would type in the
+        actual published table when this ships. No live computation is
+        wired in any option; edited values shown here don't recalculate
+        anything. Viewing persona: Andrea Cruz, HR Admin, today is Aug 22,
+        2026. Per decisions/ui/employee-detail-inline-edit-with-reserved-tabs.md's
+        established convention: a table sitting on a page you might just be
+        browsing gets an explicit Edit toggle so nothing changes by
+        accident (Options 1 and 2); a table opened specifically to edit it
+        — a dedicated drawer (Option 3) — is directly editable, no extra
+        toggle needed. No effective-dated version history is modeled — an
+        edit simply replaces the current table, per
+        decisions/rails-skinny-models-behavior-in-interactors.md keeping
+        payroll's own "no computed history, only current lookups" scope.
+      </div>
+      <nav class="tabbar">
+        <label for="tab1"><span class="n">01</span> Agency tabs, inline edit</label>
+        <label for="tab2"><span class="n">02</span> Stacked sections, accordion</label>
+        <label for="tab3"><span class="n">03</span> Landing cards + edit drawer <span class="chosen-badge">Chosen</span></label>
+      </nav>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — AGENCY TABS, INLINE EDIT ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Payroll → <b>Rate Tables</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Rate Tables</h2>
+              <p>Statutory deduction tables — SSS, PhilHealth, Pag-IBIG, BIR withholding</p>
+            </div>
+          </div>
+
+          <div class="notice-band">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <p>Editing here changes what every future payroll run looks up — nothing is
+              recomputed retroactively for already-finalized payslips.</p>
+          </div>
+
+          <div style="padding: 1.25rem 2rem 0;">
+            <div class="seg-switch">
+              <label for="ag1-sss">SSS</label>
+              <label for="ag1-ph">PhilHealth</label>
+              <label for="ag1-pi">Pag-IBIG</label>
+              <label for="ag1-bir">BIR</label>
+            </div>
+          </div>
+
+          <!-- SSS -->
+          <div class="rt-panel" data-ag="sss">
+            <div class="rt-card">
+              <div class="rt-head">
+                <div class="rt-head-txt">
+                  <h3>SSS — Social Security System</h3>
+                  <div class="rt-meta"><span>Effective Jan 1, 2026</span><span class="dot-sep"></span><span>Updated by Andrea Cruz · 7 months ago</span></div>
+                </div>
+                <label class="btn-ghost" for="edit1-sss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+              </div>
+
+              <div class="rt-view">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Monthly Salary Credit Range</th><th>Employee Share</th><th>Employer Share</th><th>Total</th></tr></thead>
+                    <tbody>
+                      <tr><td>Below ₱4,250.00</td><td class="mono">₱180.00</td><td class="mono">₱380.00</td><td class="mono">₱560.00</td></tr>
+                      <tr><td>₱4,250.00 – ₱4,749.99</td><td class="mono">₱202.50</td><td class="mono">₱427.50</td><td class="mono">₱630.00</td></tr>
+                      <tr><td>₱4,750.00 – ₱5,249.99</td><td class="mono">₱225.00</td><td class="mono">₱475.00</td><td class="mono">₱700.00</td></tr>
+                      <tr><td>₱5,250.00 – ₱5,749.99</td><td class="mono">₱247.50</td><td class="mono">₱522.50</td><td class="mono">₱770.00</td></tr>
+                      <tr><td>₱5,750.00 – ₱6,249.99</td><td class="mono">₱270.00</td><td class="mono">₱570.00</td><td class="mono">₱840.00</td></tr>
+                      <tr><td>₱6,250.00 – ₱6,749.99</td><td class="mono">₱292.50</td><td class="mono">₱617.50</td><td class="mono">₱910.00</td></tr>
+                      <tr><td>₱6,750.00 – ₱7,249.99</td><td class="mono">₱315.00</td><td class="mono">₱665.00</td><td class="mono">₱980.00</td></tr>
+                      <tr><td>₱29,750.00 and above</td><td class="mono">₱1,350.00</td><td class="mono">₱2,850.00</td><td class="mono">₱4,200.00</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="more-rows-note">Showing 8 of 34 brackets — 26 more not shown in this mockup.</p>
+              </div>
+
+              <div class="rt-edit">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Range From</th><th>Range To</th><th>Employee Share</th><th>Employer Share</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="₱4,249.99" /></td><td><input class="cell-input" type="text" value="₱180.00" /></td><td><input class="cell-input" type="text" value="₱380.00" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱4,250.00" /></td><td><input class="cell-input" type="text" value="₱4,749.99" /></td><td><input class="cell-input" type="text" value="₱202.50" /></td><td><input class="cell-input" type="text" value="₱427.50" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱29,750.00" /></td><td><input class="cell-input" type="text" value="and above" /></td><td><input class="cell-input" type="text" value="₱1,350.00" /></td><td><input class="cell-input" type="text" value="₱2,850.00" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="add-row-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add bracket</button>
+                <div class="save-row">
+                  <label class="btn-ghost" for="edit1-sss">Cancel</label>
+                  <label class="btn-primary" for="edit1-sss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PhilHealth -->
+          <div class="rt-panel" data-ag="ph">
+            <div class="rt-card">
+              <div class="rt-head">
+                <div class="rt-head-txt">
+                  <h3>PhilHealth — Philippine Health Insurance</h3>
+                  <div class="rt-meta"><span>Effective Jan 1, 2026</span><span class="dot-sep"></span><span>Updated by Andrea Cruz · 7 months ago</span></div>
+                </div>
+                <label class="btn-ghost" for="edit1-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+              </div>
+
+              <div class="rt-view">
+                <div class="rt-fields">
+                  <div class="rt-field"><label>Premium rate</label><p class="val mono">5.0% of monthly basic salary</p></div>
+                  <div class="rt-field"><label>Employee share</label><p class="val mono">2.5%</p></div>
+                  <div class="rt-field"><label>Employer share</label><p class="val mono">2.5%</p></div>
+                  <div class="rt-field"><label>Income floor</label><p class="val mono">₱10,000.00</p></div>
+                  <div class="rt-field"><label>Income ceiling</label><p class="val mono">₱100,000.00</p></div>
+                </div>
+              </div>
+
+              <div class="rt-edit">
+                <div class="rt-fields">
+                  <div class="rt-field"><label for="ph1-rate">Premium rate (%)</label><input class="plain-input" id="ph1-rate" type="text" value="5.0" /></div>
+                  <div class="rt-field"><label for="ph1-ee">Employee share (%)</label><input class="plain-input" id="ph1-ee" type="text" value="2.5" /></div>
+                  <div class="rt-field"><label for="ph1-er">Employer share (%)</label><input class="plain-input" id="ph1-er" type="text" value="2.5" /></div>
+                  <div class="rt-field"><label for="ph1-floor">Income floor</label><input class="plain-input" id="ph1-floor" type="text" value="₱10,000.00" /></div>
+                  <div class="rt-field"><label for="ph1-ceil">Income ceiling</label><input class="plain-input" id="ph1-ceil" type="text" value="₱100,000.00" /></div>
+                </div>
+                <div class="save-row">
+                  <label class="btn-ghost" for="edit1-ph">Cancel</label>
+                  <label class="btn-primary" for="edit1-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pag-IBIG -->
+          <div class="rt-panel" data-ag="pi">
+            <div class="rt-card">
+              <div class="rt-head">
+                <div class="rt-head-txt">
+                  <h3>Pag-IBIG (HDMF) — Home Development Mutual Fund</h3>
+                  <div class="rt-meta"><span>Effective Feb 1, 2024</span><span class="dot-sep"></span><span class="stale">Updated by Andrea Cruz · 2 yr 6 mo ago</span></div>
+                </div>
+                <label class="btn-ghost" for="edit1-pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+              </div>
+
+              <div class="rt-view">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Monthly Compensation</th><th>Employee Rate</th><th>Employer Rate</th></tr></thead>
+                    <tbody>
+                      <tr><td>₱1,500.00 and below</td><td class="mono">1.0%</td><td class="mono">2.0%</td></tr>
+                      <tr><td>Over ₱1,500.00</td><td class="mono">2.0%</td><td class="mono">2.0%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="rt-fields" style="margin-top:1rem;">
+                  <div class="rt-field"><label>Max compensation used for computation</label><p class="val mono">₱10,000.00</p></div>
+                </div>
+              </div>
+
+              <div class="rt-edit">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Range From</th><th>Range To</th><th>Employee Rate</th><th>Employer Rate</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="₱1,500.00" /></td><td><input class="cell-input" type="text" value="1.0%" /></td><td><input class="cell-input" type="text" value="2.0%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱1,500.01" /></td><td><input class="cell-input" type="text" value="and above" /></td><td><input class="cell-input" type="text" value="2.0%" /></td><td><input class="cell-input" type="text" value="2.0%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="add-row-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add bracket</button>
+                <div class="rt-fields" style="margin-top:1rem;">
+                  <div class="rt-field"><label for="pi1-cap">Max compensation used for computation</label><input class="plain-input" id="pi1-cap" type="text" value="₱10,000.00" /></div>
+                </div>
+                <div class="save-row">
+                  <label class="btn-ghost" for="edit1-pi">Cancel</label>
+                  <label class="btn-primary" for="edit1-pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BIR -->
+          <div class="rt-panel" data-ag="bir">
+            <div class="rt-card">
+              <div class="rt-head">
+                <div class="rt-head-txt">
+                  <h3>BIR — Withholding Tax (TRAIN law brackets)</h3>
+                  <div class="rt-meta"><span>Effective Jan 1, 2023</span><span class="dot-sep"></span><span class="stale">Updated by Andrea Cruz · 3 yr 7 mo ago</span></div>
+                </div>
+                <label class="btn-ghost" for="edit1-bir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+              </div>
+
+              <div class="rt-view">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Compensation Range (semi-monthly)</th><th>Base Tax</th><th>% Over Excess</th><th>Excess Over</th></tr></thead>
+                    <tbody>
+                      <tr><td>₱0.00 – ₱10,416.67</td><td class="mono">₱0.00</td><td class="mono">0%</td><td class="mono">—</td></tr>
+                      <tr><td>₱10,416.67 – ₱16,666.67</td><td class="mono">₱0.00</td><td class="mono">15%</td><td class="mono">₱10,416.67</td></tr>
+                      <tr><td>₱16,666.67 – ₱33,332.67</td><td class="mono">₱937.50</td><td class="mono">20%</td><td class="mono">₱16,666.67</td></tr>
+                      <tr><td>₱33,332.67 – ₱83,332.67</td><td class="mono">₱4,270.70</td><td class="mono">25%</td><td class="mono">₱33,332.67</td></tr>
+                      <tr><td>₱83,332.67 – ₱333,332.67</td><td class="mono">₱16,770.70</td><td class="mono">30%</td><td class="mono">₱83,332.67</td></tr>
+                      <tr><td>₱333,332.67 and above</td><td class="mono">₱91,770.70</td><td class="mono">35%</td><td class="mono">₱333,332.67</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <div class="rt-edit">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Range From</th><th>Range To</th><th>Base Tax</th><th>% Over Excess</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="₱10,416.67" /></td><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="0%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱10,416.67" /></td><td><input class="cell-input" type="text" value="₱16,666.67" /></td><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="15%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱333,332.67" /></td><td><input class="cell-input" type="text" value="and above" /></td><td><input class="cell-input" type="text" value="₱91,770.70" /></td><td><input class="cell-input" type="text" value="35%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="add-row-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add bracket</button>
+                <div class="save-row">
+                  <label class="btn-ghost" for="edit1-bir">Cancel</label>
+                  <label class="btn-primary" for="edit1-bir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div style="height:0.5rem;"></div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>One table on screen at a time, at full width — the widest tables here (SSS, BIR)
+              get the most room to breathe, and there's zero ambiguity about which agency you're
+              looking at or editing. The segmented control is a lighter-weight switcher than a
+              second row of top-level tabs.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Can't see two agencies' "last updated" dates side by side without clicking between
+              them — the exact comparison ("which of these four is stalest?") this screen exists
+              to make easy is one click short of being answerable at a glance.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — STACKED SECTIONS, ACCORDION ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Payroll → <b>Rate Tables</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Rate Tables</h2>
+              <p>Statutory deduction tables — SSS, PhilHealth, Pag-IBIG, BIR withholding</p>
+            </div>
+          </div>
+
+          <div class="notice-band">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <p>Editing here changes what every future payroll run looks up — nothing is
+              recomputed retroactively for already-finalized payslips.</p>
+          </div>
+
+          <div style="height:0.75rem;"></div>
+
+          <!-- SSS -->
+          <div class="rt-card" style="padding-top:0; padding-bottom:0;" data-ag="sss">
+            <label class="acc-head" for="exp2-sss">
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              <div><h3>SSS — Social Security System</h3><div class="rt-meta"><span>Effective Jan 1, 2026</span><span class="dot-sep"></span><span>Updated by Andrea Cruz · 7 months ago</span></div></div>
+              <span class="spacer"></span>
+            </label>
+            <div class="acc-body">
+              <div class="rt-head" style="margin-bottom:0.85rem;">
+                <span></span>
+                <label class="btn-ghost" for="edit2-sss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+              </div>
+              <div class="rt-view">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Monthly Salary Credit Range</th><th>Employee Share</th><th>Employer Share</th><th>Total</th></tr></thead>
+                    <tbody>
+                      <tr><td>Below ₱4,250.00</td><td class="mono">₱180.00</td><td class="mono">₱380.00</td><td class="mono">₱560.00</td></tr>
+                      <tr><td>₱4,250.00 – ₱4,749.99</td><td class="mono">₱202.50</td><td class="mono">₱427.50</td><td class="mono">₱630.00</td></tr>
+                      <tr><td>₱4,750.00 – ₱5,249.99</td><td class="mono">₱225.00</td><td class="mono">₱475.00</td><td class="mono">₱700.00</td></tr>
+                      <tr><td>₱5,250.00 – ₱5,749.99</td><td class="mono">₱247.50</td><td class="mono">₱522.50</td><td class="mono">₱770.00</td></tr>
+                      <tr><td>₱29,750.00 and above</td><td class="mono">₱1,350.00</td><td class="mono">₱2,850.00</td><td class="mono">₱4,200.00</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="more-rows-note">Showing 5 of 34 brackets — 29 more not shown in this mockup.</p>
+              </div>
+              <div class="rt-edit">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Range From</th><th>Range To</th><th>Employee Share</th><th>Employer Share</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="₱4,249.99" /></td><td><input class="cell-input" type="text" value="₱180.00" /></td><td><input class="cell-input" type="text" value="₱380.00" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱29,750.00" /></td><td><input class="cell-input" type="text" value="and above" /></td><td><input class="cell-input" type="text" value="₱1,350.00" /></td><td><input class="cell-input" type="text" value="₱2,850.00" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="add-row-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add bracket</button>
+                <div class="save-row">
+                  <label class="btn-ghost" for="edit2-sss">Cancel</label>
+                  <label class="btn-primary" for="edit2-sss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- PhilHealth -->
+          <div class="rt-card" style="padding-top:0; padding-bottom:0;" data-ag="ph">
+            <label class="acc-head" for="exp2-ph">
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              <div><h3>PhilHealth — Philippine Health Insurance</h3><div class="rt-meta"><span>Effective Jan 1, 2026</span><span class="dot-sep"></span><span>Updated by Andrea Cruz · 7 months ago</span></div></div>
+              <span class="spacer"></span>
+            </label>
+            <div class="acc-body">
+              <div class="rt-head" style="margin-bottom:0.85rem;">
+                <span></span>
+                <label class="btn-ghost" for="edit2-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+              </div>
+              <div class="rt-view">
+                <div class="rt-fields">
+                  <div class="rt-field"><label>Premium rate</label><p class="val mono">5.0% of monthly basic salary</p></div>
+                  <div class="rt-field"><label>Employee share</label><p class="val mono">2.5%</p></div>
+                  <div class="rt-field"><label>Employer share</label><p class="val mono">2.5%</p></div>
+                  <div class="rt-field"><label>Income floor</label><p class="val mono">₱10,000.00</p></div>
+                  <div class="rt-field"><label>Income ceiling</label><p class="val mono">₱100,000.00</p></div>
+                </div>
+              </div>
+              <div class="rt-edit">
+                <div class="rt-fields">
+                  <div class="rt-field"><label for="ph2-rate">Premium rate (%)</label><input class="plain-input" id="ph2-rate" type="text" value="5.0" /></div>
+                  <div class="rt-field"><label for="ph2-ee">Employee share (%)</label><input class="plain-input" id="ph2-ee" type="text" value="2.5" /></div>
+                  <div class="rt-field"><label for="ph2-er">Employer share (%)</label><input class="plain-input" id="ph2-er" type="text" value="2.5" /></div>
+                  <div class="rt-field"><label for="ph2-floor">Income floor</label><input class="plain-input" id="ph2-floor" type="text" value="₱10,000.00" /></div>
+                  <div class="rt-field"><label for="ph2-ceil">Income ceiling</label><input class="plain-input" id="ph2-ceil" type="text" value="₱100,000.00" /></div>
+                </div>
+                <div class="save-row">
+                  <label class="btn-ghost" for="edit2-ph">Cancel</label>
+                  <label class="btn-primary" for="edit2-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Pag-IBIG -->
+          <div class="rt-card" style="padding-top:0; padding-bottom:0;" data-ag="pi">
+            <label class="acc-head" for="exp2-pi">
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              <div><h3>Pag-IBIG (HDMF) — Home Development Mutual Fund</h3><div class="rt-meta"><span>Effective Feb 1, 2024</span><span class="dot-sep"></span><span class="stale">Updated by Andrea Cruz · 2 yr 6 mo ago</span></div></div>
+              <span class="spacer"></span>
+            </label>
+            <div class="acc-body">
+              <div class="rt-head" style="margin-bottom:0.85rem;">
+                <span></span>
+                <label class="btn-ghost" for="edit2-pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+              </div>
+              <div class="rt-view">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Monthly Compensation</th><th>Employee Rate</th><th>Employer Rate</th></tr></thead>
+                    <tbody>
+                      <tr><td>₱1,500.00 and below</td><td class="mono">1.0%</td><td class="mono">2.0%</td></tr>
+                      <tr><td>Over ₱1,500.00</td><td class="mono">2.0%</td><td class="mono">2.0%</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="rt-fields" style="margin-top:1rem;">
+                  <div class="rt-field"><label>Max compensation used for computation</label><p class="val mono">₱10,000.00</p></div>
+                </div>
+              </div>
+              <div class="rt-edit">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Range From</th><th>Range To</th><th>Employee Rate</th><th>Employer Rate</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="₱1,500.00" /></td><td><input class="cell-input" type="text" value="1.0%" /></td><td><input class="cell-input" type="text" value="2.0%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱1,500.01" /></td><td><input class="cell-input" type="text" value="and above" /></td><td><input class="cell-input" type="text" value="2.0%" /></td><td><input class="cell-input" type="text" value="2.0%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="add-row-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add bracket</button>
+                <div class="rt-fields" style="margin-top:1rem;">
+                  <div class="rt-field"><label for="pi2-cap">Max compensation used for computation</label><input class="plain-input" id="pi2-cap" type="text" value="₱10,000.00" /></div>
+                </div>
+                <div class="save-row">
+                  <label class="btn-ghost" for="edit2-pi">Cancel</label>
+                  <label class="btn-primary" for="edit2-pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- BIR -->
+          <div class="rt-card" style="padding-top:0;" data-ag="bir">
+            <label class="acc-head" for="exp2-bir">
+              <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+              <div><h3>BIR — Withholding Tax (TRAIN law brackets)</h3><div class="rt-meta"><span>Effective Jan 1, 2023</span><span class="dot-sep"></span><span class="stale">Updated by Andrea Cruz · 3 yr 7 mo ago</span></div></div>
+              <span class="spacer"></span>
+            </label>
+            <div class="acc-body">
+              <div class="rt-head" style="margin-bottom:0.85rem;">
+                <span></span>
+                <label class="btn-ghost" for="edit2-bir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
+              </div>
+              <div class="rt-view">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Compensation Range (semi-monthly)</th><th>Base Tax</th><th>% Over Excess</th><th>Excess Over</th></tr></thead>
+                    <tbody>
+                      <tr><td>₱0.00 – ₱10,416.67</td><td class="mono">₱0.00</td><td class="mono">0%</td><td class="mono">—</td></tr>
+                      <tr><td>₱10,416.67 – ₱16,666.67</td><td class="mono">₱0.00</td><td class="mono">15%</td><td class="mono">₱10,416.67</td></tr>
+                      <tr><td>₱16,666.67 – ₱33,332.67</td><td class="mono">₱937.50</td><td class="mono">20%</td><td class="mono">₱16,666.67</td></tr>
+                      <tr><td>₱333,332.67 and above</td><td class="mono">₱91,770.70</td><td class="mono">35%</td><td class="mono">₱333,332.67</td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <p class="more-rows-note">Showing 4 of 6 brackets in this mockup.</p>
+              </div>
+              <div class="rt-edit">
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>Range From</th><th>Range To</th><th>Base Tax</th><th>% Over Excess</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="₱10,416.67" /></td><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="0%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱333,332.67" /></td><td><input class="cell-input" type="text" value="and above" /></td><td><input class="cell-input" type="text" value="₱91,770.70" /></td><td><input class="cell-input" type="text" value="35%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="add-row-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add bracket</button>
+                <div class="save-row">
+                  <label class="btn-ghost" for="edit2-bir">Cancel</label>
+                  <label class="btn-primary" for="edit2-bir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>All four agencies' names, effective dates, and "last updated" metadata are visible
+              in one scroll with zero clicks — the closest thing to "which of these is stalest?"
+              being answerable at a glance, since headers stay visible whether or not a section is
+              expanded.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>SSS and BIR's wide bracket tables (4+ columns) feel cramped competing for width
+              against the accordion's own left-hand chevron/label real estate, and expanding two
+              sections at once to compare their actual figures means a longer scroll than Option 1's
+              full-width single table.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — LANDING CARDS + EDIT DRAWER ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Payroll → <b>Rate Tables</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Rate Tables</h2>
+              <p>Statutory deduction tables — SSS, PhilHealth, Pag-IBIG, BIR withholding</p>
+            </div>
+          </div>
+
+          <div class="stat-strip">
+            <div class="stat-tile"><span class="num">4</span><span class="lbl">Statutory tables</span></div>
+            <div class="stat-tile"><span class="num">2</span><span class="lbl">Updated within a year</span></div>
+            <div class="stat-tile dot-caution"><span class="num">3y 7m</span><span class="lbl">Oldest update (BIR)</span></div>
+          </div>
+
+          <div class="notice-band" style="margin-top:1rem;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+            <p>Editing here changes what every future payroll run looks up — nothing is
+              recomputed retroactively for already-finalized payslips.</p>
+          </div>
+
+          <div class="agency-grid">
+            <div class="agency-card">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10M10 21V10M14 21V10M19 21V10"/><path d="m3 10 9-7 9 7"/></svg></span>
+              <h4>SSS</h4>
+              <div class="rt-meta"><span>Effective Jan 1, 2026</span></div>
+              <div class="rt-meta"><span>Updated by Andrea Cruz · 7 months ago</span></div>
+              <p class="cnt">34 brackets on file</p>
+              <div class="card-foot"><label class="btn-ghost" for="drw3-sss"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit rates</label></div>
+            </div>
+            <div class="agency-card">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10M10 21V10M14 21V10M19 21V10"/><path d="m3 10 9-7 9 7"/></svg></span>
+              <h4>PhilHealth</h4>
+              <div class="rt-meta"><span>Effective Jan 1, 2026</span></div>
+              <div class="rt-meta"><span>Updated by Andrea Cruz · 7 months ago</span></div>
+              <p class="cnt">5 rate fields on file</p>
+              <div class="card-foot"><label class="btn-ghost" for="drw3-ph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit rates</label></div>
+            </div>
+            <div class="agency-card">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10M10 21V10M14 21V10M19 21V10"/><path d="m3 10 9-7 9 7"/></svg></span>
+              <h4>Pag-IBIG</h4>
+              <div class="rt-meta"><span>Effective Feb 1, 2024</span></div>
+              <div class="rt-meta"><span class="stale">Updated by Andrea Cruz · 2 yr 6 mo ago</span></div>
+              <p class="cnt">2 brackets + cap on file</p>
+              <span class="badge badge-caution" style="align-self:flex-start;">Not reviewed in over a year</span>
+              <div class="card-foot"><label class="btn-ghost" for="drw3-pi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit rates</label></div>
+            </div>
+            <div class="agency-card">
+              <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18"/><path d="M5 21V10M10 21V10M14 21V10M19 21V10"/><path d="m3 10 9-7 9 7"/></svg></span>
+              <h4>BIR</h4>
+              <div class="rt-meta"><span>Effective Jan 1, 2023</span></div>
+              <div class="rt-meta"><span class="stale">Updated by Andrea Cruz · 3 yr 7 mo ago</span></div>
+              <p class="cnt">6 brackets on file</p>
+              <span class="badge badge-caution" style="align-self:flex-start;">Not reviewed in over a year</span>
+              <div class="card-foot"><label class="btn-ghost" for="drw3-bir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit rates</label></div>
+            </div>
+          </div>
+
+          <div style="height:1.5rem;"></div>
+
+          <div class="tt-scrim"></div>
+          <div class="tt-drawer">
+
+            <div class="tt-drawer-body" data-p="sss">
+              <div class="tt-drawer-head">
+                <div><h3>SSS — Social Security System</h3><div class="rt-meta"><span>Effective Jan 1, 2026</span><span class="dot-sep"></span><span>Updated 7 months ago</span></div></div>
+                <label class="icon-btn" for="drw3-none" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="tt-drawer-section">
+                <h5>Brackets (34 total, 26 more not shown in this mockup)</h5>
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>From</th><th>To</th><th>EE</th><th>ER</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="₱4,249.99" /></td><td><input class="cell-input" type="text" value="₱180.00" /></td><td><input class="cell-input" type="text" value="₱380.00" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱4,250.00" /></td><td><input class="cell-input" type="text" value="₱4,749.99" /></td><td><input class="cell-input" type="text" value="₱202.50" /></td><td><input class="cell-input" type="text" value="₱427.50" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱29,750.00" /></td><td><input class="cell-input" type="text" value="and above" /></td><td><input class="cell-input" type="text" value="₱1,350.00" /></td><td><input class="cell-input" type="text" value="₱2,850.00" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="add-row-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add bracket</button>
+              </div>
+              <div class="save-row">
+                <label class="btn-ghost" for="drw3-none">Cancel</label>
+                <label class="btn-primary" for="drw3-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+              </div>
+            </div>
+
+            <div class="tt-drawer-body" data-p="ph">
+              <div class="tt-drawer-head">
+                <div><h3>PhilHealth — Philippine Health Insurance</h3><div class="rt-meta"><span>Effective Jan 1, 2026</span><span class="dot-sep"></span><span>Updated 7 months ago</span></div></div>
+                <label class="icon-btn" for="drw3-none" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="tt-drawer-section">
+                <h5>Rate config</h5>
+                <div class="rt-fields" style="grid-template-columns:1fr;">
+                  <div class="rt-field"><label for="ph3-rate">Premium rate (%)</label><input class="plain-input" id="ph3-rate" type="text" value="5.0" /></div>
+                  <div class="rt-field"><label for="ph3-ee">Employee share (%)</label><input class="plain-input" id="ph3-ee" type="text" value="2.5" /></div>
+                  <div class="rt-field"><label for="ph3-er">Employer share (%)</label><input class="plain-input" id="ph3-er" type="text" value="2.5" /></div>
+                  <div class="rt-field"><label for="ph3-floor">Income floor</label><input class="plain-input" id="ph3-floor" type="text" value="₱10,000.00" /></div>
+                  <div class="rt-field"><label for="ph3-ceil">Income ceiling</label><input class="plain-input" id="ph3-ceil" type="text" value="₱100,000.00" /></div>
+                </div>
+              </div>
+              <div class="save-row">
+                <label class="btn-ghost" for="drw3-none">Cancel</label>
+                <label class="btn-primary" for="drw3-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+              </div>
+            </div>
+
+            <div class="tt-drawer-body" data-p="pi">
+              <div class="tt-drawer-head">
+                <div><h3>Pag-IBIG (HDMF)</h3><div class="rt-meta"><span>Effective Feb 1, 2024</span><span class="dot-sep"></span><span class="stale">Updated 2 yr 6 mo ago</span></div></div>
+                <label class="icon-btn" for="drw3-none" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="tt-drawer-section">
+                <h5>Brackets</h5>
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>From</th><th>To</th><th>EE</th><th>ER</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="₱1,500.00" /></td><td><input class="cell-input" type="text" value="1.0%" /></td><td><input class="cell-input" type="text" value="2.0%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱1,500.01" /></td><td><input class="cell-input" type="text" value="and above" /></td><td><input class="cell-input" type="text" value="2.0%" /></td><td><input class="cell-input" type="text" value="2.0%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="add-row-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add bracket</button>
+              </div>
+              <div class="tt-drawer-section">
+                <h5>Cap</h5>
+                <div class="rt-field"><label for="pi3-cap">Max compensation used for computation</label><input class="plain-input" id="pi3-cap" type="text" value="₱10,000.00" /></div>
+              </div>
+              <div class="save-row">
+                <label class="btn-ghost" for="drw3-none">Cancel</label>
+                <label class="btn-primary" for="drw3-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+              </div>
+            </div>
+
+            <div class="tt-drawer-body" data-p="bir">
+              <div class="tt-drawer-head">
+                <div><h3>BIR — Withholding Tax</h3><div class="rt-meta"><span>Effective Jan 1, 2023</span><span class="dot-sep"></span><span class="stale">Updated 3 yr 7 mo ago</span></div></div>
+                <label class="icon-btn" for="drw3-none" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div class="tt-drawer-section">
+                <h5>Brackets (semi-monthly)</h5>
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead><tr><th>From</th><th>To</th><th>Base tax</th><th>% over</th><th></th></tr></thead>
+                    <tbody>
+                      <tr><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="₱10,416.67" /></td><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="0%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱10,416.67" /></td><td><input class="cell-input" type="text" value="₱16,666.67" /></td><td><input class="cell-input" type="text" value="₱0.00" /></td><td><input class="cell-input" type="text" value="15%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                      <tr><td><input class="cell-input" type="text" value="₱333,332.67" /></td><td><input class="cell-input" type="text" value="and above" /></td><td><input class="cell-input" type="text" value="₱91,770.70" /></td><td><input class="cell-input" type="text" value="35%" /></td><td><button class="row-del" type="button" title="Remove bracket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg></button></td></tr>
+                    </tbody>
+                  </table>
+                </div>
+                <button class="add-row-btn" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add bracket</button>
+              </div>
+              <div class="save-row">
+                <label class="btn-ghost" for="drw3-none">Cancel</label>
+                <label class="btn-primary" for="drw3-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The landing view is a pure "which tables need a look" dashboard — effective date,
+              last-updated, and a caution badge on anything not reviewed in over a year, all four
+              agencies visible without expanding anything. Opening a table to edit it is a
+              deliberate, separate action in its own focused surface, reusing the exact drawer
+              mechanic already shipped on Payroll Run Detail and Time &amp; Attendance.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Reading the actual current figures (not just metadata) always costs one click, even
+              for a quick "what's PhilHealth's ceiling again?" look — Options 1 and 2 answer that
+              without opening anything.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

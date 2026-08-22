@@ -1,0 +1,940 @@
+<title>HRIS Loan Ledger Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  .demo-strip { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: var(--neutral); flex-wrap: wrap; }
+  .demo-strip label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--white); }
+  .demo-strip input { accent-color: var(--accent); }
+
+  /* ---------- shared app nav (Company active) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+  .back-link { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: #C7CEDE; text-decoration: none; }
+  .back-link svg { width: 14px; height: 14px; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .btn-text { background: none; border: none; color: var(--accent); font-weight: 600; font-size: 0.8125rem; cursor: pointer; padding: 0.3rem 0.1rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+  .btn-text svg { width: 13px; height: 13px; }
+
+  /* ---------- identity strip ---------- */
+
+  .identity-strip { display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .avatar-lg { width: 56px; height: 56px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; flex: 0 0 auto; }
+  .identity-who h2 { font-size: 1.15rem; font-weight: 700; }
+  .identity-who p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+  .identity-meta { margin-left: auto; display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; }
+  .identity-meta .id { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--neutral); }
+  .identity-meta .status-active { font-size: 0.8125rem; color: var(--badge-positive-fg); font-weight: 600; }
+
+  /* ---------- top-level detail tabs (Profile / Loan Ledger / Benefits) ---------- */
+
+  .subtab-bar { display: flex; gap: 0.3rem; padding: 0 2rem; border-bottom: 1px solid var(--border); overflow-x: auto; }
+  .subtab-bar label { flex: 0 0 auto; padding: 0.8rem 0.2rem; margin-right: 1.5rem; font-size: 0.8125rem; font-weight: 600; color: var(--neutral); cursor: default; border-bottom: 2px solid transparent; }
+  .subtab-bar label.is-active { color: var(--ink); border-color: var(--accent); }
+
+  /* ---------- field grid / inputs ---------- */
+
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 1.1rem; }
+  .field-view label, .field-edit label { display: block; font-size: 0.75rem; color: var(--neutral); font-weight: 500; margin-bottom: 0.25rem; }
+  .field-view .val { font-size: 0.9375rem; color: var(--ink); }
+  .field-view .val.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .plain-input, .plain-select {
+    width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .plain-input:focus, .plain-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+
+  .save-bar, .save-row { display: flex; gap: 0.6rem; justify-content: flex-end; padding-top: 1rem; margin-top: 1.1rem; border-top: 1px dashed var(--border); }
+
+  /* ---------- section shell ---------- */
+
+  .section { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; gap: 0.75rem; }
+  .section-head h3 { font-size: 1rem; font-weight: 700; }
+  .section-head p.hint { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.15rem; }
+  .icon-btn { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-light); cursor: pointer; flex: 0 0 auto; }
+  .icon-btn:hover { background: var(--surface); }
+  .icon-btn svg { width: 15px; height: 15px; }
+
+  /* ---------- guided empty state — decisions/ui/empty-states-guided.md ---------- */
+
+  .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.5rem; padding: 3rem 1.5rem; color: var(--neutral); }
+  .empty-state svg.icon { width: 32px; height: 32px; color: var(--neutral); opacity: 0.6; }
+  .empty-state h3 { font-size: 0.9375rem; font-weight: 700; color: var(--ink); }
+  .empty-state p { font-size: 0.8125rem; max-width: 42ch; }
+  .empty-state .btn-primary { margin-top: 0.5rem; }
+
+  /* ---------- loan progress bar (shared across all 3 options) ---------- */
+
+  .loan-progress { height: 6px; border-radius: 999px; background: var(--border); overflow: hidden; }
+  .loan-progress-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+  .loan-progress-fill.is-paidoff { background: var(--badge-positive-fg); }
+  .loan-progress-label { font-size: 0.75rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  /* ---------- Option 1: flat ledger table + edit drawer ---------- */
+
+  .table-wrap { overflow-x: auto; padding: 0 2rem; }
+  .runtable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 640px; }
+  .runtable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .runtable td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .runtable tbody tr:nth-child(even) { background: var(--surface); }
+  .runtable tbody tr:hover { background: #EFF1F5; }
+  .runtable tr:last-child td { border-bottom: none; }
+  .runtable .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .runtable .loan-progress { width: 90px; }
+  .runtable tr.is-paidoff { opacity: 0.72; }
+
+  .tt-scrim { display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.32); z-index: 4; }
+  .tt-drawer { display: none; position: absolute; top: 0; right: 0; bottom: 0; width: min(420px, 94%); background: var(--white); border-left: 1px solid var(--border); box-shadow: var(--shadow-card); z-index: 5; flex-direction: column; overflow-y: auto; }
+  .tt-drawer-body { padding: 1.1rem 1.25rem 1.5rem; display: none; flex-direction: column; gap: 1.1rem; }
+  .tt-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; padding-bottom: 0.9rem; margin-bottom: 0.2rem; border-bottom: 1px solid var(--border); }
+  .tt-drawer-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .tt-drawer-head .meta { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.25rem; }
+  .tt-drawer-section h5 { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); margin-bottom: 0.6rem; }
+  .tt-drawer-note { font-size: 0.8125rem; color: var(--ink-light); background: var(--surface); border-radius: 8px; padding: 0.6rem 0.75rem; line-height: 1.5; }
+
+  #drw1-none:checked ~ .page .frame-shell[data-n="1"] .tt-scrim,
+  #drw1-new:checked  ~ .page .frame-shell[data-n="1"] .tt-scrim,
+  #drw1-sss:checked  ~ .page .frame-shell[data-n="1"] .tt-scrim,
+  #drw1-pi:checked   ~ .page .frame-shell[data-n="1"] .tt-scrim,
+  #drw1-co:checked   ~ .page .frame-shell[data-n="1"] .tt-scrim { display: none; }
+  #drw1-new:checked ~ .page .frame-shell[data-n="1"] .tt-scrim,
+  #drw1-sss:checked ~ .page .frame-shell[data-n="1"] .tt-scrim,
+  #drw1-pi:checked  ~ .page .frame-shell[data-n="1"] .tt-scrim,
+  #drw1-co:checked  ~ .page .frame-shell[data-n="1"] .tt-scrim,
+  #drw1-new:checked ~ .page .frame-shell[data-n="1"] .tt-drawer,
+  #drw1-sss:checked ~ .page .frame-shell[data-n="1"] .tt-drawer,
+  #drw1-pi:checked  ~ .page .frame-shell[data-n="1"] .tt-drawer,
+  #drw1-co:checked  ~ .page .frame-shell[data-n="1"] .tt-drawer { display: flex; }
+  #drw1-new:checked ~ .page .frame-shell[data-n="1"] .tt-drawer-body[data-p="new"],
+  #drw1-sss:checked ~ .page .frame-shell[data-n="1"] .tt-drawer-body[data-p="sss"],
+  #drw1-pi:checked  ~ .page .frame-shell[data-n="1"] .tt-drawer-body[data-p="pi"],
+  #drw1-co:checked  ~ .page .frame-shell[data-n="1"] .tt-drawer-body[data-p="co"] { display: flex; }
+
+  /* ---------- Option 2: repeatable progress cards ---------- */
+
+  .loan-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.4rem 1.5rem; display: flex; flex-direction: column; gap: 0.9rem; }
+  .loan-card + .loan-card { margin-top: 1.1rem; }
+  .loan-card.is-paidoff { background: var(--surface); }
+  .loan-card-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.75rem; }
+  .loan-card-head .loan-name { font-size: 0.9375rem; font-weight: 700; display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; }
+  .loan-card-head .head-actions { display: flex; gap: 0.4rem; flex: 0 0 auto; }
+  .loan-card-view, .loan-card-edit { display: flex; flex-direction: column; gap: 0.9rem; }
+  .loan-card-edit { display: none; }
+
+  #o2edit1:checked ~ .page .frame-shell[data-n="2"] [data-card="1"] .loan-card-view { display: none; }
+  #o2edit1:checked ~ .page .frame-shell[data-n="2"] [data-card="1"] .loan-card-edit { display: flex; }
+
+  /* ---------- Option 3: compact list + inline expand, paid-off collapsed ---------- */
+
+  .loan-row { border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .loan-row + .loan-row { margin-top: 0.6rem; }
+  .loan-row-head { display: flex; align-items: center; gap: 1rem; padding: 0.85rem 1rem; cursor: pointer; }
+  .loan-row-head .loan-name { font-size: 0.875rem; font-weight: 600; flex: 1 1 160px; }
+  .loan-row-head .loan-remaining { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--neutral); flex: 0 0 auto; white-space: nowrap; }
+  .loan-row-head .loan-progress { flex: 0 0 90px; }
+  .loan-row-head .chevron { width: 16px; height: 16px; color: var(--neutral); flex: 0 0 auto; transition: transform var(--t); }
+  .loan-row-body { display: none; padding: 0 1rem 1.1rem; border-top: 1px solid var(--border); padding-top: 1.1rem; }
+
+  #o3exp-sss:checked ~ .page .frame-shell[data-n="3"] .loan-row[data-row="sss"] .loan-row-body,
+  #o3exp-co:checked  ~ .page .frame-shell[data-n="3"] .loan-row[data-row="co"] .loan-row-body { display: block; }
+  #o3exp-sss:checked ~ .page .frame-shell[data-n="3"] .loan-row[data-row="sss"] .chevron,
+  #o3exp-co:checked  ~ .page .frame-shell[data-n="3"] .loan-row[data-row="co"] .chevron { transform: rotate(90deg); }
+
+  .paidoff-toggle-row { display: flex; justify-content: center; margin-top: 0.8rem; }
+  .paidoff-block { display: none; margin-top: 0.8rem; }
+  #o3showPaidoff:checked ~ .page .frame-shell[data-n="3"] .paidoff-block { display: block; }
+  #o3showPaidoff:checked ~ .page .frame-shell[data-n="3"] .paidoff-toggle-label .n-show { display: none; }
+  #o3showPaidoff:checked ~ .page .frame-shell[data-n="3"] .paidoff-toggle-label .n-hide { display: inline; }
+  .paidoff-toggle-label .n-hide { display: none; }
+  .loan-row.is-paidoff .loan-row-head { opacity: 0.72; }
+
+  /* ---------- shared: empty/populated toggle (per-option ids) ---------- */
+
+  #showEmpty1:checked ~ .page .frame-shell[data-n="1"] .populated-1 { display: none; }
+  #showEmpty1:checked ~ .page .frame-shell[data-n="1"] .empty-1 { display: flex; }
+  .populated-1 { display: block; }
+  .empty-1 { display: none; }
+
+  #showEmpty2:checked ~ .page .frame-shell[data-n="2"] .populated-2 { display: none; }
+  #showEmpty2:checked ~ .page .frame-shell[data-n="2"] .empty-2 { display: flex; }
+  .populated-2 { display: block; }
+  .empty-2 { display: none; }
+
+  #showEmpty3:checked ~ .page .frame-shell[data-n="3"] .populated-3 { display: none; }
+  #showEmpty3:checked ~ .page .frame-shell[data-n="3"] .empty-3 { display: flex; }
+  .populated-3 { display: block; }
+  .empty-3 { display: none; }
+
+  @media (max-width: 480px) {
+    .section, .identity-strip, .subtab-bar, .table-wrap { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .loan-row-head { flex-wrap: wrap; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" checked />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<!-- Option 1 (flat table + edit drawer) is the chosen layout, see decisions/ui/loan-ledger-flat-table-edit-drawer.md -->
+
+<input class="state" type="checkbox" id="showEmpty1" />
+<input class="state" type="checkbox" id="showEmpty2" />
+<input class="state" type="checkbox" id="showEmpty3" />
+
+<input class="state" type="radio" name="drw1" id="drw1-none" checked />
+<input class="state" type="radio" name="drw1" id="drw1-new" />
+<input class="state" type="radio" name="drw1" id="drw1-sss" />
+<input class="state" type="radio" name="drw1" id="drw1-pi" />
+<input class="state" type="radio" name="drw1" id="drw1-co" />
+
+<input class="state" type="checkbox" id="o2edit1" />
+
+<input class="state" type="checkbox" id="o3exp-sss" />
+<input class="state" type="checkbox" id="o3exp-co" />
+<input class="state" type="checkbox" id="o3showPaidoff" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Loan Ledger — three recommendations</h1>
+      <p class="sub">
+        The content of the "Loan Ledger" tab reserved on
+        decisions/ux-pages/employee-detail.html — per-employee, reached
+        the same way Benefits is: a top-level tab next to Profile, not a
+        standalone page. What changes across the three is how one-vs-
+        several concurrent loans are shown and how much the payoff
+        progress is surfaced: a single master table with a row-edit
+        drawer, repeatable progress cards, or a compact expandable list
+        with paid-off loans tucked out of the way.
+      </p>
+      <div class="assumptions">
+        <b>Carried over, not re-decided here:</b> per
+        decisions/cash-advance-vs-loan-ledger-distinction.md, this covers
+        loans only (SSS Salary Loan, Pag-IBIG MPL/Calamity Loan, company
+        loans) — cash advances stay a manual payroll deduction line, not
+        shown here. Fields in scope: loan type, total amount, monthly
+        amortization (typed in from the loan statement, never computed),
+        and remaining installments. A loan auto-adds as a deduction each
+        payroll run, counts down, and marks itself paid off at zero — no
+        interest computation, application/approval workflow, or early
+        payoff/refinancing. Status badges reuse
+        decisions/ui/badge-system-four-categories.md: Active → Neutral,
+        Paid off → Positive. The "X% paid" progress shown in every option
+        is computed on the fly from the three stored fields (total −
+        remaining × monthly), not a new persisted field. An employee can
+        carry more than one loan at once (e.g. an SSS Salary Loan
+        alongside a company loan) — same "don't assume exactly one"
+        lesson as Benefits, so every option handles zero-to-many rows.
+        <b>Option 1 (chosen) is the flat table + edit drawer:</b> this
+        data is ledger-shaped (running balances, payoff counts) more than
+        profile-shaped, and it's the fourth reuse of the same drawer
+        mechanic already established on Payroll Run Detail, Time &amp;
+        Attendance, and Rate Tables.
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Flat table + edit drawer <span class="chosen-badge">Chosen</span></label>
+      <label for="tab2"><span class="n">02</span> Repeatable progress cards</label>
+      <label for="tab3"><span class="n">03</span> Compact list, paid-off collapsed</label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — FLAT TABLE + EDIT DRAWER ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="drw1-sss">Open SSS Salary Loan</label>
+          <label for="drw1-new">Open "Add loan"</label>
+          <label for="showEmpty1">Show empty state (no loans yet)</label>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <a class="back-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>People Directory</a>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="identity-strip">
+            <span class="avatar-lg">MS</span>
+            <div class="identity-who">
+              <h2>Mikaela Santos</h2>
+              <p>Software Engineer II · Engineering</p>
+            </div>
+            <div class="identity-meta">
+              <span class="id">EMP-0142</span>
+              <span class="status-active">Active</span>
+            </div>
+          </div>
+
+          <nav class="subtab-bar">
+            <label>Profile</label>
+            <label class="is-active">Loan Ledger</label>
+            <label>Benefits</label>
+          </nav>
+
+          <div class="populated-1">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h3>Loan Ledger</h3>
+                  <p class="hint">Auto-deducts from each payroll run until paid off.</p>
+                </div>
+                <label class="btn-ghost" for="drw1-new"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add loan</label>
+              </div>
+
+              <div class="table-wrap">
+                <table class="runtable">
+                  <thead><tr><th>Loan type</th><th>Total amount</th><th>Monthly amort.</th><th>Remaining</th><th>Progress</th><th>Status</th><th></th></tr></thead>
+                  <tbody>
+                    <tr>
+                      <td>SSS Salary Loan</td>
+                      <td class="mono">₱24,000.00</td>
+                      <td class="mono">₱1,000.00</td>
+                      <td class="mono">14 of 24</td>
+                      <td><div class="loan-progress"><div class="loan-progress-fill" style="width:42%;"></div></div></td>
+                      <td><span class="badge badge-neutral">Active</span></td>
+                      <td><label class="icon-btn" for="drw1-sss" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></label></td>
+                    </tr>
+                    <tr>
+                      <td>Company Loan</td>
+                      <td class="mono">₱15,000.00</td>
+                      <td class="mono">₱1,875.00</td>
+                      <td class="mono">2 of 8</td>
+                      <td><div class="loan-progress"><div class="loan-progress-fill" style="width:75%;"></div></div></td>
+                      <td><span class="badge badge-neutral">Active</span></td>
+                      <td><label class="icon-btn" for="drw1-co" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></label></td>
+                    </tr>
+                    <tr class="is-paidoff">
+                      <td>Pag-IBIG Calamity Loan</td>
+                      <td class="mono">₱10,000.00</td>
+                      <td class="mono">₱833.34</td>
+                      <td class="mono">0 of 12</td>
+                      <td><div class="loan-progress"><div class="loan-progress-fill is-paidoff" style="width:100%;"></div></div></td>
+                      <td><span class="badge badge-positive">Paid off</span></td>
+                      <td><label class="icon-btn" for="drw1-pi" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></label></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="tt-scrim"></div>
+              <div class="tt-drawer">
+
+                <div class="tt-drawer-body" data-p="new">
+                  <div class="tt-drawer-head">
+                    <div><h3>Add loan</h3><p class="meta">Type in the figures from the loan statement.</p></div>
+                    <label class="icon-btn" for="drw1-none" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+                  </div>
+                  <div class="tt-drawer-section">
+                    <div class="field-grid" style="grid-template-columns:1fr;">
+                      <div class="field-view"><label for="new-type">Loan type</label>
+                        <select class="plain-select" id="new-type">
+                          <option>SSS Salary Loan</option>
+                          <option>Pag-IBIG MPL</option>
+                          <option>Pag-IBIG Calamity Loan</option>
+                          <option>Company Loan</option>
+                        </select>
+                      </div>
+                      <div class="field-view"><label for="new-total">Total amount</label><input class="plain-input" id="new-total" type="text" placeholder="₱0.00" /></div>
+                      <div class="field-view"><label for="new-monthly">Monthly amortization</label><input class="plain-input" id="new-monthly" type="text" placeholder="₱0.00" /></div>
+                      <div class="field-view"><label for="new-remaining">Remaining installments</label><input class="plain-input" id="new-remaining" type="text" placeholder="0" /></div>
+                    </div>
+                  </div>
+                  <div class="save-row">
+                    <label class="btn-ghost" for="drw1-none">Cancel</label>
+                    <label class="btn-primary" for="drw1-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save loan</label>
+                  </div>
+                </div>
+
+                <div class="tt-drawer-body" data-p="sss">
+                  <div class="tt-drawer-head">
+                    <div><h3>SSS Salary Loan</h3><p class="meta">₱10,000.00 of ₱24,000.00 paid so far (42%)</p></div>
+                    <label class="icon-btn" for="drw1-none" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+                  </div>
+                  <div class="tt-drawer-section">
+                    <h5>Loan details</h5>
+                    <div class="field-grid" style="grid-template-columns:1fr;">
+                      <div class="field-view"><label for="sss-type">Loan type</label>
+                        <select class="plain-select" id="sss-type">
+                          <option selected>SSS Salary Loan</option>
+                          <option>Pag-IBIG MPL</option>
+                          <option>Pag-IBIG Calamity Loan</option>
+                          <option>Company Loan</option>
+                        </select>
+                      </div>
+                      <div class="field-view"><label for="sss-total">Total amount</label><input class="plain-input" id="sss-total" type="text" value="₱24,000.00" /></div>
+                      <div class="field-view"><label for="sss-monthly">Monthly amortization</label><input class="plain-input" id="sss-monthly" type="text" value="₱1,000.00" /></div>
+                      <div class="field-view"><label for="sss-remaining">Remaining installments</label><input class="plain-input" id="sss-remaining" type="text" value="14" /></div>
+                    </div>
+                  </div>
+                  <div class="save-row">
+                    <label class="btn-ghost" for="drw1-none">Cancel</label>
+                    <label class="btn-primary" for="drw1-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                  </div>
+                </div>
+
+                <div class="tt-drawer-body" data-p="pi">
+                  <div class="tt-drawer-head">
+                    <div><h3>Pag-IBIG Calamity Loan</h3><p class="meta">₱10,000.00 of ₱10,000.00 paid (100%)</p></div>
+                    <label class="icon-btn" for="drw1-none" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+                  </div>
+                  <div class="tt-drawer-note">Marked paid off automatically once remaining installments reached zero. Editing here is for correcting the record only.</div>
+                  <div class="tt-drawer-section">
+                    <h5>Loan details</h5>
+                    <div class="field-grid" style="grid-template-columns:1fr;">
+                      <div class="field-view"><label for="pi-type">Loan type</label>
+                        <select class="plain-select" id="pi-type">
+                          <option>SSS Salary Loan</option>
+                          <option>Pag-IBIG MPL</option>
+                          <option selected>Pag-IBIG Calamity Loan</option>
+                          <option>Company Loan</option>
+                        </select>
+                      </div>
+                      <div class="field-view"><label for="pi-total">Total amount</label><input class="plain-input" id="pi-total" type="text" value="₱10,000.00" /></div>
+                      <div class="field-view"><label for="pi-monthly">Monthly amortization</label><input class="plain-input" id="pi-monthly" type="text" value="₱833.34" /></div>
+                      <div class="field-view"><label for="pi-remaining">Remaining installments</label><input class="plain-input" id="pi-remaining" type="text" value="0" /></div>
+                    </div>
+                  </div>
+                  <div class="save-row">
+                    <label class="btn-ghost" for="drw1-none">Cancel</label>
+                    <label class="btn-primary" for="drw1-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                  </div>
+                </div>
+
+                <div class="tt-drawer-body" data-p="co">
+                  <div class="tt-drawer-head">
+                    <div><h3>Company Loan</h3><p class="meta">₱11,250.00 of ₱15,000.00 paid so far (75%)</p></div>
+                    <label class="icon-btn" for="drw1-none" title="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+                  </div>
+                  <div class="tt-drawer-section">
+                    <h5>Loan details</h5>
+                    <div class="field-grid" style="grid-template-columns:1fr;">
+                      <div class="field-view"><label for="co-type">Loan type</label>
+                        <select class="plain-select" id="co-type">
+                          <option>SSS Salary Loan</option>
+                          <option>Pag-IBIG MPL</option>
+                          <option>Pag-IBIG Calamity Loan</option>
+                          <option selected>Company Loan</option>
+                        </select>
+                      </div>
+                      <div class="field-view"><label for="co-total">Total amount</label><input class="plain-input" id="co-total" type="text" value="₱15,000.00" /></div>
+                      <div class="field-view"><label for="co-monthly">Monthly amortization</label><input class="plain-input" id="co-monthly" type="text" value="₱1,875.00" /></div>
+                      <div class="field-view"><label for="co-remaining">Remaining installments</label><input class="plain-input" id="co-remaining" type="text" value="2" /></div>
+                    </div>
+                  </div>
+                  <div class="save-row">
+                    <label class="btn-ghost" for="drw1-none">Cancel</label>
+                    <label class="btn-primary" for="drw1-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</label>
+                  </div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-1">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h3>Loan Ledger</h3>
+                  <p class="hint">Auto-deducts from each payroll run until paid off.</p>
+                </div>
+              </div>
+              <div class="empty-state">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                <h3>No loans on record</h3>
+                <p>Once Mikaela takes out an SSS, Pag-IBIG, or company loan, record it here to start auto-deducting.</p>
+                <label class="btn-primary" for="drw1-new">+ Add loan</label>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Ledger data reads best as a table — total, monthly amortization, remaining count, and payoff
+              progress line up in columns for direct comparison across loans, and every row stays visible
+              without a click. Reuses the exact drawer mechanic already shipped on Payroll Run Detail, Time
+              &amp; Attendance, and Rate Tables — the fourth time it fits, at this point it's the established
+              way HR opens an editable record in this app.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>An employee carries a handful of loans and HR mainly needs to scan status and progress at a
+              glance. Scales cleanly to more rows; a wide table on a narrow viewport just scrolls
+              horizontally, same as every other master table in the app.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — REPEATABLE PROGRESS CARDS ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="o2edit1">Toggle edit on first card</label>
+          <label for="showEmpty2">Show empty state (no loans yet)</label>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <a class="back-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>People Directory</a>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="identity-strip">
+            <span class="avatar-lg">MS</span>
+            <div class="identity-who">
+              <h2>Mikaela Santos</h2>
+              <p>Software Engineer II · Engineering</p>
+            </div>
+            <div class="identity-meta">
+              <span class="id">EMP-0142</span>
+              <span class="status-active">Active</span>
+            </div>
+          </div>
+
+          <nav class="subtab-bar">
+            <label>Profile</label>
+            <label class="is-active">Loan Ledger</label>
+            <label>Benefits</label>
+          </nav>
+
+          <div class="populated-2">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h3>Loan Ledger</h3>
+                  <p class="hint">Auto-deducts from each payroll run until paid off.</p>
+                </div>
+                <button class="btn-ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add loan</button>
+              </div>
+
+              <div data-card="1">
+                <div class="loan-card">
+                  <div class="loan-card-view">
+                    <div class="loan-card-head">
+                      <p class="loan-name">SSS Salary Loan <span class="badge badge-neutral">Active</span></p>
+                      <div class="head-actions">
+                        <label class="icon-btn" for="o2edit1" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></label>
+                      </div>
+                    </div>
+                    <div class="field-grid">
+                      <div class="field-view"><label>Total amount</label><p class="val mono">₱24,000.00</p></div>
+                      <div class="field-view"><label>Monthly amortization</label><p class="val mono">₱1,000.00</p></div>
+                      <div class="field-view"><label>Remaining</label><p class="val mono">14 of 24</p></div>
+                    </div>
+                    <div>
+                      <div class="loan-progress"><div class="loan-progress-fill" style="width:42%;"></div></div>
+                      <p class="loan-progress-label">₱10,000.00 of ₱24,000.00 paid so far (42%)</p>
+                    </div>
+                  </div>
+                  <div class="loan-card-edit">
+                    <div class="loan-card-head"><p class="loan-name">Edit loan</p></div>
+                    <div class="field-grid">
+                      <div class="field-view"><label for="c1-type">Loan type</label>
+                        <select class="plain-select" id="c1-type">
+                          <option selected>SSS Salary Loan</option>
+                          <option>Pag-IBIG MPL</option>
+                          <option>Pag-IBIG Calamity Loan</option>
+                          <option>Company Loan</option>
+                        </select>
+                      </div>
+                      <div class="field-view"><label for="c1-total">Total amount</label><input class="plain-input" id="c1-total" type="text" value="₱24,000.00" /></div>
+                      <div class="field-view"><label for="c1-monthly">Monthly amortization</label><input class="plain-input" id="c1-monthly" type="text" value="₱1,000.00" /></div>
+                      <div class="field-view"><label for="c1-remaining">Remaining installments</label><input class="plain-input" id="c1-remaining" type="text" value="14" /></div>
+                    </div>
+                    <div class="save-bar">
+                      <label class="btn-ghost" for="o2edit1">Cancel</label>
+                      <label class="btn-primary" for="o2edit1">Save changes</label>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div class="loan-card">
+                <div class="loan-card-head">
+                  <p class="loan-name">Company Loan <span class="badge badge-neutral">Active</span></p>
+                  <div class="head-actions">
+                    <button class="icon-btn" type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+                  </div>
+                </div>
+                <div class="field-grid">
+                  <div class="field-view"><label>Total amount</label><p class="val mono">₱15,000.00</p></div>
+                  <div class="field-view"><label>Monthly amortization</label><p class="val mono">₱1,875.00</p></div>
+                  <div class="field-view"><label>Remaining</label><p class="val mono">2 of 8</p></div>
+                </div>
+                <div>
+                  <div class="loan-progress"><div class="loan-progress-fill" style="width:75%;"></div></div>
+                  <p class="loan-progress-label">₱11,250.00 of ₱15,000.00 paid so far (75%)</p>
+                </div>
+              </div>
+
+              <div class="loan-card is-paidoff">
+                <div class="loan-card-head">
+                  <p class="loan-name">Pag-IBIG Calamity Loan <span class="badge badge-positive">Paid off</span></p>
+                  <div class="head-actions">
+                    <button class="icon-btn" type="button" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></button>
+                  </div>
+                </div>
+                <div class="field-grid">
+                  <div class="field-view"><label>Total amount</label><p class="val mono">₱10,000.00</p></div>
+                  <div class="field-view"><label>Monthly amortization</label><p class="val mono">₱833.34</p></div>
+                  <div class="field-view"><label>Remaining</label><p class="val mono">0 of 12</p></div>
+                </div>
+                <div>
+                  <div class="loan-progress"><div class="loan-progress-fill is-paidoff" style="width:100%;"></div></div>
+                  <p class="loan-progress-label">Paid in full</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-2">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h3>Loan Ledger</h3>
+                  <p class="hint">Auto-deducts from each payroll run until paid off.</p>
+                </div>
+              </div>
+              <div class="empty-state">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                <h3>No loans on record</h3>
+                <p>Once Mikaela takes out an SSS, Pag-IBIG, or company loan, add the first one here.</p>
+                <button class="btn-primary" type="button">+ Add loan</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Mirrors the chosen Benefits pattern exactly (decisions/ui/employee-benefits-repeatable-plan-cards.md)
+              — one independently pencil-editable card per loan, "+ Add loan" to append more. The progress
+              bar and paid-so-far line sit right inside each card instead of a separate drawer trip, so the
+              payoff status is visible the moment the tab opens.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Consistency with Benefits' already-chosen pattern matters more than table-style scanning. Costs
+              more vertical scroll than Option 1 once an employee has three-plus loans on record, since each
+              card repeats its own header and field grid.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — COMPACT LIST, PAID-OFF COLLAPSED ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="o3exp-sss">Expand SSS Salary Loan row</label>
+          <label for="o3showPaidoff">Show paid-off loans</label>
+          <label for="showEmpty3">Show empty state (no loans yet)</label>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <a class="back-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>People Directory</a>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="identity-strip">
+            <span class="avatar-lg">MS</span>
+            <div class="identity-who">
+              <h2>Mikaela Santos</h2>
+              <p>Software Engineer II · Engineering</p>
+            </div>
+            <div class="identity-meta">
+              <span class="id">EMP-0142</span>
+              <span class="status-active">Active</span>
+            </div>
+          </div>
+
+          <nav class="subtab-bar">
+            <label>Profile</label>
+            <label class="is-active">Loan Ledger</label>
+            <label>Benefits</label>
+          </nav>
+
+          <div class="populated-3">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h3>Loan Ledger</h3>
+                  <p class="hint">Click a row to see full detail and edit.</p>
+                </div>
+                <button class="btn-ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add loan</button>
+              </div>
+
+              <div class="loan-row" data-row="sss">
+                <label class="loan-row-head" for="o3exp-sss">
+                  <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                  <span class="loan-name">SSS Salary Loan</span>
+                  <div class="loan-progress"><div class="loan-progress-fill" style="width:42%;"></div></div>
+                  <span class="loan-remaining">14 of 24 left</span>
+                  <span class="badge badge-neutral">Active</span>
+                </label>
+                <div class="loan-row-body">
+                  <div class="field-grid">
+                    <div class="field-view"><label for="r3-type-sss">Loan type</label>
+                      <select class="plain-select" id="r3-type-sss">
+                        <option selected>SSS Salary Loan</option>
+                        <option>Pag-IBIG MPL</option>
+                        <option>Pag-IBIG Calamity Loan</option>
+                        <option>Company Loan</option>
+                      </select>
+                    </div>
+                    <div class="field-view"><label for="r3-total-sss">Total amount</label><input class="plain-input" id="r3-total-sss" type="text" value="₱24,000.00" /></div>
+                    <div class="field-view"><label for="r3-monthly-sss">Monthly amortization</label><input class="plain-input" id="r3-monthly-sss" type="text" value="₱1,000.00" /></div>
+                    <div class="field-view"><label for="r3-remaining-sss">Remaining installments</label><input class="plain-input" id="r3-remaining-sss" type="text" value="14" /></div>
+                  </div>
+                  <p class="loan-progress-label" style="margin-top:0.9rem;">₱10,000.00 of ₱24,000.00 paid so far (42%)</p>
+                  <div class="save-bar">
+                    <label class="btn-ghost" for="o3exp-sss">Cancel</label>
+                    <label class="btn-primary" for="o3exp-sss">Save changes</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="loan-row" data-row="co">
+                <label class="loan-row-head" for="o3exp-co">
+                  <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                  <span class="loan-name">Company Loan</span>
+                  <div class="loan-progress"><div class="loan-progress-fill" style="width:75%;"></div></div>
+                  <span class="loan-remaining">2 of 8 left</span>
+                  <span class="badge badge-neutral">Active</span>
+                </label>
+                <div class="loan-row-body">
+                  <div class="field-grid">
+                    <div class="field-view"><label for="r3-type-co">Loan type</label>
+                      <select class="plain-select" id="r3-type-co">
+                        <option>SSS Salary Loan</option>
+                        <option>Pag-IBIG MPL</option>
+                        <option>Pag-IBIG Calamity Loan</option>
+                        <option selected>Company Loan</option>
+                      </select>
+                    </div>
+                    <div class="field-view"><label for="r3-total-co">Total amount</label><input class="plain-input" id="r3-total-co" type="text" value="₱15,000.00" /></div>
+                    <div class="field-view"><label for="r3-monthly-co">Monthly amortization</label><input class="plain-input" id="r3-monthly-co" type="text" value="₱1,875.00" /></div>
+                    <div class="field-view"><label for="r3-remaining-co">Remaining installments</label><input class="plain-input" id="r3-remaining-co" type="text" value="2" /></div>
+                  </div>
+                  <p class="loan-progress-label" style="margin-top:0.9rem;">₱11,250.00 of ₱15,000.00 paid so far (75%)</p>
+                  <div class="save-bar">
+                    <label class="btn-ghost" for="o3exp-co">Cancel</label>
+                    <label class="btn-primary" for="o3exp-co">Save changes</label>
+                  </div>
+                </div>
+              </div>
+
+              <div class="paidoff-toggle-row">
+                <label class="btn-text paidoff-toggle-label" for="o3showPaidoff">
+                  <span class="n-show">Show paid-off loans (1)</span>
+                  <span class="n-hide">Hide paid-off loans</span>
+                </label>
+              </div>
+
+              <div class="paidoff-block">
+                <div class="loan-row is-paidoff" data-row="pi">
+                  <div class="loan-row-head" style="cursor:default;">
+                    <span style="width:16px;flex:0 0 auto;"></span>
+                    <span class="loan-name">Pag-IBIG Calamity Loan</span>
+                    <div class="loan-progress"><div class="loan-progress-fill is-paidoff" style="width:100%;"></div></div>
+                    <span class="loan-remaining">Paid in full</span>
+                    <span class="badge badge-positive">Paid off</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="empty-3">
+            <div class="section">
+              <div class="section-head">
+                <div>
+                  <h3>Loan Ledger</h3>
+                  <p class="hint">Click a row to see full detail and edit.</p>
+                </div>
+              </div>
+              <div class="empty-state">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+                <h3>No loans on record</h3>
+                <p>Once Mikaela takes out an SSS, Pag-IBIG, or company loan, add the first one here.</p>
+                <button class="btn-primary" type="button">+ Add loan</button>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Keeps the default view focused on what's actually actionable — active loans still being
+              deducted — and tucks settled ones behind a "Show paid-off loans" toggle instead of letting
+              years of loan history (SSS runs ~24 months; a long tenure could pile up several) compete for
+              attention with what's still counting down.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>An employee accumulates loan history over a long tenure and HR mainly cares about what's
+              currently active. For the common one-to-two-active-loans case this is more clicks than Option 1
+              for no real benefit — the collapse mechanic only pays off once paid-off loans actually pile up.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

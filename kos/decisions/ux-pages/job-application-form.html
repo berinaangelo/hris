@@ -1,0 +1,639 @@
+<title>HRIS Public Job Application Form Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md).
+     This page itself is the one exception in spirit: it's candidate-facing
+     and would carry the hiring SME's own brand in production, not HRIS's.
+     Kept on Ink & Amber here anyway so the three options compare on
+     identical tokens — see the assumptions box below. */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+  textarea { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 74ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; }
+
+  .demo-strip { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: var(--neutral); flex-wrap: wrap; }
+  .demo-strip label {
+    display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none;
+    padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--white);
+  }
+  .demo-strip input { accent-color: var(--accent); }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared form pieces ---------- */
+
+  .field { display: flex; flex-direction: column; gap: 0.375rem; }
+  .field label { font-size: 0.8125rem; font-weight: 500; color: var(--ink); }
+  .input-wrap { position: relative; display: flex; align-items: center; }
+  .input-wrap .icon-left { position: absolute; left: 0.75rem; width: 17px; height: 17px; color: var(--neutral); pointer-events: none; }
+  .input-wrap input {
+    width: 100%; font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
+    border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 0.75rem 0.65rem 2.5rem;
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .input-wrap input::placeholder { color: #A6ADBB; }
+  .input-wrap input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .plain-textarea {
+    width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 0.65rem 0.75rem; font-size: 0.9375rem;
+    color: var(--ink); background: var(--white); line-height: 1.5; resize: vertical; min-height: 4.5rem; font-family: var(--font-body);
+  }
+  .plain-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .plain-textarea::placeholder { color: #A6ADBB; }
+  .field-error { display: none; font-size: 0.8125rem; color: var(--danger); line-height: 1.4; }
+
+  .file-drop {
+    border: 1.5px dashed var(--border); border-radius: 10px; padding: 1.35rem 1rem; display: flex; flex-direction: column;
+    align-items: center; gap: 0.4rem; text-align: center; color: var(--neutral); font-size: 0.8125rem;
+    background: var(--surface); cursor: pointer; transition: border-color var(--t), background var(--t);
+  }
+  .file-drop:hover { border-color: var(--accent); background: #FDF3EC; }
+  .file-drop svg { width: 22px; height: 22px; color: var(--neutral); }
+  .file-drop b { color: var(--ink); font-weight: 600; }
+  .file-drop .hint { color: var(--neutral); font-size: 0.75rem; }
+
+  .consent-row { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.8125rem; color: var(--neutral); line-height: 1.45; }
+  .consent-row input { margin-top: 0.2rem; accent-color: var(--accent); width: 15px; height: 15px; flex: 0 0 auto; }
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.72rem 1rem;
+    font-weight: 600; font-size: 0.9375rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.5rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 16px; height: 16px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.62rem 0.9rem;
+    font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em; display: inline-flex; align-items: center; gap: 0.5rem; }
+  .wordmark .mark { width: 26px; height: 26px; border-radius: 7px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; font-family: var(--font-display); font-weight: 800; font-size: 0.75rem; }
+
+  .confirm-panel { display: none; flex-direction: column; align-items: center; text-align: center; gap: 0.75rem; padding: 3.5rem 2rem; }
+  .confirm-panel .icon-circle { width: 56px; height: 56px; border-radius: 999px; background: var(--badge-positive-bg); color: var(--badge-positive-fg); display: flex; align-items: center; justify-content: center; }
+  .confirm-panel .icon-circle svg { width: 28px; height: 28px; }
+  .confirm-panel h3 { font-size: 1.15rem; font-weight: 700; }
+  .confirm-panel p { font-size: 0.875rem; color: var(--neutral); max-width: 42ch; line-height: 1.5; }
+
+  /* ---------- Option 1: single-page form, job context on top ---------- */
+
+  .public-topbar-light { height: 56px; display: flex; align-items: center; padding: 0 2rem; border-bottom: 1px solid var(--border); }
+  .jobctx-header { padding: 2rem 2rem 1.5rem; border-bottom: 1px solid var(--border); }
+  .jobctx-header .kicker { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .jobctx-header h1 { font-size: 1.4rem; font-weight: 800; margin-top: 0.3rem; }
+  .jobctx-header .meta { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.35rem; }
+  .jobctx-header .desc { font-size: 0.875rem; color: var(--ink-light); line-height: 1.6; margin-top: 0.85rem; max-width: 64ch; }
+
+  .apply-form-wrap { padding: 2rem; display: flex; justify-content: center; }
+  .apply-form-col { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 1.15rem; }
+  .apply-form-col form { display: flex; flex-direction: column; gap: 1.15rem; }
+
+  #err1:checked ~ .page .frame-shell[data-n="1"] .email-field input { border-color: var(--danger); }
+  #err1:checked ~ .page .frame-shell[data-n="1"] .email-field .field-error { display: block; }
+  #confirm1:checked ~ .page .frame-shell[data-n="1"] .apply-form-col { display: none; }
+  #confirm1:checked ~ .page .frame-shell[data-n="1"] .confirm-panel { display: flex; }
+
+  /* ---------- Option 2: split panel — job details + form ---------- */
+
+  .mock-split { min-height: 720px; display: grid; grid-template-columns: 42% 58%; }
+  @media (max-width: 780px) { .mock-split { grid-template-columns: 1fr; min-height: 0; } }
+
+  .brand-pane {
+    background: var(--ink); background-image: radial-gradient(circle at 15% 8%, rgba(232, 99, 10, 0.16), transparent 45%);
+    color: var(--white); padding: 2.5rem; display: flex; flex-direction: column; justify-content: space-between; gap: 2rem;
+  }
+  .brand-pane .wordmark { color: var(--white); }
+  .brand-pane .headline { font-size: clamp(1.3rem, 1.05rem + 1vw, 1.65rem); font-weight: 700; line-height: 1.3; margin-top: 1.5rem; }
+  .brand-pane .job-meta { font-size: 0.8125rem; color: #C7CEDE; margin-top: 0.5rem; }
+  .brand-pane .desc { font-size: 0.875rem; color: #C7CEDE; line-height: 1.6; margin-top: 1rem; }
+  .brand-pane .perks { display: flex; flex-direction: column; gap: 0.7rem; }
+  .brand-pane .perk { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.8125rem; color: #CBD3E5; line-height: 1.4; }
+  .brand-pane .perk svg { width: 16px; height: 16px; flex: 0 0 auto; color: var(--accent); margin-top: 0.1rem; }
+
+  .form-pane { background: var(--white); padding: 2.5rem; display: flex; align-items: center; justify-content: center; }
+  .form-pane .form-col { width: 100%; max-width: 380px; display: flex; flex-direction: column; gap: 1.15rem; }
+  .form-pane h2 { font-size: 1.1rem; font-weight: 700; }
+  .form-pane .lede { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.25rem; }
+  .form-pane form { display: flex; flex-direction: column; gap: 1.1rem; }
+
+  #err2:checked ~ .page .frame-shell[data-n="2"] .email-field input { border-color: var(--danger); }
+  #err2:checked ~ .page .frame-shell[data-n="2"] .email-field .field-error { display: block; }
+  #confirm2:checked ~ .page .frame-shell[data-n="2"] .form-col > form,
+  #confirm2:checked ~ .page .frame-shell[data-n="2"] .form-col > h2,
+  #confirm2:checked ~ .page .frame-shell[data-n="2"] .form-col > p.lede { display: none; }
+  #confirm2:checked ~ .page .frame-shell[data-n="2"] .confirm-panel { display: flex; padding: 0; }
+
+  /* ---------- Option 3: multi-step progressive form ---------- */
+
+  .public-topbar-light.for-wizard { justify-content: center; }
+  .wizard-wrap { display: flex; justify-content: center; padding: 2.5rem 2rem 3rem; }
+  .wizard-col { width: 100%; max-width: 480px; display: flex; flex-direction: column; gap: 1.5rem; }
+  .wizard-panel { display: none; flex-direction: column; gap: 1.25rem; }
+  #wiz1:checked ~ .page .frame-shell[data-n="3"] .wizard-panel[data-w="1"],
+  #wiz2:checked ~ .page .frame-shell[data-n="3"] .wizard-panel[data-w="2"],
+  #wiz3:checked ~ .page .frame-shell[data-n="3"] .wizard-panel[data-w="3"],
+  #wiz4:checked ~ .page .frame-shell[data-n="3"] .wizard-panel[data-w="4"] { display: flex; }
+
+  .step-track { display: flex; align-items: center; gap: 0.4rem; }
+  .step-dot { width: 26px; height: 26px; border-radius: 999px; background: var(--surface); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 600; color: var(--neutral); flex: 0 0 auto; }
+  .step-dot.is-active { background: var(--accent); border-color: var(--accent); color: var(--white); }
+  .step-dot.is-done { background: var(--badge-positive-bg); border-color: var(--badge-positive-fg); color: var(--badge-positive-fg); }
+  .step-line { flex: 1; height: 2px; background: var(--border); }
+  .step-line.is-done { background: var(--badge-positive-fg); }
+  .step-caption { font-size: 0.75rem; color: var(--neutral); margin-top: 0.4rem; }
+  .step-caption b { color: var(--ink); }
+
+  .wizard-panel h2 { font-size: 1.15rem; font-weight: 700; }
+  .wizard-panel form { display: flex; flex-direction: column; gap: 1.1rem; }
+  .wizard-actions { display: flex; justify-content: space-between; gap: 0.6rem; align-items: center; }
+  .wizard-actions .spacer { flex: 1; }
+
+  .review-list { display: flex; flex-direction: column; gap: 0.75rem; border: 1px solid var(--border); border-radius: 10px; padding: 1rem 1.1rem; background: var(--surface); }
+  .review-row { display: flex; justify-content: space-between; gap: 1rem; font-size: 0.8125rem; }
+  .review-row .k { color: var(--neutral); }
+  .review-row .v { color: var(--ink); font-weight: 500; text-align: right; }
+
+  @media (max-width: 480px) {
+    .jobctx-header, .apply-form-wrap, .brand-pane, .form-pane, .wizard-wrap, .public-topbar-light { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" checked />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="checkbox" id="err1" />
+<input class="state" type="checkbox" id="confirm1" />
+<input class="state" type="checkbox" id="err2" />
+<input class="state" type="checkbox" id="confirm2" />
+<input class="state" type="radio" name="wiz" id="wiz1" checked />
+<input class="state" type="radio" name="wiz" id="wiz2" />
+<input class="state" type="radio" name="wiz" id="wiz3" />
+<input class="state" type="radio" name="wiz" id="wiz4" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Public Job Application Form — three recommendations</h1>
+      <p class="sub">
+        The actual public, unauthenticated page from
+        projects/hris/features/recruitment-ats/PLAN.md's core flow step 2 —
+        "candidate applies via that form." No account, no login, no
+        internal HRIS chrome — the SME's own job posting on JobStreet/
+        Indeed/LinkedIn points its Apply button here, and this form's only
+        job is capturing the candidate into the database. Fields match the
+        plan's fixed list exactly: name, email, phone, résumé upload,
+        optional note.
+      </p>
+      <div class="assumptions">
+        <b>Illustrative branding, not a design-system decision:</b> shown
+        as "Alon Pay," a placeholder PH fintech employer using HRIS —
+        in production this page is white-labeled to whichever SME posted
+        the job, not to HRIS's own brand. Kept on
+        decisions/ui/color-palette-ink-and-amber.md's tokens here purely so
+        the three options compare on identical colors, not because that's
+        the intended real customer-facing palette. Also added, not in the
+        plan's fixed field list: a Data Privacy Act (RA 10173) consent
+        checkbox — standard practice for PH forms collecting personal data,
+        flagged here for confirmation rather than assumed decided. Résumé
+        upload is a static dropzone mock, not a working file picker.
+        Validation follows decisions/ui/form-validation-inline-only.md — a
+        demo toggle on Options 1–2 previews one inline error; a "preview
+        after submitting" toggle shows the confirmation state per
+        decisions/ui/empty-states-guided.md (icon, headline, one line, no
+        CTA — there's nothing else for the candidate to do next).
+      </div>
+      <nav class="tabbar">
+        <label for="tab1"><span class="n">01</span> Single page, job context on top</label>
+        <label for="tab2"><span class="n">02</span> Split panel — job details + form <span class="chosen-badge">Chosen</span></label>
+        <label for="tab3"><span class="n">03</span> Multi-step progressive form</label>
+      </nav>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — SINGLE PAGE, JOB CONTEXT ON TOP ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="err1">☐ Preview inline validation error</label>
+          <label for="confirm1">☐ Preview: after submitting</label>
+        </div>
+
+        <div class="device">
+          <div class="public-topbar-light">
+            <span class="wordmark"><span class="mark">AP</span>Alon Pay</span>
+          </div>
+
+          <div class="jobctx-header">
+            <p class="kicker">We're hiring</p>
+            <h1>Senior Backend Engineer</h1>
+            <p class="meta">Manila, PH (Hybrid) · Full-time · Posted Aug 10, 2026</p>
+            <p class="desc">Own the Rails monolith's payroll and payments services. 5+ years backend, Ruby/Rails preferred, comfortable with on-call rotation. You'll work closely with our small platform team to keep money moving correctly for thousands of SMEs.</p>
+          </div>
+
+          <div class="apply-form-wrap">
+            <div class="apply-form-col">
+
+              <form onsubmit="return false;">
+                <div class="field">
+                  <label for="o1-name">Full name</label>
+                  <div class="input-wrap">
+                    <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                    <input id="o1-name" type="text" placeholder="Juan Dela Cruz" />
+                  </div>
+                </div>
+                <div class="field email-field">
+                  <label for="o1-email">Email address</label>
+                  <div class="input-wrap">
+                    <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+                    <input id="o1-email" type="email" placeholder="juan@email.com" />
+                  </div>
+                  <p class="field-error">Enter a valid email address.</p>
+                </div>
+                <div class="field">
+                  <label for="o1-phone">Phone number</label>
+                  <div class="input-wrap">
+                    <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                    <input id="o1-phone" type="tel" placeholder="0917 000 0000" />
+                  </div>
+                </div>
+                <div class="field">
+                  <label>Résumé</label>
+                  <div class="file-drop">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                    <span><b>Click to upload</b> or drag and drop</span>
+                    <span class="hint">PDF or DOCX, up to 5MB</span>
+                  </div>
+                </div>
+                <div class="field">
+                  <label for="o1-note">Anything else you'd like us to know? <span style="color:var(--neutral); font-weight:400;">(optional)</span></label>
+                  <textarea class="plain-textarea" id="o1-note" placeholder="Portfolio link, availability, salary expectations…"></textarea>
+                </div>
+                <label class="consent-row">
+                  <input type="checkbox" />
+                  I consent to Alon Pay collecting and processing my personal data for this job application, per the Data Privacy Act of 2012 (RA 10173).
+                </label>
+                <button class="btn-primary" type="submit">Submit application</button>
+              </form>
+
+              <div class="confirm-panel">
+                <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+                <h3>Application received</h3>
+                <p>Thanks for applying to Senior Backend Engineer at Alon Pay — we'll review your application and reach out if there's a match.</p>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The full job description sits right above the form, in one reading order — no split
+              attention, nothing to scroll back to. Fastest to build and the most familiar pattern for
+              a one-time, unauthenticated form a candidate fills out once and never returns to.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>On a long job description the form gets pushed well below the fold, especially on
+              mobile — a candidate skimming the ad may not immediately see there's a form to fill in
+              at all.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — SPLIT PANEL: JOB DETAILS + FORM ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="err2">☐ Preview inline validation error</label>
+          <label for="confirm2">☐ Preview: after submitting</label>
+        </div>
+
+        <div class="device">
+          <div class="mock-split">
+
+            <div class="brand-pane">
+              <div>
+                <span class="wordmark"><span class="mark">AP</span>Alon Pay</span>
+                <p class="headline">Senior Backend Engineer</p>
+                <p class="job-meta">Manila, PH (Hybrid) · Full-time · Posted Aug 10, 2026</p>
+                <p class="desc">Own the Rails monolith's payroll and payments services. 5+ years backend, Ruby/Rails preferred, comfortable with on-call rotation. You'll work closely with our small platform team to keep money moving correctly for thousands of SMEs.</p>
+              </div>
+              <div class="perks">
+                <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>HMO + dependents from day one</div>
+                <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Hybrid — 2 days in our BGC office</div>
+                <div class="perk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>13th month + performance bonus</div>
+              </div>
+            </div>
+
+            <div class="form-pane">
+              <div class="form-col">
+                <div>
+                  <h2>Apply for this role</h2>
+                  <p class="lede">Takes about 3 minutes — we'll email you once we've reviewed it.</p>
+                </div>
+
+                <form onsubmit="return false;">
+                  <div class="field">
+                    <label for="o2-name">Full name</label>
+                    <div class="input-wrap">
+                      <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                      <input id="o2-name" type="text" placeholder="Juan Dela Cruz" />
+                    </div>
+                  </div>
+                  <div class="field email-field">
+                    <label for="o2-email">Email address</label>
+                    <div class="input-wrap">
+                      <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+                      <input id="o2-email" type="email" placeholder="juan@email.com" />
+                    </div>
+                    <p class="field-error">Enter a valid email address.</p>
+                  </div>
+                  <div class="field">
+                    <label for="o2-phone">Phone number</label>
+                    <div class="input-wrap">
+                      <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      <input id="o2-phone" type="tel" placeholder="0917 000 0000" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label>Résumé</label>
+                    <div class="file-drop">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                      <span><b>Click to upload</b> or drag and drop</span>
+                      <span class="hint">PDF or DOCX, up to 5MB</span>
+                    </div>
+                  </div>
+                  <label class="consent-row">
+                    <input type="checkbox" />
+                    I consent to Alon Pay collecting and processing my personal data for this job application, per the Data Privacy Act of 2012 (RA 10173).
+                  </label>
+                  <button class="btn-primary" type="submit">Submit application</button>
+                </form>
+
+                <div class="confirm-panel">
+                  <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+                  <h3>Application received</h3>
+                  <p>Thanks for applying to Senior Backend Engineer at Alon Pay — we'll review your application and reach out if there's a match.</p>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Reuses decisions/ui/login-page-split-panel.md's exact brand-pane + form-pane mechanic —
+              the job description, location, and a few "why work here" perks stay visible the whole
+              time the candidate is filling in the form, no scrolling back and forth between reading
+              and typing.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Two columns to keep balanced — a very short job description leaves the left pane
+              looking sparse, and on mobile the panes stack, so the space-saving benefit of showing
+              both at once disappears exactly on the devices most candidates likely apply from.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — MULTI-STEP PROGRESSIVE FORM ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <span>Click Continue/Back to preview each step — no field validation demo on this option, see rationale.</span>
+        </div>
+
+        <div class="device">
+          <div class="public-topbar-light for-wizard">
+            <span class="wordmark"><span class="mark">AP</span>Alon Pay</span>
+          </div>
+
+          <div class="wizard-wrap">
+            <div class="wizard-col">
+
+              <!-- STEP 1 — BASIC INFO -->
+              <div class="wizard-panel" data-w="1">
+                <div>
+                  <div class="step-track">
+                    <span class="step-dot is-active">1</span><span class="step-line"></span>
+                    <span class="step-dot">2</span><span class="step-line"></span>
+                    <span class="step-dot">3</span>
+                  </div>
+                  <p class="step-caption"><b>Step 1 of 3</b> — Basic info</p>
+                </div>
+                <h2>Apply for Senior Backend Engineer</h2>
+                <form onsubmit="return false;">
+                  <div class="field">
+                    <label for="o3-name">Full name</label>
+                    <div class="input-wrap">
+                      <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21a8 8 0 0 0-16 0"/><circle cx="12" cy="7" r="4"/></svg>
+                      <input id="o3-name" type="text" placeholder="Juan Dela Cruz" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="o3-email">Email address</label>
+                    <div class="input-wrap">
+                      <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 6-10 7L2 6"/></svg>
+                      <input id="o3-email" type="email" placeholder="juan@email.com" />
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="o3-phone">Phone number</label>
+                    <div class="input-wrap">
+                      <svg class="icon-left" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72c.127.96.362 1.903.7 2.81a2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.907.338 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                      <input id="o3-phone" type="tel" placeholder="0917 000 0000" />
+                    </div>
+                  </div>
+                </form>
+                <div class="wizard-actions"><span class="spacer"></span><label class="btn-primary" for="wiz2">Continue</label></div>
+              </div>
+
+              <!-- STEP 2 — RESUME & NOTE -->
+              <div class="wizard-panel" data-w="2">
+                <div>
+                  <div class="step-track">
+                    <span class="step-dot is-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><path d="M20 6 9 17l-5-5"/></svg></span><span class="step-line is-done"></span>
+                    <span class="step-dot is-active">2</span><span class="step-line"></span>
+                    <span class="step-dot">3</span>
+                  </div>
+                  <p class="step-caption"><b>Step 2 of 3</b> — Résumé &amp; note</p>
+                </div>
+                <h2>Résumé &amp; a few extra details</h2>
+                <form onsubmit="return false;">
+                  <div class="field">
+                    <label>Résumé</label>
+                    <div class="file-drop">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/><path d="M12 12v9"/><path d="m16 16-4-4-4 4"/></svg>
+                      <span><b>Click to upload</b> or drag and drop</span>
+                      <span class="hint">PDF or DOCX, up to 5MB</span>
+                    </div>
+                  </div>
+                  <div class="field">
+                    <label for="o3-note">Anything else you'd like us to know? <span style="color:var(--neutral); font-weight:400;">(optional)</span></label>
+                    <textarea class="plain-textarea" id="o3-note" placeholder="Portfolio link, availability, salary expectations…"></textarea>
+                  </div>
+                  <label class="consent-row">
+                    <input type="checkbox" />
+                    I consent to Alon Pay collecting and processing my personal data for this job application, per the Data Privacy Act of 2012 (RA 10173).
+                  </label>
+                </form>
+                <div class="wizard-actions"><label class="btn-ghost" for="wiz1">Back</label><span class="spacer"></span><label class="btn-primary" for="wiz3">Continue</label></div>
+              </div>
+
+              <!-- STEP 3 — REVIEW -->
+              <div class="wizard-panel" data-w="3">
+                <div>
+                  <div class="step-track">
+                    <span class="step-dot is-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><path d="M20 6 9 17l-5-5"/></svg></span><span class="step-line is-done"></span>
+                    <span class="step-dot is-done"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px;"><path d="M20 6 9 17l-5-5"/></svg></span><span class="step-line is-done"></span>
+                    <span class="step-dot is-active">3</span>
+                  </div>
+                  <p class="step-caption"><b>Step 3 of 3</b> — Review &amp; submit</p>
+                </div>
+                <h2>Review your application</h2>
+                <div class="review-list">
+                  <div class="review-row"><span class="k">Name</span><span class="v">Jasmine Ocampo</span></div>
+                  <div class="review-row"><span class="k">Email</span><span class="v">jasmine.ocampo@gmail.com</span></div>
+                  <div class="review-row"><span class="k">Phone</span><span class="v">0920 567 8899</span></div>
+                  <div class="review-row"><span class="k">Résumé</span><span class="v">Jasmine_Ocampo_Resume.pdf</span></div>
+                  <div class="review-row"><span class="k">Note</span><span class="v">"5+ years Rails, currently at a fintech…"</span></div>
+                </div>
+                <div class="wizard-actions"><label class="btn-ghost" for="wiz2">Back</label><span class="spacer"></span><label class="btn-primary" for="wiz4">Submit application</label></div>
+              </div>
+
+              <!-- STEP 4 — CONFIRMATION -->
+              <div class="wizard-panel" data-w="4">
+                <div class="confirm-panel" style="display:flex; padding: 1.5rem 0 0.5rem;">
+                  <div class="icon-circle"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+                  <h3>Application received</h3>
+                  <p>Thanks for applying to Senior Backend Engineer at Alon Pay — we'll review your application and reach out if there's a match.</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Splits a form with a file upload and a consent checkbox into three short screens instead
+              of one long one — each step feels quick to finish, and Step 3's review catches typos
+              before anything is submitted. The confirmation is naturally the wizard's own last step,
+              not a separate state to bolt on.</p>
+          </div>
+          <div>
+            <h3>Trade-off</h3>
+            <p>Three screens and two extra clicks (Continue ×2) for what's fundamentally a five-field
+              form — more building and more places for a candidate to abandon partway through than
+              Options 1–2's single scroll. No inline-validation demo modeled here since a real version
+              would need step-level validation before "Continue" advances, which is more logic than
+              this static comparison shows.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

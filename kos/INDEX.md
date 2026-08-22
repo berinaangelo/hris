@@ -245,6 +245,99 @@ structure below. Read this first; open only the files you actually need.
   Templates tucked behind a "Manage shift templates" slide-over drawer
   since it's edited far less often than attendance is checked; mockup
   at [decisions/ux-pages/time-attendance.html](decisions/ux-pages/time-attendance.html)
+- [payroll-run-detail-master-table-edit-drawer](decisions/ui/payroll-run-detail-master-table-edit-drawer.md)
+  — HR-Admin Payroll Run Detail (v2, payroll-v2); line items per
+  employee via a permanent master table, chosen over a flat
+  expandable-row option and a roster+split-detail option; editing one
+  employee's adjustments opens a right-side slide-over drawer (same
+  mechanic as Time & Attendance's templates drawer), table stays
+  visible and scrollable behind it; Finalize opens a blocked-state
+  modal when employees are still missing OT, no approval step; mockup
+  at [decisions/ux-pages/payroll-run-detail.html](decisions/ux-pages/payroll-run-detail.html)
+- [payslip-detail-admin-breakdown-audit-rail](decisions/ui/payslip-detail-admin-breakdown-audit-rail.md)
+  — HR-Admin Payslip Detail (v2, payroll-v2), one employee's
+  already-finalized payslip; breakdown reused from My Payslips plus a
+  persistent right-side rail (Record/Delivery/Correction history),
+  chosen over a flat statement+action-bar option and a literal
+  document-preview option; no inline editing — corrections go through
+  a Void & Reissue modal since finalized line items are locked; mockup
+  at [decisions/ux-pages/payslip-detail-admin.html](decisions/ux-pages/payslip-detail-admin.html)
+- [rate-tables-landing-cards-edit-drawer](decisions/ui/rate-tables-landing-cards-edit-drawer.md)
+  — HR-Admin Rate Tables (v2, payroll-v2), the SSS/PhilHealth/Pag-IBIG/BIR
+  editable statutory tables referenced from Payroll Run Detail; a landing
+  dashboard of agency cards (effective date, last-updated, a "not
+  reviewed in over a year" caution badge) chosen over an agency-tabs
+  inline-edit option and a stacked-accordion option; editing opens a
+  right-side drawer reusing the Payroll Run Detail/Time & Attendance
+  drawer mechanic, directly editable with no separate view/edit toggle
+  since opening it already signals intent to edit; mockup at
+  [decisions/ux-pages/rate-tables.html](decisions/ux-pages/rate-tables.html)
+- [payroll-runs-pinned-open-run](decisions/ui/payroll-runs-pinned-open-run.md)
+  — HR-Admin Payroll Runs landing page (v2, payroll-v2), the plan's own
+  step 1 "HR opens a pay period"; a pinned dark hero card for the
+  currently-open run (status, provisional gross, a missing-OT caution
+  flag, "Continue payroll run") above the full paginated run history,
+  chosen over a flat table with the open run as just the first row and
+  a stat-strip-plus-year-grouped-list option; built ahead of the
+  roadmap same as My Payslips; mockup at
+  [decisions/ux-pages/payroll-runs.html](decisions/ux-pages/payroll-runs.html)
+- [loan-ledger-flat-table-edit-drawer](decisions/ui/loan-ledger-flat-table-edit-drawer.md)
+  — the Loan Ledger tab content on Employee Detail (v2, payroll-v2); a
+  single master table (loan type, total, monthly amortization,
+  remaining, progress, status) with per-row editing in a right-side
+  drawer, chosen over repeatable progress cards (Benefits' own pattern)
+  and a compact list with paid-off loans collapsed; the fourth reuse of
+  the Payroll Run Detail/Time & Attendance/Rate Tables drawer mechanic;
+  mockup at
+  [decisions/ux-pages/employee-loan-ledger.html](decisions/ux-pages/employee-loan-ledger.html)
+- [thirteenth-month-toggle-inline-payout-preview](decisions/ui/thirteenth-month-toggle-inline-payout-preview.md)
+  — HR-Admin Payroll Settings (v2, payroll-v2), the new home for the
+  `thirteenth_month_pay_enabled` company toggle; a settings card whose
+  switch reveals an inline payout preview (employees covered, projected
+  payout, Dec 24 deadline) when ON, chosen over a plain toggle row and a
+  compliance-guarded toggle requiring a recorded exemption reason to
+  disable — no confirmation step, the switch stays instant; first mockup
+  of the Payroll Settings screen itself; mockup at
+  [decisions/ux-pages/payroll-settings.html](decisions/ux-pages/payroll-settings.html)
+- [job-openings-card-grid-with-list-toggle](decisions/ui/job-openings-card-grid-with-list-toggle.md)
+  — HR-Admin Job Openings landing page (post-MVP, recruitment-ats,
+  deliberately deferred to last); card grid (title/status/pipeline-stage
+  counts/copy-link), chosen over a flat table and an open-section +
+  collapsible-closed-archive split, with a card/list view toggle added on
+  top reusing People Directory's exact mechanic, card selected by
+  default; first mockup of the Recruitment module; mockup at
+  [decisions/ux-pages/job-openings.html](decisions/ux-pages/job-openings.html)
+- [job-opening-detail-kanban-stage-columns](decisions/ui/job-opening-detail-kanban-stage-columns.md)
+  — HR-Admin Job Opening Detail + Candidate Pipeline (post-MVP,
+  recruitment-ats), where "View pipeline" lands; five fixed-stage columns
+  (New/Interviewing/Offer/Hired/Rejected) each holding compact candidate
+  cards, stage changed via a per-card dropdown (never drag-and-drop, per
+  the plan's own wording), chosen over a flat filterable table and a split
+  roster + candidate detail panel; Offer cards get a "Mark Hired" button,
+  Hired cards get a distinct "Employee record created" tag for the plan's
+  payoff moment; mockup at
+  [decisions/ux-pages/job-opening-detail.html](decisions/ux-pages/job-opening-detail.html)
+- [job-application-form-split-panel](decisions/ui/job-application-form-split-panel.md)
+  — the public, unauthenticated candidate Job Application Form
+  (post-MVP, recruitment-ats) — the actual page an "application link"
+  points to; reuses the Login page's exact brand-pane + form-pane split
+  (job posting left, form right — name/email/phone/résumé/optional note,
+  the plan's fixed field list), chosen over a single-page form and a
+  multi-step wizard; no internal HRIS chrome, illustrative employer
+  branding since this page is white-labeled to the SME in production;
+  mockup at
+  [decisions/ux-pages/job-application-form.html](decisions/ux-pages/job-application-form.html)
+- [hired-handoff-review-and-edit-drawer](decisions/ui/hired-handoff-review-and-edit-drawer.md)
+  — what "Mark Hired" actually opens on
+  [[job-opening-detail-kanban-stage-columns|Job Opening Detail]]
+  (post-MVP, recruitment-ats), left unscoped there; a right-side
+  slide-over drawer (5th reuse of the Payroll Run Detail/Time &
+  Attendance/Rate Tables/Loan Ledger drawer mechanic) with name/email
+  locked in from the application and department/manager/start
+  date/employment type editable before creating the employee record,
+  chosen over a lightweight confirm modal and a redirect into the full
+  Add Employee page; mockup at
+  [decisions/ux-pages/hired-handoff.html](decisions/ux-pages/hired-handoff.html)
 
 ## Reference
 - [ph-hr-payroll-compliance-glossary](reference/ph-hr-payroll-compliance-glossary.md)

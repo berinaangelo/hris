@@ -19,11 +19,13 @@ everything else in this HRIS.
 
 ## Core flow
 
-1. HR creates a job opening — title, description, open/closed status,
-   public link.
-2. Candidate applies via a public form — name, email, phone, resume
-   upload, optional note. No account, no login (candidates aren't
-   system users).
+1. HR creates a job opening — title, description, open/closed status, and
+   gets an application form link. Not a public job-ad page — the actual
+   posting usually lives on JobStreet/Indeed/LinkedIn, and HR points that
+   ad's Apply button at this link. The form's only job is capturing
+   applicants into the database.
+2. Candidate applies via that form — name, email, phone, resume upload,
+   optional note. No account, no login (candidates aren't system users).
 3. HR sees applicants per job in a fixed status list — New →
    Interviewing → Offer → Hired / Rejected (a dropdown, not a
    drag-and-drop pipeline builder).
@@ -34,8 +36,9 @@ everything else in this HRIS.
 
 ## In scope
 
-- Job opening (title, description, status, public URL)
-- Public application form (fixed fields, file upload for resume)
+- Job opening (title, description, status)
+- Public application form, fixed fields + file upload for resume — this
+  is the "public link," a data-capture form only, not a job-ad page
 - Fixed-stage status per candidate
 - Free-text notes field per candidate (interview feedback, not a
   structured scorecard)
@@ -43,8 +46,9 @@ everything else in this HRIS.
 
 ## Out of scope
 
-- Job board syndication (LinkedIn/Indeed/JobStreet posting) — just your
-  own public link
+- Job board syndication (LinkedIn/Indeed/JobStreet posting) — HR posts
+  there manually and points the ad's Apply button at the application form
+  link instead
 - Resume parsing/auto-fill — candidate fills the form manually
 - Interview scheduling/calendar integration — coordinated outside the
   system

@@ -67,9 +67,9 @@
   }
   .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
   .tabbar label:hover { background: rgba(255,255,255,0.08); }
-  .reco-badge {
+  .chosen-badge {
     font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
-    color: var(--ink); background: #D6E4FF; padding: 0.1rem 0.4rem; border-radius: 999px;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
   }
   input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
   #tab1:checked ~ .page .tabbar label[for="tab1"],
@@ -252,6 +252,7 @@
 
 <input class="tab" type="radio" name="tab" id="tab1" />
 <input class="tab" type="radio" name="tab" id="tab2" checked />
+<!-- Option 2 (pinned open run + full history) is the chosen layout, see decisions/ui/payroll-runs-pinned-open-run.md -->
 <input class="tab" type="radio" name="tab" id="tab3" />
 <input class="state" type="checkbox" id="yr3-2025" />
 <input class="state" type="radio" name="run3" id="run3-1" checked />
@@ -304,7 +305,7 @@
 
     <nav class="tabbar">
       <label for="tab1"><span class="n">01</span> Flat run history + toolbar action</label>
-      <label for="tab2"><span class="n">02</span> Pinned open run + full history <span class="reco-badge">Recommended</span></label>
+      <label for="tab2"><span class="n">02</span> Pinned open run + full history <span class="chosen-badge">Chosen</span></label>
       <label for="tab3"><span class="n">03</span> Stat strip + grouped by year</label>
     </nav>
   </header>
