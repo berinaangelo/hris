@@ -35,6 +35,11 @@ Rails.application.routes.draw do
     resources :documents, only: [:create], controller: "employees/documents"
   end
 
+  resource :attendance, only: [], controller: "attendance" do
+    post :clock_in
+    patch :clock_out
+  end
+
   resource :my_profile, only: [:show, :edit, :update], controller: "my_profile"
   resource :account_settings, only: [:show, :update], controller: "account_settings"
   resource :password, only: [:edit, :update], controller: "passwords"

@@ -11,6 +11,7 @@ class AttendanceRecord < ApplicationRecord
 
   validates :date, presence: true
   validates :date, uniqueness: { scope: :employee_id }
+  validate :clock_out_not_before_clock_in
 
   # Late/undertime is resolved by an Attendance::RecordClockOut interactor
   # comparing clock_in_at/clock_out_at against shift_template — a
@@ -18,4 +19,12 @@ class AttendanceRecord < ApplicationRecord
   # kos/projects/hris/features/time-attendance/PLAN.md. Not implemented
   # here — this model stays persistence/associations/validations only,
   # per kos/decisions/rails-skinny-models-behavior-in-interactors.md.
+
+  private
+
+  def clock_out_not_before_clock_in
+    return if clock_in_at.blank? || clock_out_at.blank?
+
+    errors.add(:clock_out_at, "can't be before the clock in time") if clock_out_at < clock_in_at
+  end
 end

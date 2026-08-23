@@ -8,4 +8,8 @@ class Company < ApplicationRecord
 
   validates :name, presence: true
   validates :timezone, presence: true
+
+  def today
+    Time.current.in_time_zone(timezone).to_date
+  end
 end

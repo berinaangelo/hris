@@ -64,6 +64,7 @@ worker_optout:
 worker_carol:
   company: acme
   manager: manager_optout
+  shift_template: day_shift
   employee_number: EMP-006
   first_name: Carol
   last_name: Reports

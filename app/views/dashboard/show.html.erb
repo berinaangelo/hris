@@ -31,6 +31,18 @@
   <% end %>
 </div>
 
+<div class="card">
+  <h2>Attendance</h2>
+  <% if @todays_attendance_record&.clock_out_at.present? %>
+    <p>Clocked out at <%= @todays_attendance_record.clock_out_at.in_time_zone(current_employee.company.timezone).strftime("%l:%M %p") %>. See you tomorrow.</p>
+  <% elsif @todays_attendance_record&.clock_in_at.present? %>
+    <p>Clocked in at <%= @todays_attendance_record.clock_in_at.in_time_zone(current_employee.company.timezone).strftime("%l:%M %p") %>.</p>
+    <%= button_to "Clock out", clock_out_attendance_path, method: :patch, class: "btn btn-ghost" %>
+  <% else %>
+    <%= button_to "Clock in", clock_in_attendance_path, method: :post, class: "btn btn-ghost" %>
+  <% end %>
+</div>
+
 <% if current_employee.manager? || current_employee.admin? %>
   <% if @pending_approvals_count > 0 %>
     <div class="card">
