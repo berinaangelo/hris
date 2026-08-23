@@ -1,0 +1,9 @@
+Hi <%= @admin.first_name %>,
+
+<%= @certifications.size %> certification<%= @certifications.size == 1 ? "" : "s" %> at your company need attention in the next 30 days:
+
+<% @certifications.each do |certification| %>
+- <%= certification.employee.full_name %> — <%= certification.cert_name %> (expires <%= certification.expiry_date %>)
+<% end %>
+
+Review them in HRIS under Company → Compliance.

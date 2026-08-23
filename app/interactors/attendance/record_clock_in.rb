@@ -25,6 +25,13 @@ module Attendance
       else
         context.fail!(message: attendance_record.errors.full_messages.to_sentence)
       end
+    rescue ActiveRecord::RecordNotUnique
+      # Two near-simultaneous clock-ins (double-click/double-tap) can both
+      # pass the clock_in_at.present? check above before either inserts —
+      # the unique index on [employee_id, date] catches the race the
+      # app-level check can't, so surface the same friendly message
+      # instead of a raw 500.
+      context.fail!(message: "You've already clocked in today.")
     end
   end
 end

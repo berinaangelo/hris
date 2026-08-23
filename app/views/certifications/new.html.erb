@@ -1,0 +1,9 @@
+<h1>Add certification</h1>
+
+<div class="card">
+  <%= form_with model: @certification, url: certifications_path, local: true do |f| %>
+    <%= render "form", f: f %>
+    <%= f.submit "Add certification", class: "btn btn-primary" %>
+    <%= link_to "Cancel", certifications_path, class: "btn btn-ghost" %>
+  <% end %>
+</div>

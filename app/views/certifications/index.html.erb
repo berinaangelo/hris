@@ -1,0 +1,59 @@
+<h1>Compliance / Certifications</h1>
+
+<% if @needs_attention.any? %>
+  <div class="card">
+    <h2>Needs attention</h2>
+    <% @needs_attention.each do |certification| %>
+      <% days = (certification.expiry_date - Date.current).to_i %>
+      <% badge = BadgePresenter.new(certification.status) %>
+      <p>
+        <span class="<%= badge.css_class %>"><%= badge.label %></span>
+        <%= certification.employee.full_name %> — <%= certification.cert_name %>
+        (<%= certification.expired? ? "#{-days} days overdue" : "#{days} days left" %>)
+      </p>
+    <% end %>
+  </div>
+<% end %>
+
+<div class="card">
+  <%= form_with url: certifications_path, method: :get, local: true do %>
+    <div class="field">
+      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search by employee or certification">
+    </div>
+    <div class="field">
+      <select name="status" onchange="this.form.submit()">
+        <option value="">All</option>
+        <option value="expired" <%= "selected" if params[:status] == "expired" %>>Expired</option>
+        <option value="expiring_soon" <%= "selected" if params[:status] == "expiring_soon" %>>Expiring soon</option>
+        <option value="valid" <%= "selected" if params[:status] == "valid" %>>Valid</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-ghost">Filter</button>
+  <% end %>
+</div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>Employee</th><th>Certification</th><th>Expiry date</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      <% @certifications.each do |certification| %>
+        <tr>
+          <td><%= certification.employee.full_name %></td>
+          <td><%= certification.cert_name %></td>
+          <td><%= certification.expiry_date %></td>
+          <td>
+            <% if certification.status == "valid" %>
+              —
+            <% else %>
+              <% badge = BadgePresenter.new(certification.status) %>
+              <span class="<%= badge.css_class %>"><%= badge.label %></span>
+            <% end %>
+          </td>
+          <td><%= link_to "Edit", edit_certification_path(certification), class: "btn btn-ghost" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<%= link_to "Add certification", new_certification_path, class: "btn btn-primary" %>

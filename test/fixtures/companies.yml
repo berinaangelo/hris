@@ -1,3 +1,7 @@
 acme:
   name: Acme Corp
   timezone: Asia/Manila
+
+globex:
+  name: Globex Corporation
+  timezone: America/New_York

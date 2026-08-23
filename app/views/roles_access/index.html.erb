@@ -1,0 +1,73 @@
+<h1>Roles &amp; Access</h1>
+
+<div class="card">
+  <h2>The three access levels</h2>
+  <p>Roles are fixed — not a configurable permission matrix. This is what each one can already do.</p>
+  <table>
+    <thead>
+      <tr>
+        <th>Capability</th>
+        <th>Employee</th>
+        <th>Manager</th>
+        <th>Admin</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>View own profile, request time off, see own payslips &amp; reviews</td>
+        <td><input type="checkbox" checked disabled></td>
+        <td><input type="checkbox" checked disabled></td>
+        <td><input type="checkbox" checked disabled></td>
+      </tr>
+      <tr>
+        <td>Approve direct reports' time off <small>(own reports only, not company-wide)</small></td>
+        <td><input type="checkbox" disabled></td>
+        <td><input type="checkbox" checked disabled></td>
+        <td><input type="checkbox" checked disabled></td>
+      </tr>
+      <tr>
+        <td>View team calendar &amp; team performance reviews</td>
+        <td><input type="checkbox" disabled></td>
+        <td><input type="checkbox" checked disabled></td>
+        <td><input type="checkbox" checked disabled></td>
+      </tr>
+      <tr>
+        <td>Manage People Directory, Payroll, Recruitment, Compliance, Reports</td>
+        <td><input type="checkbox" disabled></td>
+        <td><input type="checkbox" disabled></td>
+        <td><input type="checkbox" checked disabled></td>
+      </tr>
+      <tr>
+        <td>Assign access levels to employees</td>
+        <td><input type="checkbox" disabled></td>
+        <td><input type="checkbox" disabled></td>
+        <td><input type="checkbox" checked disabled></td>
+      </tr>
+    </tbody>
+  </table>
+  <p><small>Read-only — these checkboxes describe what each role can already do. A role that can't access a tab doesn't see it exist at all.</small></p>
+</div>
+
+<div class="card">
+  <h2>Assign access</h2>
+  <table>
+    <thead><tr><th>Employee</th><th>Title</th><th>Department</th><th>Access level</th><th></th></tr></thead>
+    <tbody>
+      <% @employees.each do |employee| %>
+        <tr>
+          <td><%= employee.full_name %></td>
+          <td><%= employee.job_title %></td>
+          <td><%= employee.department %></td>
+          <td><%= employee.role.humanize %></td>
+          <td>
+            <% if employee.active? %>
+              <%= link_to "Change", edit_roles_access_path(employee), class: "btn btn-ghost" %>
+            <% else %>
+              <span title="<%= employee.offboarding? ? "Offboarding in progress" : "Offboarded — access already revoked" %>">Change</span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

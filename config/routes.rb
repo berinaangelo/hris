@@ -49,6 +49,9 @@ Rails.application.routes.draw do
     patch :clock_out
   end
 
+  resources :roles_access, only: [ :index, :edit, :update ]
+  resources :certifications, only: [ :index, :new, :create, :edit, :update, :destroy ]
+
   resource :my_profile, only: [ :show, :edit, :update ], controller: "my_profile"
   resource :account_settings, only: [ :show, :update ], controller: "account_settings"
   resource :password, only: [ :edit, :update ], controller: "passwords"

@@ -1,0 +1,21 @@
+# Expiry dates are ERB-relative (not hardcoded) since
+# Certification#expired?/#expiring_soon? compare against Date.current.
+bob_cpr_expired:
+  employee: worker_bob
+  cert_name: CPR Certification
+  expiry_date: <%= 5.days.ago.to_date %>
+
+carol_forklift_expiring_soon:
+  employee: worker_carol
+  cert_name: Forklift Operator License
+  expiry_date: <%= 10.days.from_now.to_date %>
+
+alice_firstaid_valid:
+  employee: worker_optout
+  cert_name: First Aid Certification
+  expiry_date: <%= 200.days.from_now.to_date %>
+
+diane_nursing_expiring_soon_globex:
+  employee: worker_diane
+  cert_name: Nursing License
+  expiry_date: <%= 3.days.from_now.to_date %>

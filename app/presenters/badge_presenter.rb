@@ -12,7 +12,9 @@ class BadgePresenter
     "on_time" => :positive,
     "late" => :caution,
     "undertime" => :caution,
-    "absent" => :negative
+    "absent" => :negative,
+    "expired" => :negative,
+    "expiring_soon" => :caution
   }.freeze
 
   def initialize(status)

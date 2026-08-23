@@ -91,3 +91,43 @@ admin_amy:
   password_digest: <%= BCrypt::Password.create("password") %>
   role: admin
   attendance_correction_updates_notifications: true
+
+worker_offboarding:
+  company: acme
+  manager: manager_jane
+  employee_number: EMP-007
+  first_name: Nora
+  last_name: Departing
+  work_email: nora.departing@example.com
+  job_title: Software Engineer
+  department: Engineering
+  start_date: 2021-01-01
+  password_digest: <%= BCrypt::Password.create("password") %>
+  status: offboarding
+
+# globex is a second company, added so the compliance-expiry digest job's
+# per-company grouping (Compliance::CheckExpiringCertifications) is actually
+# exercised across companies, not just within acme.
+admin_gary:
+  company: globex
+  employee_number: EMP-101
+  first_name: Gary
+  last_name: Admin
+  work_email: gary.admin@example.com
+  job_title: HR Admin
+  department: People
+  start_date: 2019-01-01
+  password_digest: <%= BCrypt::Password.create("password") %>
+  role: admin
+  compliance_certification_notifications: false
+
+worker_diane:
+  company: globex
+  employee_number: EMP-102
+  first_name: Diane
+  last_name: Nurse
+  work_email: diane.nurse@example.com
+  job_title: Registered Nurse
+  department: Clinical
+  start_date: 2021-01-01
+  password_digest: <%= BCrypt::Password.create("password") %>

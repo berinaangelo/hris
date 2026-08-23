@@ -25,6 +25,14 @@ class EmployeePolicy < ApplicationPolicy
     user.admin?
   end
 
+  # Separate from update? — role assignment is its own concern (Roles &
+  # Access), not part of the profile-edit form, and a departing/departed
+  # employee's access isn't reassigned. See
+  # kos/decisions/ui/roles-access-reference-plus-assignment-drawer.md.
+  def assign_role?
+    user.admin? && record.company_id == user.company_id && record.active?
+  end
+
   class Scope < Scope
     def resolve
       scope.where(company: user.company)

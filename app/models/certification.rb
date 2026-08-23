@@ -17,4 +17,12 @@ class Certification < ApplicationRecord
   def expiring_soon?
     !expired? && expiry_date <= EXPIRING_SOON_WINDOW.from_now.to_date
   end
+
+  # Drives BadgePresenter without duplicating this branching in every view.
+  def status
+    return "expired" if expired?
+    return "expiring_soon" if expiring_soon?
+
+    "valid"
+  end
 end
