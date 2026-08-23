@@ -8,7 +8,11 @@ class BadgePresenter
     "approved" => :positive,
     "rejected" => :negative,
     "offboarding" => :caution,
-    "offboarded" => :neutral
+    "offboarded" => :neutral,
+    "on_time" => :positive,
+    "late" => :caution,
+    "undertime" => :caution,
+    "absent" => :negative
   }.freeze
 
   def initialize(status)

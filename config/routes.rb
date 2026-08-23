@@ -3,28 +3,30 @@ Rails.application.routes.draw do
 
   root "dashboard#show"
 
-  resource :session, only: [:new, :create, :destroy]
+  resource :session, only: [ :new, :create, :destroy ]
 
-  resources :leave_requests, only: [:index, :new, :create]
-  resources :attendance_correction_requests, only: [:index, :new, :create]
+  resources :leave_requests, only: [ :index, :new, :create ]
+  resources :attendance_correction_requests, only: [ :index, :new, :create ]
 
   namespace :team do
-    resources :approvals, only: [:index] do
+    resources :approvals, only: [ :index ] do
       member do
         patch :approve
         patch :reject
       end
     end
 
-    resources :attendance_correction_requests, only: [:index] do
+    resources :attendance_correction_requests, only: [ :index ] do
       member do
         patch :approve
         patch :reject
       end
     end
+
+    resources :attendance_records, only: [ :index, :edit, :update ]
   end
 
-  resources :employees, path: "people", only: [:index, :new, :create, :show, :update] do
+  resources :employees, path: "people", only: [ :index, :new, :create, :show, :update ] do
     member do
       patch :schedule_offboarding
       patch :mark_offboarded
@@ -32,7 +34,7 @@ Rails.application.routes.draw do
     resources :checklist_items, only: [], controller: "employees/checklist_items" do
       patch :complete, on: :member
     end
-    resources :documents, only: [:create], controller: "employees/documents"
+    resources :documents, only: [ :create ], controller: "employees/documents"
   end
 
   resource :attendance, only: [], controller: "attendance" do
@@ -40,9 +42,9 @@ Rails.application.routes.draw do
     patch :clock_out
   end
 
-  resource :my_profile, only: [:show, :edit, :update], controller: "my_profile"
-  resource :account_settings, only: [:show, :update], controller: "account_settings"
-  resource :password, only: [:edit, :update], controller: "passwords"
+  resource :my_profile, only: [ :show, :edit, :update ], controller: "my_profile"
+  resource :account_settings, only: [ :show, :update ], controller: "account_settings"
+  resource :password, only: [ :edit, :update ], controller: "passwords"
   get "org_chart", to: "org_chart#show"
 
   # Split into config/routes/*.rb (via `draw`) once a section grows —

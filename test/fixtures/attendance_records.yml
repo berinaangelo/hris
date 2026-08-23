@@ -13,3 +13,9 @@ carol_ontime:
   clock_in_at: 2026-08-15 09:00:00
   clock_out_at: 2026-08-15 18:00:00
   status: on_time
+
+bob_in_progress:
+  employee: worker_bob
+  shift_template: day_shift
+  date: 2026-08-16
+  clock_in_at: 2026-08-16 09:00:00

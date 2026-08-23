@@ -1,0 +1,45 @@
+<h1>Team attendance</h1>
+
+<div class="card">
+  <%= form_with url: team_attendance_records_path, method: :get, local: true do %>
+    <div class="field">
+      <label>From</label>
+      <input type="date" name="start_date" value="<%= @start_date %>">
+    </div>
+    <div class="field">
+      <label>To</label>
+      <input type="date" name="end_date" value="<%= @end_date %>">
+    </div>
+    <button type="submit" class="btn btn-ghost">Filter</button>
+  <% end %>
+</div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>Employee</th><th>Date</th><th>Clock in</th><th>Clock out</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      <% @attendance_records.each do |attendance_record| %>
+        <tr>
+          <td><%= attendance_record.employee.full_name %></td>
+          <td><%= attendance_record.date %></td>
+          <td><%= attendance_record.clock_in_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
+          <td><%= attendance_record.clock_out_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
+          <td>
+            <% if attendance_record.status %>
+              <% badge = BadgePresenter.new(attendance_record.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
+            <% else %>
+              —
+            <% end %>
+          </td>
+          <td>
+            <% if policy(attendance_record).update? %>
+              <%= link_to "Edit", edit_team_attendance_record_path(attendance_record) %>
+            <% else %>
+              —
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
