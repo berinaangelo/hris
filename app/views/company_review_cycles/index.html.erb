@@ -1,0 +1,76 @@
+<h1>Performance Reviews</h1>
+
+<div class="card">
+  <%= form_with url: company_review_cycles_path, method: :get, local: true do %>
+    <div class="field">
+      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name">
+    </div>
+    <div class="field">
+      <select name="department" onchange="this.form.submit()">
+        <option value="">All departments</option>
+        <% @departments.each do |department| %>
+          <option value="<%= department %>" <%= "selected" if params[:department] == department %>><%= department %></option>
+        <% end %>
+      </select>
+    </div>
+    <div class="field">
+      <select name="status" onchange="this.form.submit()">
+        <option value="">All statuses</option>
+        <option value="on_pip" <%= "selected" if params[:status] == "on_pip" %>>On PIP</option>
+        <option value="needs_scoring" <%= "selected" if params[:status] == "needs_scoring" %>>Needs scoring</option>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-ghost">Filter</button>
+  <% end %>
+</div>
+
+<div class="card" data-controller="view-toggle">
+  <div class="view-toggle-buttons">
+    <button type="button" data-action="view-toggle#showList" class="btn btn-ghost">List</button>
+    <button type="button" data-action="view-toggle#showCards" class="btn btn-ghost">Cards</button>
+  </div>
+
+  <table data-view-toggle-target="list">
+    <thead><tr><th>Employee</th><th>Department</th><th>Status</th><th></th></tr></thead>
+    <tbody>
+      <% @employees.each do |employee| %>
+        <% presenter = ReviewStatusPresenter.new(employee) %>
+        <tr>
+          <td><%= employee.full_name %></td>
+          <td><%= employee.department %></td>
+          <td>
+            <% if (category = presenter.badge_category(scope: :company)) %>
+              <span class="badge badge-<%= category %>"><%= presenter.label %></span>
+            <% else %>
+              <%= presenter.label %>
+            <% end %>
+          </td>
+          <td><%= link_to "View", company_review_cycle_path(employee), class: "btn btn-ghost" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+
+  <div class="review-cycles-card-grid" data-view-toggle-target="cards" hidden>
+    <% @employees.each do |employee| %>
+      <% presenter = ReviewStatusPresenter.new(employee) %>
+      <%= link_to company_review_cycle_path(employee), class: "card" do %>
+        <strong><%= employee.full_name %></strong><br>
+        <span><%= employee.department %></span><br>
+        <% if (category = presenter.badge_category(scope: :company)) %>
+          <span class="badge badge-<%= category %>"><%= presenter.label %></span>
+        <% else %>
+          <span><%= presenter.label %></span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <p>
+    Showing 1–<%= @employees.size %> of <%= @employees.size %>
+    <button type="button" class="btn btn-ghost" disabled>Prev</button>
+    <button type="button" class="btn btn-ghost" disabled>Next</button>
+  </p>
+</div>
+
+<%= link_to "Start new cycle", new_company_review_cycle_path, class: "btn btn-primary" %>

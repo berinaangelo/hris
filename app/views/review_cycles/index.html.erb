@@ -1,0 +1,27 @@
+<h1>My Reviews</h1>
+
+<div class="review-cycles-layout">
+  <div class="card review-cycles-rail">
+    <% if @review_cycles.empty? %>
+      <p>No review cycles yet.</p>
+    <% end %>
+    <% @review_cycles.each do |cycle| %>
+      <%= link_to review_cycles_path(cycle_id: cycle.id),
+                   class: "review-cycle-row#{" is-selected" if @selected_cycle == cycle}",
+                   data: { turbo_frame: "review_cycle_detail" } do %>
+        <strong><%= cycle.start_date.strftime("%b %Y") %>–<%= cycle.end_date.strftime("%b %Y") %></strong>
+        <span><%= cycle.pip? ? "PIP" : "Regular" %></span>
+        <% if cycle.published? %>
+          <span><%= cycle.overall_rating ? "#{cycle.overall_rating.round(1)}/5" : "—" %></span>
+        <% else %>
+          <% badge = BadgePresenter.new(cycle.status) %>
+          <span class="<%= badge.css_class %>"><%= badge.label %></span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%= turbo_frame_tag "review_cycle_detail" do %>
+    <%= render "detail", cycle: @selected_cycle %>
+  <% end %>
+</div>

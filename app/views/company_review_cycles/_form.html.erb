@@ -1,0 +1,24 @@
+<div class="field">
+  <%= label_tag "review_cycle_employee_id", "Employee" %>
+  <%= select_tag "review_cycle[employee_id]", options_from_collection_for_select(employees, :id, :full_name), include_blank: "Select an employee" %>
+</div>
+<div class="field">
+  <%= label_tag "review_cycle_cycle_type", "Cycle type" %>
+  <%= select_tag "review_cycle[cycle_type]", options_for_select([ [ "Regular", "regular" ], [ "PIP", "pip" ] ]) %>
+</div>
+<div class="field">
+  <%= label_tag "review_cycle_start_date", "Start date" %>
+  <%= date_field_tag "review_cycle[start_date]", Date.current %>
+</div>
+<div class="field">
+  <%= label_tag "review_cycle_end_date", "End date" %>
+  <%= date_field_tag "review_cycle[end_date]", 6.months.from_now.to_date %>
+</div>
+
+<h4>KPIs (3–5)</h4>
+<% 5.times do %>
+  <div class="field kpi-entry-row">
+    <%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name" %>
+    <%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target" %>
+  </div>
+<% end %>

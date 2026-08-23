@@ -15,4 +15,16 @@ class ReviewCycle < ApplicationRecord
   def overall_rating
     kpi_entries.filter_map(&:score).then { |scores| scores.sum.to_f / scores.size if scores.any? }
   end
+
+  # Editable once status already says awaiting_scoring, or once the
+  # cycle's end date has passed even though nothing has flipped status
+  # yet — there's no automated scheduling (out of scope per
+  # kos/projects/hris/features/performance-reviews-goals/PLAN.md), so
+  # this is evaluated live on every read rather than a stored
+  # transition. The manager's first save
+  # (see ReviewCycles::SaveDraftScores) persists status: :awaiting_scoring
+  # for good.
+  def scoring_open?
+    awaiting_scoring? || (in_progress? && Date.current > end_date)
+  end
 end

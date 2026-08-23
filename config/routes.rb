@@ -7,6 +7,7 @@ Rails.application.routes.draw do
 
   resources :leave_requests, only: [ :index, :new, :create ]
   resources :attendance_correction_requests, only: [ :index, :new, :create ]
+  resources :review_cycles, only: [ :index ]
 
   namespace :team do
     resources :approvals, only: [ :index ] do
@@ -31,6 +32,13 @@ Rails.application.routes.draw do
       end
     end
     resource :attendance_settings, only: :update
+
+    resources :review_cycles, only: [ :index, :create ] do
+      member do
+        patch :save_draft
+        patch :publish
+      end
+    end
   end
 
   resources :employees, path: "people", only: [ :index, :new, :create, :show, :update ] do
@@ -42,9 +50,6 @@ Rails.application.routes.draw do
       patch :complete, on: :member
     end
     resources :documents, only: [ :create ], controller: "employees/documents"
-    resources :benefit_enrollments, only: [ :create, :update, :destroy ], controller: "employees/benefit_enrollments" do
-      resources :benefit_dependents, only: [ :create, :destroy ], controller: "employees/benefit_dependents"
-    end
   end
 
   resource :attendance, only: [], controller: "attendance" do
@@ -54,6 +59,7 @@ Rails.application.routes.draw do
 
   resources :roles_access, only: [ :index, :edit, :update ]
   resources :certifications, only: [ :index, :new, :create, :edit, :update, :destroy ]
+  resources :company_review_cycles, only: [ :index, :new, :create, :show ]
 
   resource :my_profile, only: [ :show, :edit, :update ], controller: "my_profile"
   resource :account_settings, only: [ :show, :update ], controller: "account_settings"

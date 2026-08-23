@@ -1,0 +1,44 @@
+# Dates are ERB-relative (not hardcoded) so the in_progress/
+# awaiting_scoring cycles stay plausible against Date.current
+# regardless of when the suite runs — same convention as
+# certifications.yml. Covers every ReviewCycle#status/cycle_type
+# combination exercised by the ReviewCycles interactor tests and the
+# My/Team/Company Reviews controller tests. manager_jane/manager_jane
+# is worker_bob, worker_optout, and worker_offboarding's manager;
+# manager_optout is worker_carol's.
+
+bob_published_regular:
+  employee: worker_bob
+  cycle_type: regular
+  status: published
+  start_date: <%= 6.months.ago.to_date %>
+  end_date: <%= 1.day.ago.to_date %>
+  manager_comment: Consistently exceeds targets.
+  published_at: <%= 1.day.ago %>
+
+alice_awaiting_scoring:
+  employee: worker_optout
+  cycle_type: regular
+  status: awaiting_scoring
+  start_date: <%= 6.months.ago.to_date %>
+  end_date: <%= 1.day.ago.to_date %>
+
+carol_in_progress:
+  employee: worker_carol
+  cycle_type: regular
+  status: in_progress
+  start_date: <%= 1.month.ago.to_date %>
+  end_date: <%= 5.months.from_now.to_date %>
+
+# On PIP, offboarding — exercises Employees::CompanyReviewRoster's
+# .active scope (offboarding employees are excluded from the roster)
+# and the PIP outcome badge mapping.
+nora_pip_published:
+  employee: worker_offboarding
+  cycle_type: pip
+  status: published
+  outcome: extended
+  start_date: <%= 8.months.ago.to_date %>
+  end_date: <%= 5.months.ago.to_date %>
+  manager_comment: Extended for one more cycle.
+  published_at: <%= 5.months.ago %>

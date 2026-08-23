@@ -1,0 +1,11 @@
+Hi <%= @employee.first_name %>,
+
+Your performance review for <%= @review_cycle.start_date %> to <%= @review_cycle.end_date %> has been published.
+<% if @review_cycle.overall_rating %>
+Overall rating: <%= @review_cycle.overall_rating.round(1) %>/5
+<% end %>
+<% if @review_cycle.pip? %>
+Outcome: <%= @review_cycle.outcome&.humanize %>
+<% end %>
+
+You can view the full details in My Reviews.

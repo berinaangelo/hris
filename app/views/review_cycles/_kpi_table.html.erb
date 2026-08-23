@@ -1,0 +1,30 @@
+<%# Shared read-only KPI table — used by My Reviews, Team Reviews'
+    published/in-progress detail partials, and the Company Reviews
+    per-employee detail page. Pass scores_hidden: true for a cycle
+    that hasn't been scored yet (targets only). %>
+<table>
+  <thead>
+    <tr>
+      <th>KPI</th>
+      <th>Target</th>
+      <% unless local_assigns[:scores_hidden] %>
+        <th>Actual</th>
+        <th>Score</th>
+        <th>Comment</th>
+      <% end %>
+    </tr>
+  </thead>
+  <tbody>
+    <% kpi_entries.each do |kpi_entry| %>
+      <tr>
+        <td><%= kpi_entry.kpi_name %></td>
+        <td><%= kpi_entry.target %></td>
+        <% unless local_assigns[:scores_hidden] %>
+          <td><%= kpi_entry.actual.presence || "—" %></td>
+          <td><%= kpi_entry.score || "—" %></td>
+          <td><%= kpi_entry.comment.presence || "—" %></td>
+        <% end %>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

@@ -1,0 +1,66 @@
+bob_kpi_1:
+  review_cycle: bob_published_regular
+  kpi_name: Ship the v2 API
+  target: On time, no P1 bugs
+  actual: Shipped 3 days early
+  score: 5
+  comment: Great execution.
+  position: 1
+
+bob_kpi_2:
+  review_cycle: bob_published_regular
+  kpi_name: Code review turnaround
+  target: "<24h median"
+  actual: 18h median
+  score: 4
+  comment: Solid.
+  position: 2
+
+bob_kpi_3:
+  review_cycle: bob_published_regular
+  kpi_name: Mentor a junior engineer
+  target: Weekly 1:1s for the quarter
+  actual: Held all sessions
+  score: 5
+  position: 3
+
+alice_kpi_1:
+  review_cycle: alice_awaiting_scoring
+  kpi_name: Reduce bug backlog
+  target: Under 10 open bugs
+  position: 1
+
+alice_kpi_2:
+  review_cycle: alice_awaiting_scoring
+  kpi_name: Ship onboarding flow redesign
+  target: Launched by end of cycle
+  position: 2
+
+carol_kpi_1:
+  review_cycle: carol_in_progress
+  kpi_name: Improve test coverage
+  target: 80% coverage on core/
+  position: 1
+
+carol_kpi_2:
+  review_cycle: carol_in_progress
+  kpi_name: On-call response time
+  target: "<15 min median"
+  position: 2
+
+nora_kpi_1:
+  review_cycle: nora_pip_published
+  kpi_name: Meet sprint commitments
+  target: 90% of committed points
+  actual: 65% of committed points
+  score: 2
+  comment: Improved but still below target.
+  position: 1
+
+nora_kpi_2:
+  review_cycle: nora_pip_published
+  kpi_name: Reduce escalations
+  target: Zero customer escalations
+  actual: One escalation
+  score: 3
+  position: 2

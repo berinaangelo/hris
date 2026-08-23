@@ -1,0 +1,6 @@
+<div class="review-cycle-in-progress">
+  <h3><%= cycle.start_date %> – <%= cycle.end_date %> (<%= cycle.pip? ? "PIP" : "Regular" %>)</h3>
+  <p><span class="badge badge-caution"><%= cycle.pip? ? "On PIP" : "In progress" %></span></p>
+  <p>This cycle runs until <%= cycle.end_date %>. Come back after it ends to score it.</p>
+  <%= render "review_cycles/kpi_table", kpi_entries: cycle.kpi_entries, scores_hidden: true %>
+</div>

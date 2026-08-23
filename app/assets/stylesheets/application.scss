@@ -100,3 +100,25 @@ th { color: var(--neutral); font-weight: 600; text-transform: uppercase; font-si
 .auth-split .brand-pane { flex: 0 0 44%; background: var(--ink); color: #fff; padding: 3rem; }
 .auth-split .form-pane { flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem; }
 .auth-split form { width: 100%; max-width: 360px; }
+
+// My/Team Reviews split master-detail layout — see
+// kos/decisions/ui/my-reviews-split-master-detail.md and
+// kos/decisions/ui/team-reviews-split-editable-detail.md.
+.review-cycles-layout { display: flex; gap: 1.5rem; align-items: flex-start; }
+.review-cycles-rail { flex: 0 0 260px; padding: 0.5rem; }
+.review-cycle-row {
+  display: block; padding: 0.75rem 1rem; border-radius: 6px; text-decoration: none;
+  color: inherit; margin-bottom: 0.25rem;
+}
+.review-cycle-row:hover { background: var(--surface); }
+.review-cycle-row.is-selected { background: var(--surface); font-weight: 600; }
+.review-cycle-detail { flex: 1; }
+.kpi-entry-row { display: flex; gap: 0.5rem; }
+.kpi-entry-row input { width: auto; flex: 1; }
+
+// Company Reviews card/list toggle — see
+// kos/decisions/ui/company-reviews-roster-filterable-grid-list.md.
+.view-toggle-buttons { margin-bottom: 1rem; }
+.review-cycles-card-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;
+}

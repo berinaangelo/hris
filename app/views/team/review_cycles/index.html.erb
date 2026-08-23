@@ -1,0 +1,26 @@
+<h1>Team Reviews</h1>
+
+<div class="review-cycles-layout">
+  <div class="card review-cycles-rail">
+    <% if @direct_reports.empty? %>
+      <p>No direct reports.</p>
+    <% end %>
+    <% @direct_reports.each do |employee| %>
+      <% presenter = ReviewStatusPresenter.new(employee) %>
+      <%= link_to team_review_cycles_path(employee_id: employee.id),
+                   class: "review-cycle-row#{" is-selected" if @selected_employee == employee}",
+                   data: { turbo_frame: "team_review_detail" } do %>
+        <strong><%= employee.full_name %></strong>
+        <% if (category = presenter.badge_category(scope: :team)) %>
+          <span class="badge badge-<%= category %>"><%= presenter.label %></span>
+        <% else %>
+          <span><%= presenter.label %></span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <%= turbo_frame_tag "team_review_detail" do %>
+    <%= render "detail", employee: @selected_employee %>
+  <% end %>
+</div>

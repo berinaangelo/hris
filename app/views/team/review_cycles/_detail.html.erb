@@ -1,0 +1,19 @@
+<div class="card review-cycle-detail">
+  <% if employee.nil? %>
+    <p>Select someone from your team.</p>
+  <% else %>
+    <h2><%= employee.full_name %></h2>
+    <% current_cycle = employee.review_cycles.max_by(&:start_date) %>
+
+    <% if current_cycle.nil? %>
+      <%= render "open_cycle_form", employee: employee %>
+    <% elsif current_cycle.published? %>
+      <%= render "published_detail", cycle: current_cycle %>
+      <%= render "open_cycle_form", employee: employee %>
+    <% elsif current_cycle.scoring_open? %>
+      <%= render "scoring_form", cycle: current_cycle %>
+    <% else %>
+      <%= render "in_progress_note", cycle: current_cycle %>
+    <% end %>
+  <% end %>
+</div>

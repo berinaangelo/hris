@@ -1,0 +1,8 @@
+<h1>Start a new review cycle</h1>
+
+<div class="card">
+  <%= form_with url: company_review_cycles_path, method: :post, local: true do %>
+    <%= render "form", employees: @employees %>
+    <button type="submit" class="btn btn-primary">Open cycle</button>
+  <% end %>
+</div>

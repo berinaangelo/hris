@@ -14,7 +14,12 @@ class BadgePresenter
     "undertime" => :caution,
     "absent" => :negative,
     "expired" => :negative,
-    "expiring_soon" => :caution
+    "expiring_soon" => :caution,
+    "passed" => :positive,
+    "not_passed" => :negative,
+    "extended" => :caution,
+    "in_progress" => :caution,
+    "awaiting_scoring" => :caution
   }.freeze
 
   def initialize(status)

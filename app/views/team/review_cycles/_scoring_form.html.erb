@@ -1,0 +1,39 @@
+<div class="review-cycle-scoring">
+  <h3>Score <%= cycle.start_date %> – <%= cycle.end_date %> (<%= cycle.pip? ? "PIP" : "Regular" %>)</h3>
+
+  <%= form_with url: publish_team_review_cycle_path(cycle), method: :patch, local: true do %>
+    <table>
+      <thead>
+        <tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th><th>Comment</th></tr>
+      </thead>
+      <tbody>
+        <% cycle.kpi_entries.each do |kpi_entry| %>
+          <tr>
+            <td><%= kpi_entry.kpi_name %></td>
+            <td><%= kpi_entry.target %></td>
+            <td><%= text_field_tag "kpi_entries[#{kpi_entry.id}][actual]", kpi_entry.actual %></td>
+            <td><%= select_tag "kpi_entries[#{kpi_entry.id}][score]", options_for_select((1..5).to_a, kpi_entry.score), include_blank: true %></td>
+            <td><%= text_field_tag "kpi_entries[#{kpi_entry.id}][comment]", kpi_entry.comment %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+
+    <div class="field">
+      <%= label_tag :manager_comment, "Overall comment" %>
+      <%= text_area_tag :manager_comment, cycle.manager_comment %>
+    </div>
+
+    <% if cycle.pip? %>
+      <div class="field">
+        <%= label_tag :outcome, "Outcome" %>
+        <%= select_tag :outcome,
+                        options_for_select([ [ "Passed", "passed" ], [ "Not passed", "not_passed" ], [ "Extended", "extended" ] ], cycle.outcome),
+                        include_blank: "Select an outcome" %>
+      </div>
+    <% end %>
+
+    <button type="submit" formaction="<%= save_draft_team_review_cycle_path(cycle) %>" class="btn btn-ghost">Save draft</button>
+    <button type="submit" class="btn btn-primary">Publish review</button>
+  <% end %>
+</div>

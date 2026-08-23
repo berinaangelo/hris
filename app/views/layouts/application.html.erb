@@ -30,8 +30,10 @@
         <%= link_to "Home", root_path %>
         <%= link_to "Time Off", leave_requests_path %>
         <%= link_to "Attendance", attendance_correction_requests_path %>
+        <%= link_to "My Reviews", review_cycles_path %>
         <%= link_to "My Profile", my_profile_path %>
         <% if current_employee.manager? || current_employee.admin? %>
+          <%= link_to "Team Reviews", team_review_cycles_path %>
           <%= link_to team_approvals_path do %>
             Approvals
             <% if (count = LeaveRequests::PendingForApprover.call(current_employee).count) > 0 %>
@@ -55,6 +57,7 @@
           <%= link_to "People", employees_path %>
           <%= link_to "Org Chart", org_chart_path %>
           <%= link_to "Compliance", certifications_path %>
+          <%= link_to "Performance Reviews", company_review_cycles_path %>
           <%= link_to "Roles & Access", roles_access_index_path %>
         <% end %>
         <span class="nav-spacer"></span>
