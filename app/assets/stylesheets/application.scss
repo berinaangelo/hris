@@ -1,10 +1,11 @@
 /*
- * This is a manifest file that'll be compiled into application.css.
+ * Compiled by dartsass-rails into app/assets/builds/application.css.
  *
- * Plain hand-written CSS for now (Propshaft, no preprocessing step
- * wired up yet) — the `dartsass-rails` gem is in the Gemfile for the
- * real Bulma/SCSS build per kos/decisions/tech-stack-hotwire-over-coffeescript.md,
- * not yet set up. Colors below are the real Ink & Amber values from
+ * Still plain hand-written CSS (no SCSS features used yet) — the real
+ * Bulma import per kos/decisions/tech-stack-hotwire-over-coffeescript.md
+ * is a separate not-yet-done task. This file just needed to exist for
+ * `dartsass:build` (and the assets:precompile/test tasks that hook into
+ * it) to stop failing. Colors below are the real Ink & Amber values from
  * kos/decisions/ui/color-palette-ink-and-amber.md, not placeholders.
  */
 

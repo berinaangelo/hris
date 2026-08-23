@@ -114,9 +114,15 @@ structure below. Read this first; open only the files you actually need.
   Manager role switch (manager reused this same page, row-scoped to
   reports, resolving
   [[ui/time-attendance-attendance-first-templates-drawer]]'s open
-  question), a correction-requests card, a disabled per-row edit action,
-  and an admin-only settings card — all disabled placeholders; same
-  mockup at [decisions/ux-pages/time-attendance.html](decisions/ux-pages/time-attendance.html)
+  question), a correction-requests card, a per-row manual-edit action, and
+  an admin-only settings card; **synced 2026-08-23** once the real backend
+  shipped — settings card is now live (real copy, Save action), Edit and
+  Review each open their own right-side drawer (12th/13th reuse of the
+  drawer mechanic), and a new Approval status column (Pending/Approved/
+  Rejected badges, "—" when not required) was added to the attendance
+  table; the separate Attendance Sign-offs inbox page stays unbuilt in
+  this pass; same mockup at
+  [decisions/ux-pages/time-attendance.html](decisions/ux-pages/time-attendance.html)
 - [ats-checker-reuse-parked-for-recruitment](decisions/ats-checker-reuse-parked-for-recruitment.md)
   — existing resume-scoring tool reusable later, doesn't pull
   recruitment/ATS into scope now

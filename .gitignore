@@ -30,6 +30,10 @@
 
 /public/assets
 
+# Ignore dartsass-rails build output; app/assets/stylesheets/*.scss is the source.
+/app/assets/builds/*
+!/app/assets/builds/.keep
+
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 

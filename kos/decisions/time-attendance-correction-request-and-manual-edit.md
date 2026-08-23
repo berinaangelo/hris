@@ -70,4 +70,48 @@ no toggle interaction. Still open: what the correction-request submission
 form looks like, what opens when "Review"/"Edit" is clicked, and the
 approver sign-off screen if that toggle is ever turned on.
 
+**Synced 2026-08-23** — the real backend for this scope has since shipped
+(in order: clock-in/clock-out → correction requests → manual edit →
+settings toggle UI/dashboard badge → approver sign-off), resolving the
+"still open" items above:
+- **Attendance Settings card** now reads as live, not parked: the lock
+  icon/"Setting, not wired" tooltip is gone, and copy was tightened to the
+  real `Company#attendance_manual_edit_enabled`/`attendance_approvers_enabled`
+  labels and helper text verbatim, plus a "Save settings" action. Unlike
+  the genuinely-parked [[ui/payroll-settings-parked-overtime-deduction-defaults]]
+  precedent this card originally borrowed its visual language from, this
+  setting is real, so that borrowed language no longer applies here.
+  **Demo-data note:** "Attendance approvers" is shown **On** in this
+  mockup, though the real column default is Off — flipped on purely so the
+  new Approval column below has pending/approved/rejected rows to
+  demonstrate; not a change to the shipped default.
+- **Edit** icon-button is enabled and opens a right-side edit drawer (12th
+  reuse of the drawer mechanic — see
+  [[ui/loan-ledger-flat-table-edit-drawer]] for the precedent) with clock-in,
+  clock-out, and an optional reason field — matches the real
+  `Attendance::UpdateRecord` interactor's minimal footprint. One shared,
+  illustrative drawer (subject: Isabel Torres) since this is static HTML,
+  not a real per-row form. Self-edit block on Ramon Dela Cruz's own row is
+  unchanged.
+- **Review** (on a correction-request card) is enabled and opens its own
+  drawer (13th reuse) — reason, current-vs-requested clock in/out, and
+  Approve/Reject actions. Kept as a distinct entry point from Edit per the
+  real distinction between an employee-submitted correction request and an
+  admin/manager's direct edit — two illustrative drawers built (Diego
+  Reyes, shared across the admin/manager cards he appears in; Isabel
+  Torres, admin-only) rather than one, so each Review button's content
+  matches the row that triggered it.
+- **New "Approval" status column** added to the attendance table, between
+  Status and Actions — reuses [[ui/badge-system-four-categories]]'s
+  existing caution/positive/negative badge classes for
+  `edit_approval_status` pending/approved/rejected, "—" for the common
+  `not_required` case (no manual edit has touched that record). Diego
+  Reyes shows "Pending" (ties to his open correction request), Grace Lim
+  "Approved", Bea Fernandez "Rejected" — demonstrates all three states in
+  one screenshot.
+
+Still open: the separate admin-only **Attendance Sign-offs inbox** page
+(`/team/attendance_edit_approvals` in the real app, with its own nav badge)
+is not mocked in this pass — this screen doesn't reference or link to it.
+
 HTML mockup: [[ux-pages/time-attendance.html]]
