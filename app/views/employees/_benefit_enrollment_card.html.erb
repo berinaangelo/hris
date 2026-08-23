@@ -1,0 +1,38 @@
+<%# Independently editable card per enrollment — see
+    kos/decisions/ui/employee-benefits-repeatable-plan-cards.md. Also
+    reused for the blank "+ Add plan" form (an unpersisted enrollment). %>
+<div class="card">
+  <%= form_with model: [ employee, enrollment ], local: true do |f| %>
+    <div class="field">
+      <%= f.label :plan_name %>
+      <%= f.text_field :plan_name, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :provider %>
+      <%= f.text_field :provider, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :effectivity_date %>
+      <%= f.date_field :effectivity_date, required: true %>
+    </div>
+
+    <% if enrollment.persisted? %>
+      <h4>Dependents</h4>
+      <% enrollment.benefit_dependents.build %>
+      <%= f.fields_for :benefit_dependents do |df| %>
+        <div class="field kpi-entry-row">
+          <%= df.text_field :name, placeholder: "Name" %>
+          <%= df.select :relationship, BenefitDependent.relationships.keys.map { |r| [ r.humanize, r ] } %>
+          <% if df.object.persisted? %>
+            <label><%= df.check_box :_destroy %> Remove</label>
+          <% end %>
+        </div>
+      <% end %>
+    <% end %>
+
+    <%= f.submit(enrollment.persisted? ? "Save" : "Add plan", class: "btn btn-ghost") %>
+  <% end %>
+  <% if enrollment.persisted? %>
+    <%= button_to "Remove plan", [ employee, enrollment ], method: :delete, class: "btn btn-danger-outline" %>
+  <% end %>
+</div>

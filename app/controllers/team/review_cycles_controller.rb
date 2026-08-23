@@ -33,6 +33,18 @@ module Team
       redirect_to team_review_cycles_path(employee_id: employee&.id), alert: e.context.message
     end
 
+    def attach_kpis
+      review_cycle = ReviewCycle.find(params[:id])
+      authorize review_cycle, :update?
+
+      ActiveRecord::Base.transaction do
+        ReviewCycles::AttachKpiEntries.call!(review_cycle: review_cycle, kpi_entries_params: kpi_entries_params)
+      end
+      redirect_to team_review_cycles_path(employee_id: review_cycle.employee_id), notice: "Added KPIs for #{review_cycle.employee.full_name}."
+    rescue Interactor::Failure => e
+      redirect_to team_review_cycles_path(employee_id: review_cycle.employee_id), alert: e.context.message
+    end
+
     def save_draft
       review_cycle = ReviewCycle.find(params[:id])
       authorize review_cycle, :save_draft?

@@ -24,6 +24,20 @@ module ReviewCycles
       end
     end
 
+    test "does not notify the employee when opened as a KPI-less shell" do
+      employee = employees(:worker_bob)
+
+      assert_no_enqueued_jobs only: CycleOpenedNotifierJob do
+        result = ReviewCycles::OpenCycle.call(
+          employee: employee, cycle_type: "regular", start_date: Date.current, end_date: 6.months.from_now.to_date,
+          kpi_entries_params: []
+        )
+
+        assert result.success?
+        assert result.review_cycle.kpi_entries.empty?
+      end
+    end
+
     test "fails without raising when the employee is missing" do
       result = ReviewCycles::OpenCycle.call(
         employee: nil, cycle_type: "regular", start_date: Date.current, end_date: 6.months.from_now.to_date,

@@ -1,0 +1,20 @@
+acme_engineer_opening:
+  company: acme
+  title: Software Engineer
+  description: Build great things.
+  status: open
+  slug: software-engineer
+
+acme_closed_opening:
+  company: acme
+  title: Old Role
+  description: No longer hiring.
+  status: closed
+  slug: old-role
+
+globex_nurse_opening:
+  company: globex
+  title: Registered Nurse
+  description: Clinical role.
+  status: open
+  slug: registered-nurse

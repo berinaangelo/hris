@@ -1,0 +1,43 @@
+<h1>Hire <%= @candidate.full_name %></h1>
+
+<div class="card">
+  <h2>Identity &amp; Contact</h2>
+  <p><%= @candidate.full_name %> <span class="badge badge-neutral">From application</span></p>
+  <p><%= @candidate.email %></p>
+  <p><%= @candidate.phone.presence || "—" %></p>
+  <% if @candidate.resume.attached? %>
+    <p><%= link_to "Résumé", url_for(@candidate.resume) %> <span class="badge badge-neutral">From application</span></p>
+  <% end %>
+</div>
+
+<div class="card">
+  <h2>Org Position</h2>
+  <%= form_with url: hire_job_candidate_path(@candidate), method: :post, local: true do %>
+    <div class="field">
+      <%= label_tag "employee_job_title", "Job title" %>
+      <%= text_field_tag "employee[job_title]", @candidate.job_opening.title, required: true %>
+    </div>
+    <div class="field">
+      <%= label_tag "employee_department", "Department" %>
+      <%= text_field_tag "employee[department]", nil, required: true %>
+    </div>
+    <div class="field">
+      <%= label_tag "employee_manager_id", "Manager" %>
+      <%= select_tag "employee[manager_id]", options_from_collection_for_select(@managers, :id, :full_name), include_blank: "No manager" %>
+    </div>
+    <div class="field">
+      <%= label_tag "employee_start_date", "Start date" %>
+      <%= date_field_tag "employee[start_date]", Date.current, required: true %>
+    </div>
+    <div class="field">
+      <%= label_tag "employee_employment_type", "Employment type" %>
+      <%= select_tag "employee[employment_type]", options_for_select(Employee.employment_types.keys.map { |t| [ t.humanize, t ] }, "full_time") %>
+    </div>
+    <div class="field">
+      <%= label_tag "employee_password", "Temporary password" %>
+      <%= text_field_tag "employee[password]", SecureRandom.alphanumeric(10), required: true %>
+      <small>The employee changes this from Account Settings after first login.</small>
+    </div>
+    <button type="submit" class="btn btn-primary">Create employee record</button>
+  <% end %>
+</div>

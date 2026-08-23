@@ -1,0 +1,5 @@
+bob_hmo:
+  employee: worker_bob
+  plan_name: Gold HMO
+  provider: Maxicare
+  effectivity_date: 2026-01-01

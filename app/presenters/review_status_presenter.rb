@@ -8,6 +8,16 @@ class ReviewStatusPresenter
     @current_cycle = employee.review_cycles.max_by(&:start_date)
   end
 
+  # A bulk-opened "shell" cycle (see ReviewCycles::OpenCycle's
+  # company-wide/department callers) has no KPIs yet until a manager
+  # attaches them (ReviewCycles::AttachKpiEntries). Without this state,
+  # such a cycle would otherwise read as "Needs scoring" once its end
+  # date passes despite having nothing to score — checked first in both
+  # #label and #badge_category below so it always takes precedence.
+  def awaiting_kpis?
+    @current_cycle.present? && @current_cycle.kpi_entries.empty? && !@current_cycle.published?
+  end
+
   def on_pip?
     @current_cycle&.pip? && @current_cycle.in_progress? &&
       Date.current.between?(@current_cycle.start_date, @current_cycle.end_date)
@@ -18,6 +28,7 @@ class ReviewStatusPresenter
   end
 
   def label
+    return "Awaiting KPIs" if awaiting_kpis?
     return "On PIP" if on_pip?
     return "Needs scoring" if needs_scoring?
     return "In progress" if @current_cycle&.in_progress?
@@ -31,6 +42,7 @@ class ReviewStatusPresenter
   # the same status, so the scope is passed in rather than baked into
   # the shared BadgePresenter's flat status->category table.
   def badge_category(scope: :team)
+    return :neutral if awaiting_kpis?
     return (scope == :company ? :negative : :caution) if on_pip?
     return :caution if needs_scoring? || @current_cycle&.in_progress?
     return :neutral if @current_cycle.nil?

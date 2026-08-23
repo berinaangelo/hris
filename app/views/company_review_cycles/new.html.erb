@@ -1,8 +1,24 @@
 <h1>Start a new review cycle</h1>
 
 <div class="card">
+  <%= form_with url: new_company_review_cycle_path, method: :get, local: true do %>
+    <div class="field">
+      <%= label_tag :scope, "Scope" %>
+      <select name="scope" onchange="this.form.submit()">
+        <option value="individual" <%= "selected" if @scope == "individual" %>>Individual employee</option>
+        <option value="department" <%= "selected" if @scope == "department" %>>Whole department</option>
+        <option value="company" <%= "selected" if @scope == "company" %>>Company-wide</option>
+      </select>
+    </div>
+  <% end %>
+</div>
+
+<div class="card">
   <%= form_with url: company_review_cycles_path, method: :post, local: true do %>
-    <%= render "form", employees: @employees %>
-    <button type="submit" class="btn btn-primary">Open cycle</button>
+    <input type="hidden" name="scope" value="<%= @scope %>">
+    <%= render "form", scope: @scope, employees: @employees, departments: @departments %>
+    <button type="submit" class="btn btn-primary">
+      <%= @scope == "individual" ? "Open cycle" : "Open cycles" %>
+    </button>
   <% end %>
 </div>

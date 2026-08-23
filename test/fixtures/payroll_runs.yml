@@ -1,0 +1,8 @@
+acme_september_2026:
+  company: acme
+  run_type: regular
+  status: finalized
+  period_start: 2026-09-01
+  period_end: 2026-09-15
+  pay_date: 2026-09-20
+  finalized_at: 2026-09-19 10:00:00

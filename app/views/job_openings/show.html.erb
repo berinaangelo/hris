@@ -1,0 +1,43 @@
+<h1><%= @job_opening.title %></h1>
+<p>
+  <% badge = BadgePresenter.new(@job_opening.status) %>
+  <span class="<%= badge.css_class %>"><%= badge.label %></span>
+</p>
+<p><%= @job_opening.description %></p>
+<p>Apply link: <code><%= careers_url(@job_opening.slug) %></code></p>
+
+<%= link_to "Edit", edit_job_opening_path(@job_opening), class: "btn btn-ghost" %>
+
+<div class="job-opening-kanban">
+  <% JobCandidate.stages.keys.each do |stage| %>
+    <div class="card job-opening-column">
+      <h3><%= stage == "submitted" ? "New" : stage.humanize %></h3>
+      <% (@candidates_by_stage[stage] || []).each do |candidate| %>
+        <div class="job-candidate-card">
+          <strong><%= candidate.full_name %></strong>
+          <p><%= candidate.email %></p>
+
+          <% if stage == "hired" %>
+            <span class="badge badge-positive">Employee record created</span>
+            <% if candidate.hired_employee %>
+              <p><%= link_to "View employee", employee_path(candidate.hired_employee), class: "btn btn-ghost" %></p>
+            <% end %>
+          <% else %>
+            <%= form_with url: job_candidate_path(candidate), method: :patch, local: true do %>
+              <select name="job_candidate[stage]" onchange="this.form.submit()">
+                <% JobCandidate.stages.keys.each do |option| %>
+                  <option value="<%= option %>" <%= "selected" if option == stage %>>
+                    <%= option == "submitted" ? "New" : option.humanize %>
+                  </option>
+                <% end %>
+              </select>
+            <% end %>
+            <% if stage == "offer" %>
+              <p><%= link_to "Mark Hired", new_hire_job_candidate_path(candidate), class: "btn btn-primary" %></p>
+            <% end %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+</div>

@@ -7,6 +7,8 @@
 
     <% if current_cycle.nil? %>
       <%= render "open_cycle_form", employee: employee %>
+    <% elsif current_cycle.kpi_entries.empty? %>
+      <%= render "attach_kpis_form", cycle: current_cycle %>
     <% elsif current_cycle.published? %>
       <%= render "published_detail", cycle: current_cycle %>
       <%= render "open_cycle_form", employee: employee %>

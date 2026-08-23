@@ -5,6 +5,10 @@ Rails.application.routes.draw do
 
   resource :session, only: [ :new, :create, :destroy ]
 
+  # Public, unauthenticated — see app/controllers/careers_controller.rb.
+  get "apply/:slug", to: "careers#show", as: :careers
+  post "apply/:slug", to: "careers#create"
+
   resources :leave_requests, only: [ :index, :new, :create ]
   resources :attendance_correction_requests, only: [ :index, :new, :create ]
   resources :review_cycles, only: [ :index ]
@@ -37,6 +41,7 @@ Rails.application.routes.draw do
       member do
         patch :save_draft
         patch :publish
+        patch :attach_kpis
       end
     end
   end
@@ -50,6 +55,7 @@ Rails.application.routes.draw do
       patch :complete, on: :member
     end
     resources :documents, only: [ :create ], controller: "employees/documents"
+    resources :benefit_enrollments, only: [ :create, :update, :destroy ], controller: "employees/benefit_enrollments"
   end
 
   resource :attendance, only: [], controller: "attendance" do
@@ -60,6 +66,16 @@ Rails.application.routes.draw do
   resources :roles_access, only: [ :index, :edit, :update ]
   resources :certifications, only: [ :index, :new, :create, :edit, :update, :destroy ]
   resources :company_review_cycles, only: [ :index, :new, :create, :show ]
+  get "reports", to: "reports#index"
+  get "reports/:id", to: "reports#show", as: :report
+
+  resources :job_openings, only: [ :index, :new, :create, :show, :edit, :update ]
+  resources :job_candidates, only: [ :update ] do
+    member do
+      get :new_hire
+      post :hire
+    end
+  end
 
   resource :my_profile, only: [ :show, :edit, :update ], controller: "my_profile"
   resource :account_settings, only: [ :show, :update ], controller: "account_settings"

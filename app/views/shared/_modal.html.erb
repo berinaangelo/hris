@@ -1,0 +1,23 @@
+<%# Reusable modal — a native <dialog> driven by
+    app/javascript/controllers/modal_controller.js. First use: Company
+    Reviews' per-employee detail.
+
+    Usage: wrap both this partial AND its trigger links/buttons in one
+    shared `data-controller="modal"` element — Stimulus resolves an
+    action by walking up to the nearest ancestor carrying that
+    attribute, so triggers just need to be descendants, not direct
+    children. Each trigger needs `data: { action: "modal#open" }`, plus
+    `turbo_frame: frame_id` if its content loads async via Turbo Frame
+    (the common case — content already in the DOM can skip that part).
+
+    Locals:
+      frame_id: the turbo-frame id this modal's content loads into (required)
+      loading_text: placeholder shown before the frame's content arrives (optional) %>
+<dialog data-modal-target="dialog" data-action="click->modal#closeOnBackdrop" class="app-modal">
+  <div class="app-modal-content">
+    <button type="button" class="app-modal-close btn btn-ghost" data-action="modal#close">Close</button>
+    <%= turbo_frame_tag frame_id do %>
+      <p><%= local_assigns[:loading_text] || "Loading…" %></p>
+    <% end %>
+  </div>
+</dialog>

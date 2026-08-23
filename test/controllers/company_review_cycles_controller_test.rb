@@ -58,6 +58,44 @@ class CompanyReviewCyclesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to company_review_cycles_path
   end
 
+  test "admin can bulk-open shell cycles for a department" do
+    sign_in employees(:admin_amy)
+
+    assert_difference "ReviewCycle.count", 5 do # active Engineering: manager_jane, manager_optout, worker_bob, worker_optout, worker_carol
+      post company_review_cycles_path, params: {
+        scope: "department",
+        review_cycle: { department: "Engineering", cycle_type: "regular", start_date: Date.current, end_date: 6.months.from_now.to_date }
+      }
+    end
+
+    assert_redirected_to company_review_cycles_path
+    assert ReviewCycle.last.kpi_entries.empty?
+  end
+
+  test "admin can bulk-open shell cycles company-wide" do
+    sign_in employees(:admin_amy)
+
+    assert_difference "ReviewCycle.count", 6 do # every active acme employee
+      post company_review_cycles_path, params: {
+        scope: "company",
+        review_cycle: { cycle_type: "regular", start_date: Date.current, end_date: 6.months.from_now.to_date }
+      }
+    end
+
+    assert_redirected_to company_review_cycles_path
+  end
+
+  test "bulk-opening a department does not notify employees" do
+    sign_in employees(:admin_amy)
+
+    assert_no_enqueued_jobs only: CycleOpenedNotifierJob do
+      post company_review_cycles_path, params: {
+        scope: "department",
+        review_cycle: { department: "Engineering", cycle_type: "regular", start_date: Date.current, end_date: 6.months.from_now.to_date }
+      }
+    end
+  end
+
   private
 
   def sign_in(employee)

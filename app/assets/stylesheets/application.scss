@@ -122,3 +122,26 @@ th { color: var(--neutral); font-weight: 600; text-transform: uppercase; font-si
 .review-cycles-card-grid {
   display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem;
 }
+
+// Reusable modal component (native <dialog>) — see
+// app/javascript/controllers/modal_controller.js and
+// app/views/shared/_modal.html.erb. First use: Company Reviews' detail.
+dialog.app-modal {
+  border: none; border-radius: 10px; padding: 0; max-width: 600px; width: 90%;
+  max-height: 85vh; overflow-y: auto;
+}
+dialog.app-modal::backdrop { background: rgba(27, 42, 74, 0.5); }
+.app-modal-content { padding: 1.5rem; position: relative; }
+.app-modal-close { position: absolute; top: 1rem; right: 1rem; }
+
+// Reports landing grid — see kos/decisions/ui/reports-landing-grid-drill-in.md.
+.report-card-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-bottom: 1.5rem;
+}
+
+// Job Opening detail — 5 stage columns, per-card <select> to move
+// stage (never drag-and-drop) — see
+// kos/decisions/ui/job-opening-detail-kanban-stage-columns.md.
+.job-opening-kanban { display: grid; grid-template-columns: repeat(5, 1fr); gap: 1rem; margin-top: 1.5rem; }
+.job-opening-column { min-height: 200px; }
+.job-candidate-card { background: var(--surface); border-radius: 8px; padding: 0.75rem; margin-bottom: 0.75rem; }

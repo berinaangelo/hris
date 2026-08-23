@@ -113,7 +113,11 @@
 
 <div class="card">
   <h2>Benefits</h2>
-  <p>Not available yet — ships with Benefits.</p>
+  <% @employee.benefit_enrollments.each do |enrollment| %>
+    <%= render "benefit_enrollment_card", employee: @employee, enrollment: enrollment %>
+  <% end %>
+  <h3>Add a plan</h3>
+  <%= render "benefit_enrollment_card", employee: @employee, enrollment: @employee.benefit_enrollments.build %>
 </div>
 
 <div class="card">

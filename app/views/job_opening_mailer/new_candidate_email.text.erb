@@ -1,0 +1,12 @@
+Hi <%= @admin.first_name %>,
+
+<%= @candidate.full_name %> applied for <%= @job_opening.title %>.
+
+Email: <%= @candidate.email %>
+<% if @candidate.phone.present? %>Phone: <%= @candidate.phone %>
+<% end %>
+<% if @candidate.note.present? %>
+Note: <%= @candidate.note %>
+<% end %>
+
+Review the application in Job Openings.

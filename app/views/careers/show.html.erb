@@ -1,0 +1,49 @@
+<% content_for :title, "Apply — #{@job_opening.title}" %>
+
+<div class="auth-split">
+  <div class="brand-pane">
+    <h1><%= @job_opening.title %></h1>
+    <p><%= @job_opening.description %></p>
+  </div>
+  <div class="form-pane">
+    <% if notice %><p class="flash flash-notice"><%= notice %></p><% end %>
+
+    <%= form_with model: @candidate, url: careers_path(@job_opening.slug), local: true, multipart: true do |f| %>
+      <% if @candidate.errors.any? %>
+        <p class="flash flash-alert"><%= @candidate.errors.full_messages.to_sentence %></p>
+      <% end %>
+      <% if flash[:alert] %>
+        <p class="flash flash-alert"><%= flash[:alert] %></p>
+      <% end %>
+
+      <div class="field">
+        <%= f.label :full_name, "Full name" %>
+        <%= f.text_field :full_name, required: true %>
+      </div>
+      <div class="field">
+        <%= f.label :email %>
+        <%= f.email_field :email, required: true %>
+      </div>
+      <div class="field">
+        <%= f.label :phone %>
+        <%= f.text_field :phone %>
+      </div>
+      <div class="field">
+        <%= f.label :resume, "Résumé" %>
+        <%= f.file_field :resume %>
+      </div>
+      <div class="field">
+        <%= f.label :note, "Anything else you'd like us to know?" %>
+        <%= f.text_area :note %>
+      </div>
+      <div class="field">
+        <label>
+          <%= check_box_tag "job_candidate[consent]", "1" %>
+          I consent to <%= @job_opening.company.name %> processing my personal data for
+          recruitment purposes, in accordance with the Data Privacy Act of 2012 (RA 10173).
+        </label>
+      </div>
+      <%= f.submit "Submit application", class: "btn btn-primary" %>
+    <% end %>
+  </div>
+</div>

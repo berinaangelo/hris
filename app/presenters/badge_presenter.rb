@@ -19,7 +19,9 @@ class BadgePresenter
     "not_passed" => :negative,
     "extended" => :caution,
     "in_progress" => :caution,
-    "awaiting_scoring" => :caution
+    "awaiting_scoring" => :caution,
+    "open" => :positive,
+    "closed" => :neutral
   }.freeze
 
   def initialize(status)

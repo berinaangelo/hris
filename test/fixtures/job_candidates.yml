@@ -1,0 +1,16 @@
+juan_new:
+  job_opening: acme_engineer_opening
+  full_name: Juan Dela Cruz
+  email: juan@example.com
+  phone: "09171234567"
+  stage: submitted
+  applied_at: 2026-08-01 09:00:00
+  consent_given_at: 2026-08-01 09:00:00
+
+maria_offer:
+  job_opening: acme_engineer_opening
+  full_name: Maria Santos
+  email: maria@example.com
+  stage: offer
+  applied_at: 2026-07-15 09:00:00
+  consent_given_at: 2026-07-15 09:00:00

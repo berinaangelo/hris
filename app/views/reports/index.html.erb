@@ -1,0 +1,12 @@
+<h1>Reports</h1>
+
+<% @report_groups.each do |group_name, reports| %>
+  <h2><%= group_name %></h2>
+  <div class="report-card-grid">
+    <% reports.each do |key, definition| %>
+      <%= link_to report_path(key), class: "card" do %>
+        <strong><%= definition[:title] %></strong>
+      <% end %>
+    <% end %>
+  </div>
+<% end %>

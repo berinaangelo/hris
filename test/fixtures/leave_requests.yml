@@ -35,3 +35,12 @@ no_manager_pending:
   end_date: 2026-09-15
   days_requested: 1
   status: pending
+
+carol_approved_vacation:
+  employee: worker_carol
+  approver: manager_optout
+  leave_type: vacation
+  start_date: 2026-09-01
+  end_date: 2026-09-03
+  days_requested: 3
+  status: approved

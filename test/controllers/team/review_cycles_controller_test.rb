@@ -100,6 +100,39 @@ module Team
       assert_not review_cycle.reload.published?
     end
 
+    test "manager can attach kpis to a shell cycle HR opened, which notifies the employee" do
+      sign_in employees(:manager_jane)
+      review_cycle = ReviewCycle.create!(
+        employee: employees(:worker_bob), cycle_type: :regular,
+        start_date: Date.current, end_date: 6.months.from_now.to_date, status: :in_progress
+      )
+
+      assert_enqueued_with(job: CycleOpenedNotifierJob) do
+        patch attach_kpis_team_review_cycle_path(review_cycle), params: {
+          kpi_entries: [
+            { kpi_name: "Ship feature X", target: "By Q3" },
+            { kpi_name: "Reduce bugs", target: "Under 5 open" },
+            { kpi_name: "Mentor a junior", target: "Weekly 1:1s" }
+          ]
+        }
+      end
+
+      assert_redirected_to team_review_cycles_path(employee_id: review_cycle.employee_id)
+      assert_equal 3, review_cycle.reload.kpi_entries.count
+    end
+
+    test "manager cannot attach kpis to a shell cycle outside their team" do
+      sign_in employees(:manager_jane)
+      review_cycle = ReviewCycle.create!(
+        employee: employees(:worker_carol), cycle_type: :regular, # carol's manager is manager_optout
+        start_date: Date.current, end_date: 6.months.from_now.to_date, status: :in_progress
+      )
+
+      patch attach_kpis_team_review_cycle_path(review_cycle), params: { kpi_entries: [] }
+
+      assert_redirected_to root_path
+    end
+
     test "manager cannot edit an already-published cycle" do
       sign_in employees(:manager_jane)
       review_cycle = review_cycles(:bob_published_regular)

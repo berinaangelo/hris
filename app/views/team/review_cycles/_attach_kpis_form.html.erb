@@ -1,0 +1,15 @@
+<div class="review-cycle-open-form">
+  <h3>Add KPIs for <%= cycle.employee.full_name %>'s <%= cycle.start_date %> – <%= cycle.end_date %> cycle</h3>
+  <p>HR opened this cycle without KPIs yet — add 3–5 to get it running.</p>
+
+  <%= form_with url: attach_kpis_team_review_cycle_path(cycle), method: :patch, local: true do %>
+    <% 5.times do %>
+      <div class="field kpi-entry-row">
+        <%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name" %>
+        <%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target" %>
+      </div>
+    <% end %>
+
+    <button type="submit" class="btn btn-primary">Add KPIs</button>
+  <% end %>
+</div>

@@ -129,5 +129,108 @@ LeaveRequest.find_or_create_by!(employee: mikaela, leave_type: vacation, start_d
   r.reason = "Family trip"
 end
 
+# Review cycles in three different states, so My/Team/Company Reviews
+# and the bulk cycle-open flow all have something to show without
+# manually creating data first: Paolo's is published and scored,
+# Carlo's is awaiting scoring, and Diego's is a KPI-less "shell" — as
+# if HR bulk-opened it and Ramon (his manager) hasn't attached KPIs
+# yet, per company-reviews-roster-filterable-grid-list.md.
+paolo_cycle = ReviewCycle.find_or_create_by!(employee: paolo, cycle_type: :regular, start_date: 8.months.ago.to_date) do |c|
+  c.end_date = 2.months.ago.to_date
+  c.status = :published
+  c.published_at = 2.months.ago
+  c.manager_comment = "Consistently ships clean, well-tested code."
+end
+if paolo_cycle.kpi_entries.none?
+  paolo_cycle.kpi_entries.create!([
+    { kpi_name: "Ship the v2 payments API", target: "Launched with no P1 bugs", actual: "Shipped 3 days early", score: 5, position: 1 },
+    { kpi_name: "Code review turnaround", target: "Under 24h median", actual: "18h median", score: 4, position: 2 },
+    { kpi_name: "Mentor a junior engineer", target: "Weekly 1:1s for the quarter", actual: "Held all sessions", score: 5, position: 3 }
+  ])
+end
+
+carlo_cycle = ReviewCycle.find_or_create_by!(employee: carlo, cycle_type: :regular, start_date: 6.months.ago.to_date) do |c|
+  c.end_date = 1.day.ago.to_date
+  c.status = :awaiting_scoring
+end
+if carlo_cycle.kpi_entries.none?
+  carlo_cycle.kpi_entries.create!([
+    { kpi_name: "Reduce API error rate", target: "Under 0.5%", position: 1 },
+    { kpi_name: "Ship the notifications service", target: "Launched by end of cycle", position: 2 },
+    { kpi_name: "On-call response time", target: "Under 15 min median", position: 3 }
+  ])
+end
+
+ReviewCycle.find_or_create_by!(employee: diego, cycle_type: :regular, start_date: 1.month.ago.to_date) do |c|
+  c.end_date = 5.months.from_now.to_date
+  c.status = :in_progress
+end
+
+# A finalized payroll run so Payroll Register / Statutory
+# Contributions Summary (Reports) have something to show.
+payroll_run = PayrollRun.find_or_create_by!(
+  company: company, period_start: 1.month.ago.beginning_of_month.to_date, period_end: 1.month.ago.end_of_month.to_date
+) do |run|
+  run.run_type = :regular
+  run.status = :finalized
+  run.pay_date = 1.month.ago.end_of_month.to_date + 5.days
+  run.finalized_at = 1.month.ago.end_of_month
+  run.finalized_by = andrea
+end
+
+{ mikaela => 45_000, paolo => 55_000, carlo => 50_000 }.each do |employee, base_salary|
+  next if payroll_run.payslips.exists?(employee: employee)
+
+  sss = (base_salary * 0.045).round(2)
+  philhealth = (base_salary * 0.02).round(2)
+  pagibig = 200.0
+  deductions = sss + philhealth + pagibig
+
+  payslip = payroll_run.payslips.create!(
+    employee: employee, status: :finalized, gross_pay: base_salary,
+    total_deductions: deductions, net_pay: base_salary - deductions,
+    generated_at: payroll_run.finalized_at, generated_by: andrea
+  )
+  payslip.payslip_line_items.create!([
+    { line_type: :base_salary, direction: :earning, source: :base, amount: base_salary },
+    { line_type: :statutory_sss, direction: :deduction, source: :statutory, amount: sss },
+    { line_type: :statutory_philhealth, direction: :deduction, source: :statutory, amount: philhealth },
+    { line_type: :statutory_pagibig, direction: :deduction, source: :statutory, amount: pagibig }
+  ])
+end
+
+# A benefit enrollment with a dependent, so Employee Detail's Benefits
+# card isn't empty on first look.
+mikaela_hmo = BenefitEnrollment.find_or_create_by!(employee: mikaela, plan_name: "Gold HMO", provider: "Maxicare") do |e|
+  e.effectivity_date = 6.months.ago.to_date
+end
+mikaela_hmo.benefit_dependents.find_or_create_by!(name: "Anna Santos", relationship: :spouse)
+
+# A job opening with a candidate at Offer (one click away from "Mark
+# Hired" for testing the handoff) and one at New, so the kanban board
+# isn't a single empty column.
+data_analyst_opening = JobOpening.find_or_create_by!(company: company, title: "Data Analyst") do |jo|
+  jo.description = "Join Finance to help Alon Pay make sense of its own numbers."
+  jo.status = :open
+end
+
+JobCandidate.find_or_create_by!(job_opening: data_analyst_opening, email: "emilio.aguinaldo@example.com") do |c|
+  c.full_name = "Emilio Aguinaldo"
+  c.phone = "+639171112222"
+  c.stage = :offer
+  c.applied_at = 2.weeks.ago
+  c.consent_given_at = 2.weeks.ago
+  c.note = "Strong SQL round, references check out."
+end
+
+JobCandidate.find_or_create_by!(job_opening: data_analyst_opening, email: "melchora.aquino@example.com") do |c|
+  c.full_name = "Melchora Aquino"
+  c.stage = :submitted
+  c.applied_at = 3.days.ago
+  c.consent_given_at = 3.days.ago
+end
+
 puts "Seeded #{Employee.count} employees at #{company.name}. Demo password: #{DEMO_PASSWORD}"
 puts "Try andrea.cruz@alonpay.ph (admin), ramon.delacruz@alonpay.ph (manager), mikaela.santos@alonpay.ph (employee)."
+puts "Also seeded: a published + an awaiting-scoring + a KPI-less shell review cycle, a finalized payroll run, " \
+     "a benefit enrollment, and a job opening with two candidates (one at Offer, ready to Mark Hired)."

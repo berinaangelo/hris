@@ -1,0 +1,13 @@
+bob_vacation_2026:
+  employee: worker_bob
+  leave_type: vacation
+  year: 2026
+  entitled_days: 15
+  used_days: 5
+
+carol_vacation_2026:
+  employee: worker_carol
+  leave_type: vacation
+  year: 2026
+  entitled_days: 15
+  used_days: 2

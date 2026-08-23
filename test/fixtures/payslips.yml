@@ -1,0 +1,17 @@
+bob_september_payslip:
+  payroll_run: acme_september_2026
+  employee: worker_bob
+  status: finalized
+  gross_pay: 25000.00
+  net_pay: 21000.00
+  total_deductions: 4000.00
+  generated_at: 2026-09-19 10:00:00
+
+carol_september_payslip:
+  payroll_run: acme_september_2026
+  employee: worker_carol
+  status: finalized
+  gross_pay: 22000.00
+  net_pay: 18500.00
+  total_deductions: 3500.00
+  generated_at: 2026-09-19 10:00:00

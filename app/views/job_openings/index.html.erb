@@ -1,0 +1,22 @@
+<h1>Job Openings</h1>
+
+<div class="card">
+  <table>
+    <thead><tr><th>Title</th><th>Status</th><th>Candidates</th><th></th></tr></thead>
+    <tbody>
+      <% @job_openings.each do |job_opening| %>
+        <tr>
+          <td><%= link_to job_opening.title, job_opening_path(job_opening) %></td>
+          <td>
+            <% badge = BadgePresenter.new(job_opening.status) %>
+            <span class="<%= badge.css_class %>"><%= badge.label %></span>
+          </td>
+          <td><%= job_opening.job_candidates.count %></td>
+          <td><%= link_to "Edit", edit_job_opening_path(job_opening), class: "btn btn-ghost" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<%= link_to "New job opening", new_job_opening_path, class: "btn btn-primary" %>
