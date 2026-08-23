@@ -1,0 +1,44 @@
+<h1>Attendance Corrections</h1>
+
+<div class="card">
+  <% if @pending.any? %>
+    <table>
+      <thead><tr><th>Employee</th><th>Date</th><th>Requested clock in</th><th>Requested clock out</th><th>Reason</th><th></th></tr></thead>
+      <tbody>
+        <% @pending.each do |request| %>
+          <tr>
+            <td><%= request.employee.full_name %></td>
+            <td><%= request.date %></td>
+            <td><%= request.requested_clock_in_at || "—" %></td>
+            <td><%= request.requested_clock_out_at || "—" %></td>
+            <td><%= request.reason %></td>
+            <td>
+              <%= button_to "Approve", approve_team_attendance_correction_request_path(request), method: :patch, class: "btn btn-primary" %>
+              <%= button_to "Reject", reject_team_attendance_correction_request_path(request), method: :patch, class: "btn btn-danger-outline" %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>You're all caught up.</p>
+  <% end %>
+</div>
+
+<% if @decided.any? %>
+  <div class="card">
+    <h2>Recently decided</h2>
+    <table>
+      <thead><tr><th>Employee</th><th>Date</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @decided.each do |request| %>
+          <tr>
+            <td><%= request.employee.full_name %></td>
+            <td><%= request.date %></td>
+            <td><% badge = BadgePresenter.new(request.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+<% end %>

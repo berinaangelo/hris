@@ -1,0 +1,21 @@
+bob_pending:
+  employee: worker_bob
+  attendance_record: bob_late
+  date: 2026-08-10
+  requested_clock_in_at: 2026-08-10 09:00:00
+  reason: Traffic made the scanner log me in late, but I was on a client call from 9.
+  status: pending
+
+optout_employee_pending:
+  employee: worker_optout
+  date: 2026-08-11
+  requested_clock_in_at: 2026-08-11 09:00:00
+  reason: Forgot to clock in.
+  status: pending
+
+request_to_optout_manager:
+  employee: worker_carol
+  date: 2026-08-12
+  requested_clock_out_at: 2026-08-12 18:00:00
+  reason: Forgot to clock out.
+  status: pending

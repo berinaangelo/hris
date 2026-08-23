@@ -1,0 +1,14 @@
+Hi <%= @reviewer.first_name %>,
+
+<%= @employee.full_name %> requested an attendance correction:
+
+Date: <%= @correction_request.date %>
+<% if @correction_request.requested_clock_in_at.present? %>
+Requested clock in: <%= @correction_request.requested_clock_in_at %>
+<% end %>
+<% if @correction_request.requested_clock_out_at.present? %>
+Requested clock out: <%= @correction_request.requested_clock_out_at %>
+<% end %>
+Reason: <%= @correction_request.reason %>
+
+Review it in HRIS to approve or reject.

@@ -1,0 +1,23 @@
+<h1>Attendance Corrections</h1>
+
+<div class="card">
+  <% if @correction_requests.any? %>
+    <table>
+      <thead><tr><th>Date</th><th>Requested clock in</th><th>Requested clock out</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @correction_requests.each do |request| %>
+          <tr>
+            <td><%= request.date %></td>
+            <td><%= request.requested_clock_in_at || "—" %></td>
+            <td><%= request.requested_clock_out_at || "—" %></td>
+            <td><% badge = BadgePresenter.new(request.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>No correction requests yet.</p>
+  <% end %>
+</div>
+
+<%= link_to "Request a correction", new_attendance_correction_request_path, class: "btn btn-primary" %>

@@ -6,9 +6,17 @@ Rails.application.routes.draw do
   resource :session, only: [:new, :create, :destroy]
 
   resources :leave_requests, only: [:index, :new, :create]
+  resources :attendance_correction_requests, only: [:index, :new, :create]
 
   namespace :team do
     resources :approvals, only: [:index] do
+      member do
+        patch :approve
+        patch :reject
+      end
+    end
+
+    resources :attendance_correction_requests, only: [:index] do
       member do
         patch :approve
         patch :reject

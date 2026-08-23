@@ -29,11 +29,18 @@
         <span class="brand">HRIS</span>
         <%= link_to "Home", root_path %>
         <%= link_to "Time Off", leave_requests_path %>
+        <%= link_to "Attendance", attendance_correction_requests_path %>
         <%= link_to "My Profile", my_profile_path %>
         <% if current_employee.manager? || current_employee.admin? %>
           <%= link_to team_approvals_path do %>
             Approvals
             <% if (count = LeaveRequests::PendingForApprover.call(current_employee).count) > 0 %>
+              <span class="badge badge-caution"><%= count %></span>
+            <% end %>
+          <% end %>
+          <%= link_to team_attendance_correction_requests_path do %>
+            Attendance Corrections
+            <% if (count = AttendanceCorrectionRequests::PendingForApprover.call(current_employee).count) > 0 %>
               <span class="badge badge-caution"><%= count %></span>
             <% end %>
           <% end %>

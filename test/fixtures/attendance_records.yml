@@ -1,0 +1,15 @@
+bob_late:
+  employee: worker_bob
+  shift_template: day_shift
+  date: 2026-08-10
+  clock_in_at: 2026-08-10 09:45:00
+  clock_out_at: 2026-08-10 18:00:00
+  status: late
+
+carol_ontime:
+  employee: worker_carol
+  shift_template: day_shift
+  date: 2026-08-15
+  clock_in_at: 2026-08-15 09:00:00
+  clock_out_at: 2026-08-15 18:00:00
+  status: on_time

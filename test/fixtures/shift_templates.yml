@@ -1,0 +1,5 @@
+day_shift:
+  company: acme
+  name: Day Shift
+  start_time: 2000-01-01 09:00:00
+  end_time: 2000-01-01 18:00:00

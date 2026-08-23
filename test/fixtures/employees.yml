@@ -1,6 +1,8 @@
-# leave_request_updates_notifications varies on purpose across these
-# fixtures so the LeaveRequestMailer/notifier job tests can cover both
-# the "recipient opted in" and "recipient opted out" guard branches.
+# leave_request_updates_notifications and
+# attendance_correction_updates_notifications vary on purpose across
+# these fixtures so the LeaveRequestMailer/notifier job tests and the
+# AttendanceCorrectionRequestMailer/notifier job tests can each cover
+# both the "recipient opted in" and "recipient opted out" guard branches.
 
 manager_jane:
   company: acme
@@ -12,7 +14,9 @@ manager_jane:
   department: Engineering
   start_date: 2020-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
+  role: manager
   leave_request_updates_notifications: true
+  attendance_correction_updates_notifications: true
 
 manager_optout:
   company: acme
@@ -24,7 +28,9 @@ manager_optout:
   department: Engineering
   start_date: 2020-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
+  role: manager
   leave_request_updates_notifications: false
+  attendance_correction_updates_notifications: false
 
 worker_bob:
   company: acme
@@ -38,10 +44,12 @@ worker_bob:
   start_date: 2021-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
   leave_request_updates_notifications: true
+  attendance_correction_updates_notifications: true
 
 worker_optout:
   company: acme
   manager: manager_jane
+  shift_template: day_shift
   employee_number: EMP-004
   first_name: Alice
   last_name: OptedOut
@@ -51,3 +59,31 @@ worker_optout:
   start_date: 2021-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
   leave_request_updates_notifications: false
+  attendance_correction_updates_notifications: false
+
+worker_carol:
+  company: acme
+  manager: manager_optout
+  employee_number: EMP-006
+  first_name: Carol
+  last_name: Reports
+  work_email: carol.reports@example.com
+  job_title: Software Engineer
+  department: Engineering
+  start_date: 2021-01-01
+  password_digest: <%= BCrypt::Password.create("password") %>
+  leave_request_updates_notifications: true
+  attendance_correction_updates_notifications: true
+
+admin_amy:
+  company: acme
+  employee_number: EMP-005
+  first_name: Amy
+  last_name: Admin
+  work_email: amy.admin@example.com
+  job_title: HR Admin
+  department: People
+  start_date: 2019-01-01
+  password_digest: <%= BCrypt::Password.create("password") %>
+  role: admin
+  attendance_correction_updates_notifications: true
