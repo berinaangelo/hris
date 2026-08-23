@@ -36,6 +36,12 @@ Rails.application.configure do
   # ActionMailer::Base.deliveries array.
   config.action_mailer.delivery_method = :test
 
+  # Match production's adapter choice without needing a real Solid Queue
+  # worker in tests — accumulates jobs for assert_enqueued_with instead
+  # of running them async. See
+  # kos/decisions/rails-activejob-solid-queue-for-background-work.md.
+  config.active_job.queue_adapter = :test
+
   # Set host to be used by links generated in mailer templates.
   config.action_mailer.default_url_options = { host: "example.com" }
 

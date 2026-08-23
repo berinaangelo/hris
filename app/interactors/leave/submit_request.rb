@@ -24,6 +24,7 @@ module Leave
 
       if leave_request.save
         context.leave_request = leave_request
+        LeaveRequestSubmittedNotifierJob.perform_later(leave_request)
       else
         context.fail!(message: leave_request.errors.full_messages.to_sentence)
       end

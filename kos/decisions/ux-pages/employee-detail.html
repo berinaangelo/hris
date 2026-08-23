@@ -162,6 +162,12 @@
   .identity-meta { margin-left: auto; display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; }
   .identity-meta .id { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--neutral); }
   .identity-meta .status-active { font-size: 0.8125rem; color: var(--badge-positive-fg); font-weight: 600; }
+  /* Separates the passive ID/status facts from the one consequential,
+     hard-to-reverse action in this row (Offboard) — per
+     laws-of-ux-audit-v1-core.md's Von Restorff note, "Offboard" reading
+     as a peer of the "Active" status label was under-differentiating a
+     genuinely different kind of thing (a fact vs. an action). */
+  .identity-meta-divider { width: 1px; height: 20px; background: var(--border); flex: 0 0 auto; }
 
   /* ---------- field grid / view / edit ---------- */
 
@@ -185,9 +191,6 @@
   .section:last-child { border-bottom: none; }
   .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; gap: 0.75rem; }
   .section-head h3 { font-size: 1rem; font-weight: 700; }
-  .section-head .edit-pencil { width: 30px; height: 30px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); display: inline-flex; align-items: center; justify-content: center; color: var(--ink-light); cursor: pointer; flex: 0 0 auto; }
-  .section-head .edit-pencil:hover { background: var(--surface); }
-  .section-head .edit-pencil svg { width: 14px; height: 14px; }
 
   .checklist-row, .doc-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
   .checklist-row:last-child, .doc-row:last-child { border-bottom: none; }
@@ -646,6 +649,7 @@
             <div class="identity-meta">
               <span class="id">EMP-0142</span>
               <span class="status-active">Active</span>
+              <span class="identity-meta-divider"></span>
               <button class="btn-danger-ghost" type="button">Offboard</button>
             </div>
           </div>
@@ -661,7 +665,7 @@
           <div class="section">
             <div class="section-head">
               <h3>Personal &amp; contact</h3>
-              <label class="edit-pencil" for="edit3personal" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></label>
+              <label class="btn-ghost" for="edit3personal"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
             </div>
             <div class="field-grid c3-view">
               <div class="field-view"><label>Full legal name</label><p class="val">Mikaela Santos</p></div>
@@ -682,7 +686,7 @@
           <div class="section">
             <div class="section-head">
               <h3>Org position</h3>
-              <label class="edit-pencil" for="edit3org" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg></label>
+              <label class="btn-ghost" for="edit3org"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label>
             </div>
             <div class="field-grid o3-view">
               <div class="field-view"><label>Job title</label><p class="val">Software Engineer II</p></div>

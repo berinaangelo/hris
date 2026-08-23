@@ -1,0 +1,11 @@
+Hi <%= @approver.first_name %>,
+
+<%= @employee.full_name %> requested time off:
+
+Type: <%= @leave_request.leave_type.name %>
+Dates: <%= @leave_request.start_date %> to <%= @leave_request.end_date %> (<%= @leave_request.days_requested %> days)
+<% if @leave_request.reason.present? %>
+Reason: <%= @leave_request.reason %>
+<% end %>
+
+Review it in HRIS to approve or reject.

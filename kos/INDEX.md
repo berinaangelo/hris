@@ -451,6 +451,18 @@ structure below. Read this first; open only the files you actually need.
   name) plus expiry date, no issuing body/number/upload; built
   directly, no three-option comparison; mockup at
   [decisions/ux-pages/compliance-certification-form.html](decisions/ux-pages/compliance-certification-form.html)
+- [laws-of-ux-audit-v1-core](decisions/laws-of-ux-audit-v1-core.md) —
+  fresh Laws of UX pass over the 11 v1-core mockups (the ones with a
+  working backend today); two real violations found and fixed the same
+  day, directly in the mockup HTML — Time Off's request modal broke its
+  own boundary under real content height (root cause: `align-items:
+  center` on an overflowing flex item, not just a sizing issue), and
+  Employee Detail's pencil-edit affordance was smaller/harder to find
+  than the same product's own My Profile/Account Settings pattern for
+  the same kind of action (now reuses the page's own Documents-section
+  "Upload" button component) — plus a minor Org Chart note, not fixed;
+  everything else reads clean, Team Approvals called out as the
+  strongest page
 
 ## Schema
 - [core-v1-schema](decisions/schema/core-v1-schema.md) — companies,

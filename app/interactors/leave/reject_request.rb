@@ -13,6 +13,7 @@ module Leave
       # Rejected requests never touched the balance (Leave::IncrementUsedBalance
       # only runs on approval), so there's nothing to undo here.
       leave_request.update!(status: :rejected, decided_at: Time.current, decision_note: context.decision_note)
+      Leave::NotifyDecision.call(leave_request: leave_request)
     end
   end
 end

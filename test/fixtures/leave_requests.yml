@@ -1,0 +1,37 @@
+# Approver/employee notification prefs are chosen per-row to exercise
+# every guard branch in LeaveRequestSubmittedNotifierJob/LeaveDecisionNotifierJob.
+
+bob_pending:
+  employee: worker_bob
+  approver: manager_jane
+  leave_type: vacation
+  start_date: 2026-09-01
+  end_date: 2026-09-03
+  days_requested: 3
+  status: pending
+
+optout_employee_pending:
+  employee: worker_optout
+  approver: manager_jane
+  leave_type: vacation
+  start_date: 2026-09-05
+  end_date: 2026-09-06
+  days_requested: 2
+  status: pending
+
+request_to_optout_manager:
+  employee: worker_bob
+  approver: manager_optout
+  leave_type: vacation
+  start_date: 2026-09-10
+  end_date: 2026-09-10
+  days_requested: 1
+  status: pending
+
+no_manager_pending:
+  employee: worker_bob
+  leave_type: vacation
+  start_date: 2026-09-15
+  end_date: 2026-09-15
+  days_requested: 1
+  status: pending

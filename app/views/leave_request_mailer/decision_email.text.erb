@@ -1,0 +1,9 @@
+Hi <%= @employee.first_name %>,
+
+Your time off request has been <%= @leave_request.status %>:
+
+Type: <%= @leave_request.leave_type.name %>
+Dates: <%= @leave_request.start_date %> to <%= @leave_request.end_date %> (<%= @leave_request.days_requested %> days)
+<% if @leave_request.decision_note.present? %>
+Note: <%= @leave_request.decision_note %>
+<% end %>

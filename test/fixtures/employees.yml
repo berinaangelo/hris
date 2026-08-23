@@ -1,0 +1,53 @@
+# leave_request_updates_notifications varies on purpose across these
+# fixtures so the LeaveRequestMailer/notifier job tests can cover both
+# the "recipient opted in" and "recipient opted out" guard branches.
+
+manager_jane:
+  company: acme
+  employee_number: EMP-001
+  first_name: Jane
+  last_name: Manager
+  work_email: jane.manager@example.com
+  job_title: Engineering Manager
+  department: Engineering
+  start_date: 2020-01-01
+  password_digest: <%= BCrypt::Password.create("password") %>
+  leave_request_updates_notifications: true
+
+manager_optout:
+  company: acme
+  employee_number: EMP-002
+  first_name: Mo
+  last_name: OptedOut
+  work_email: mo.optedout@example.com
+  job_title: Engineering Manager
+  department: Engineering
+  start_date: 2020-01-01
+  password_digest: <%= BCrypt::Password.create("password") %>
+  leave_request_updates_notifications: false
+
+worker_bob:
+  company: acme
+  manager: manager_jane
+  employee_number: EMP-003
+  first_name: Bob
+  last_name: Worker
+  work_email: bob.worker@example.com
+  job_title: Software Engineer
+  department: Engineering
+  start_date: 2021-01-01
+  password_digest: <%= BCrypt::Password.create("password") %>
+  leave_request_updates_notifications: true
+
+worker_optout:
+  company: acme
+  manager: manager_jane
+  employee_number: EMP-004
+  first_name: Alice
+  last_name: OptedOut
+  work_email: alice.optedout@example.com
+  job_title: Software Engineer
+  department: Engineering
+  start_date: 2021-01-01
+  password_digest: <%= BCrypt::Password.create("password") %>
+  leave_request_updates_notifications: false

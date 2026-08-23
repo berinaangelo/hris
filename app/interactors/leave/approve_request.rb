@@ -6,6 +6,6 @@ module Leave
   class ApproveRequest
     include Interactor::Organizer
 
-    organize Leave::MarkRequestApproved, Leave::IncrementUsedBalance
+    organize Leave::MarkRequestApproved, Leave::IncrementUsedBalance, Leave::NotifyDecision
   end
 end
