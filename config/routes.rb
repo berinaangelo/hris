@@ -42,6 +42,9 @@ Rails.application.routes.draw do
       patch :complete, on: :member
     end
     resources :documents, only: [ :create ], controller: "employees/documents"
+    resources :benefit_enrollments, only: [ :create, :update, :destroy ], controller: "employees/benefit_enrollments" do
+      resources :benefit_dependents, only: [ :create, :destroy ], controller: "employees/benefit_dependents"
+    end
   end
 
   resource :attendance, only: [], controller: "attendance" do

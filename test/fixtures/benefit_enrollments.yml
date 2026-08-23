@@ -1,0 +1,11 @@
+bob_hmo:
+  employee: worker_bob
+  plan_name: HMO
+  provider: Maxicare
+  effectivity_date: 2021-02-01
+
+bob_group_life:
+  employee: worker_bob
+  plan_name: Group Life
+  provider: Sun Life
+  effectivity_date: 2021-02-01

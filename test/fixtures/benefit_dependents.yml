@@ -1,0 +1,4 @@
+bob_hmo_spouse:
+  benefit_enrollment: bob_hmo
+  name: Maria Worker
+  relationship: spouse

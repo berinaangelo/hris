@@ -1,0 +1,43 @@
+<div class="card">
+  <%= form_with model: enrollment,
+                url: employee_benefit_enrollment_path(employee, enrollment),
+                method: :patch, local: true do |f| %>
+    <div class="field">
+      <%= f.label :plan_name, "Plan name" %>
+      <%= f.text_field :plan_name, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :provider %>
+      <%= f.text_field :provider, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :effectivity_date %>
+      <%= f.date_field :effectivity_date, required: true %>
+    </div>
+    <%= f.submit "Save", class: "btn btn-primary" %>
+  <% end %>
+  <%= button_to "Remove plan", employee_benefit_enrollment_path(employee, enrollment),
+                method: :delete, class: "btn btn-danger-outline" %>
+
+  <h3>Dependents</h3>
+  <% enrollment.benefit_dependents.each do |dependent| %>
+    <p>
+      <%= dependent.name %> (<%= dependent.relationship.humanize %>)
+      <%= button_to "Remove", employee_benefit_enrollment_benefit_dependent_path(employee, enrollment, dependent),
+                    method: :delete, class: "btn btn-ghost" %>
+    </p>
+  <% end %>
+
+  <%= form_with url: employee_benefit_enrollment_benefit_dependents_path(employee, enrollment), local: true do %>
+    <div class="field">
+      <label>Name</label>
+      <%= text_field_tag "benefit_dependent[name]" %>
+    </div>
+    <div class="field">
+      <label>Relationship</label>
+      <%= select_tag "benefit_dependent[relationship]",
+                      options_for_select(BenefitDependent.relationships.keys.map { |r| [r.humanize, r] }) %>
+    </div>
+    <%= submit_tag "Add dependent", class: "btn btn-ghost" %>
+  <% end %>
+</div>
