@@ -123,6 +123,36 @@ module Team
       assert_not record.reload.manually_edited?
     end
 
+    test "a manager's edit is pending when approvers are enabled" do
+      sign_in employees(:manager_jane)
+      employees(:manager_jane).company.update!(attendance_approvers_enabled: true)
+      record = attendance_records(:bob_late)
+
+      patch team_attendance_record_path(record), params: { attendance_record: { clock_in_at: "2026-08-10T09:00:00" } }
+
+      assert record.reload.edit_approval_pending?
+    end
+
+    test "an admin's edit is never gated even when approvers are enabled" do
+      sign_in employees(:admin_amy)
+      employees(:admin_amy).company.update!(attendance_approvers_enabled: true)
+      record = attendance_records(:carol_ontime)
+
+      patch team_attendance_record_path(record), params: { attendance_record: { clock_in_at: "2026-08-15T09:00:00" } }
+
+      assert record.reload.edit_approval_not_required?
+    end
+
+    test "the index shows an approval badge for a pending edit and a dash otherwise" do
+      sign_in employees(:admin_amy)
+      attendance_records(:bob_late).update!(edit_approval_status: :pending, edited_by: employees(:manager_jane))
+
+      get team_attendance_records_path(start_date: "2026-08-01", end_date: "2026-08-31")
+
+      assert_response :success
+      assert_select "span.badge-caution", text: "Pending"
+    end
+
     private
 
     def sign_in(employee)

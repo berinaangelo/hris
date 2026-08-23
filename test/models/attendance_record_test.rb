@@ -25,4 +25,12 @@ class AttendanceRecordTest < ActiveSupport::TestCase
 
     assert record.valid?
   end
+
+  test "edit_approval_status accepts rejected alongside not_required/pending/approved" do
+    record = attendance_records(:bob_late)
+
+    record.edit_approval_status = :rejected
+
+    assert record.edit_approval_rejected?
+  end
 end

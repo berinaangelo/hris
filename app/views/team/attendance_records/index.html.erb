@@ -33,7 +33,7 @@
 
 <div class="card">
   <table>
-    <thead><tr><th>Employee</th><th>Date</th><th>Clock in</th><th>Clock out</th><th>Status</th><th></th></tr></thead>
+    <thead><tr><th>Employee</th><th>Date</th><th>Clock in</th><th>Clock out</th><th>Status</th><th>Approval</th><th></th></tr></thead>
     <tbody>
       <% @attendance_records.each do |attendance_record| %>
         <tr>
@@ -46,6 +46,13 @@
               <% badge = BadgePresenter.new(attendance_record.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
             <% else %>
               —
+            <% end %>
+          </td>
+          <td>
+            <% if attendance_record.edit_approval_not_required? %>
+              —
+            <% else %>
+              <% badge = BadgePresenter.new(attendance_record.edit_approval_status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
             <% end %>
           </td>
           <td>

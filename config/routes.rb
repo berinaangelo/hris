@@ -24,6 +24,12 @@ Rails.application.routes.draw do
     end
 
     resources :attendance_records, only: [ :index, :edit, :update ]
+    resources :attendance_edit_approvals, only: [ :index ] do
+      member do
+        patch :approve
+        patch :reject
+      end
+    end
     resource :attendance_settings, only: :update
   end
 

@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_23_140000) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_23_140001) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -147,6 +147,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_23_140000) do
 
   create_table "employees", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.boolean "attendance_correction_updates_notifications", default: true, null: false
+    t.boolean "attendance_edit_approval_notifications", default: true, null: false
     t.date "birthdate"
     t.boolean "company_announcement_notifications", default: true, null: false
     t.bigint "company_id", null: false

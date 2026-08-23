@@ -62,5 +62,48 @@ module Attendance
 
       assert result.failure?
     end
+
+    test "a manager's edit goes pending when the company has approvers enabled" do
+      record = attendance_records(:bob_late)
+      editor = employees(:manager_jane)
+      editor.company.update!(attendance_approvers_enabled: true)
+
+      Attendance::UpdateRecord.call(attendance_record: record, clock_in_at: nil, clock_out_at: record.clock_out_at + 1.hour, editor: editor)
+
+      assert record.reload.edit_approval_pending?
+    end
+
+    test "a manager's edit stays not_required when the company has approvers disabled" do
+      record = attendance_records(:bob_late)
+      editor = employees(:manager_jane)
+
+      Attendance::UpdateRecord.call(attendance_record: record, clock_in_at: nil, clock_out_at: record.clock_out_at + 1.hour, editor: editor)
+
+      assert record.reload.edit_approval_not_required?
+    end
+
+    test "an admin's edit is never gated, even when approvers are enabled" do
+      record = attendance_records(:carol_ontime)
+      editor = employees(:admin_amy)
+      editor.company.update!(attendance_approvers_enabled: true)
+
+      Attendance::UpdateRecord.call(attendance_record: record, clock_in_at: nil, clock_out_at: record.clock_out_at + 1.hour, editor: editor)
+
+      assert record.reload.edit_approval_not_required?
+    end
+
+    test "re-editing an already-decided record resets it back to pending when still gated" do
+      record = attendance_records(:bob_late)
+      editor = employees(:manager_jane)
+      editor.company.update!(attendance_approvers_enabled: true)
+      record.update!(edit_approval_status: :approved, edit_approved_by: employees(:admin_amy), edit_approved_at: Time.current)
+
+      Attendance::UpdateRecord.call(attendance_record: record, clock_in_at: nil, clock_out_at: record.clock_out_at + 1.hour, editor: editor)
+
+      record.reload
+      assert record.edit_approval_pending?
+      assert_nil record.edit_approved_by
+      assert_nil record.edit_approved_at
+    end
   end
 end

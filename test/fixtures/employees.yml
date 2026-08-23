@@ -1,8 +1,9 @@
-# leave_request_updates_notifications and
-# attendance_correction_updates_notifications vary on purpose across
-# these fixtures so the LeaveRequestMailer/notifier job tests and the
-# AttendanceCorrectionRequestMailer/notifier job tests can each cover
-# both the "recipient opted in" and "recipient opted out" guard branches.
+# leave_request_updates_notifications, attendance_correction_updates_notifications,
+# and attendance_edit_approval_notifications vary on purpose across
+# these fixtures so the LeaveRequestMailer/notifier job tests, the
+# AttendanceCorrectionRequestMailer/notifier job tests, and the
+# AttendanceEditApprovalMailer/notifier job tests can each cover both
+# the "recipient opted in" and "recipient opted out" guard branches.
 
 manager_jane:
   company: acme
@@ -17,6 +18,7 @@ manager_jane:
   role: manager
   leave_request_updates_notifications: true
   attendance_correction_updates_notifications: true
+  attendance_edit_approval_notifications: true
 
 manager_optout:
   company: acme
@@ -31,6 +33,7 @@ manager_optout:
   role: manager
   leave_request_updates_notifications: false
   attendance_correction_updates_notifications: false
+  attendance_edit_approval_notifications: false
 
 worker_bob:
   company: acme

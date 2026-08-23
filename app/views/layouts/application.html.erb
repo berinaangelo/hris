@@ -46,6 +46,12 @@
           <% end %>
         <% end %>
         <% if current_employee.admin? %>
+          <%= link_to team_attendance_edit_approvals_path do %>
+            Attendance Sign-offs
+            <% if (count = AttendanceRecords::PendingApproverSignoff.call(current_employee).count) > 0 %>
+              <span class="badge badge-caution"><%= count %></span>
+            <% end %>
+          <% end %>
           <%= link_to "People", employees_path %>
           <%= link_to "Org Chart", org_chart_path %>
         <% end %>

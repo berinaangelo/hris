@@ -18,6 +18,17 @@ class AttendanceRecordPolicy < ApplicationPolicy
     user.admin? || (user.manager? && record.employee.manager == user)
   end
 
+  # Sign-off on a pending manual edit is admin-only, unlike update?
+  # above — there's no manager branch here. See
+  # kos/decisions/time-attendance-correction-request-and-manual-edit.md.
+  def approve_edit?
+    user.admin? && record.employee.company_id == user.company_id
+  end
+
+  def reject_edit?
+    approve_edit?
+  end
+
   class Scope < Scope
     def resolve
       return scope.none unless user.manager? || user.admin?

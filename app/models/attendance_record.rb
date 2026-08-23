@@ -7,7 +7,7 @@ class AttendanceRecord < ApplicationRecord
   has_many :attendance_correction_requests, dependent: :nullify
 
   enum :status, { on_time: 0, late: 1, undertime: 2, absent: 3 }, prefix: true
-  enum :edit_approval_status, { not_required: 0, pending: 1, approved: 2 }, prefix: :edit_approval
+  enum :edit_approval_status, { not_required: 0, pending: 1, approved: 2, rejected: 3 }, prefix: :edit_approval
 
   validates :date, presence: true
   validates :date, uniqueness: { scope: :employee_id }
