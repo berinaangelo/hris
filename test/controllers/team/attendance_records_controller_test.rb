@@ -94,6 +94,24 @@ module Team
       assert_not own_record.reload.manually_edited?
     end
 
+    test "admin sees the attendance settings card" do
+      sign_in employees(:admin_amy)
+
+      get team_attendance_records_path
+
+      assert_response :success
+      assert_select "form[action=?]", team_attendance_settings_path
+    end
+
+    test "manager doesn't see the attendance settings card" do
+      sign_in employees(:manager_jane)
+
+      get team_attendance_records_path
+
+      assert_response :success
+      assert_select "form[action=?]", team_attendance_settings_path, count: 0
+    end
+
     test "edit is forbidden when the company has manual edit disabled" do
       sign_in employees(:manager_jane)
       employees(:manager_jane).company.update!(attendance_manual_edit_enabled: false)

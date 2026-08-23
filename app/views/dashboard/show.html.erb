@@ -51,6 +51,13 @@
     </div>
   <% end %>
 
+  <% if @pending_correction_requests_count > 0 %>
+    <div class="card">
+      <p><strong><%= @pending_correction_requests_count %></strong> attendance correction<%= "s" unless @pending_correction_requests_count == 1 %> waiting on you.
+        <%= link_to "Review now", team_attendance_correction_requests_path %></p>
+    </div>
+  <% end %>
+
   <div class="card">
     <p><%= link_to "Team attendance", team_attendance_records_path %></p>
   </div>

@@ -3,6 +3,7 @@ class DashboardController < ApplicationController
     @leave_balance = current_leave_balance
     @leave_requests = current_employee.leave_requests.includes(:leave_type).order(created_at: :desc).limit(5)
     @pending_approvals_count = LeaveRequests::PendingForApprover.call(current_employee).count
+    @pending_correction_requests_count = AttendanceCorrectionRequests::PendingForApprover.call(current_employee).count
     @todays_attendance_record = current_employee.attendance_records.find_by(date: current_employee.company.today)
   end
 

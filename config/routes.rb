@@ -24,6 +24,7 @@ Rails.application.routes.draw do
     end
 
     resources :attendance_records, only: [ :index, :edit, :update ]
+    resource :attendance_settings, only: :update
   end
 
   resources :employees, path: "people", only: [ :index, :new, :create, :show, :update ] do
