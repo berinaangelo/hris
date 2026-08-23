@@ -1,0 +1,35 @@
+<h1>My Profile</h1>
+
+<div class="card">
+  <p><strong><%= current_employee.full_name %></strong> · <%= current_employee.job_title %> · <%= current_employee.department %></p>
+  <p>Employee ID: <%= current_employee.employee_number %></p>
+  <p>Manager: <%= current_employee.manager&.full_name || "—" %></p>
+  <p>Start date: <%= current_employee.start_date %></p>
+  <p>Mobile: <%= current_employee.mobile_number.presence || "—" %></p>
+  <p>Personal email: <%= current_employee.personal_email.presence || "—" %></p>
+  <p>Home address: <%= current_employee.home_address.presence || "—" %></p>
+  <p>Emergency contact: <%= current_employee.emergency_contact_name.presence || "—" %> <%= current_employee.emergency_contact_phone %></p>
+  <%= link_to "Edit personal info", edit_my_profile_path, class: "btn btn-ghost" %>
+</div>
+
+<div class="card">
+  <h2>Onboarding Checklist</h2>
+  <% @onboarding_items.each do |item| %>
+    <p>
+      <%= item.item_key.humanize %> —
+      <% badge = item.completed? ? "positive" : "caution" %>
+      <span class="badge badge-<%= badge %>"><%= item.completed? ? "Done" : "Pending" %></span>
+    </p>
+  <% end %>
+</div>
+
+<div class="card">
+  <h2>Documents</h2>
+  <% if @documents.any? %>
+    <% @documents.each do |document| %>
+      <p><%= link_to document.title, url_for(document.file) %></p>
+    <% end %>
+  <% else %>
+    <p>No documents on file.</p>
+  <% end %>
+</div>

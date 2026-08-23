@@ -1,0 +1,20 @@
+<h1>Change password</h1>
+
+<div class="card">
+  <%= form_with url: password_path, method: :patch, local: true do %>
+    <div class="field">
+      <label>Current password</label>
+      <input type="password" name="current_password" required>
+    </div>
+    <div class="field">
+      <label>New password</label>
+      <input type="password" name="new_password" required minlength="8">
+    </div>
+    <div class="field">
+      <label>Confirm new password</label>
+      <input type="password" name="new_password_confirmation" required minlength="8">
+    </div>
+    <button type="submit" class="btn btn-primary">Save</button>
+    <%= link_to "Cancel", account_settings_path, class: "btn btn-ghost" %>
+  <% end %>
+</div>

@@ -1,0 +1,48 @@
+<h1>Add Employee</h1>
+
+<div class="card">
+  <%= form_with model: @employee, url: employees_path, local: true do |f| %>
+    <div class="field">
+      <%= f.label :first_name %>
+      <%= f.text_field :first_name, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :last_name %>
+      <%= f.text_field :last_name, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :personal_email, "Personal email (account-setup invite)" %>
+      <%= f.email_field :personal_email %>
+    </div>
+    <div class="field">
+      <%= f.label :work_email %>
+      <%= f.email_field :work_email, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :password, "Temporary password" %>
+      <%= f.text_field :password, value: SecureRandom.alphanumeric(10), required: true %>
+      <small>The employee changes this from Account Settings after first login.</small>
+    </div>
+    <div class="field">
+      <%= f.label :job_title %>
+      <%= f.text_field :job_title, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :department %>
+      <%= f.text_field :department, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :manager_id, "Manager" %>
+      <%= f.select :manager_id, @managers.map { |m| [m.full_name, m.id] }, include_blank: "No manager" %>
+    </div>
+    <div class="field">
+      <%= f.label :start_date %>
+      <%= f.date_field :start_date, value: Date.current, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :employment_type %>
+      <%= f.select :employment_type, Employee.employment_types.keys.map { |t| [t.humanize, t] } %>
+    </div>
+    <%= f.submit "Add employee", class: "btn btn-primary" %>
+  <% end %>
+</div>

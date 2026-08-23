@@ -1,0 +1,157 @@
+<h1><%= @employee.full_name %></h1>
+<p>
+  <%= @employee.employee_number %> · <%= @employee.job_title %> · <%= @employee.department %>
+  <% unless @employee.active? %>
+    <% badge = BadgePresenter.new(@employee.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
+  <% end %>
+</p>
+
+<div class="card">
+  <h2>Personal & Contact / Org Position</h2>
+  <%= form_with model: @employee, url: employee_path(@employee), method: :patch, local: true do |f| %>
+    <div class="field">
+      <%= f.label :first_name %>
+      <%= f.text_field :first_name, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :last_name %>
+      <%= f.text_field :last_name, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :personal_email %>
+      <%= f.email_field :personal_email %>
+    </div>
+    <div class="field">
+      <%= f.label :work_email %>
+      <%= f.email_field :work_email, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :mobile_number %>
+      <%= f.text_field :mobile_number %>
+    </div>
+    <div class="field">
+      <%= f.label :home_address %>
+      <%= f.text_field :home_address %>
+    </div>
+    <div class="field">
+      <%= f.label :birthdate %>
+      <%= f.date_field :birthdate %>
+    </div>
+    <div class="field">
+      <%= f.label :emergency_contact_name %>
+      <%= f.text_field :emergency_contact_name %>
+    </div>
+    <div class="field">
+      <%= f.label :emergency_contact_phone %>
+      <%= f.text_field :emergency_contact_phone %>
+    </div>
+    <div class="field">
+      <%= f.label :job_title %>
+      <%= f.text_field :job_title, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :department %>
+      <%= f.text_field :department, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :manager_id, "Manager" %>
+      <%= f.collection_select :manager_id, @employee.company.employees.where.not(id: @employee.id), :id, :full_name, include_blank: "No manager" %>
+    </div>
+    <div class="field">
+      <%= f.label :start_date %>
+      <%= f.date_field :start_date, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :employment_type %>
+      <%= f.select :employment_type, Employee.employment_types.keys.map { |t| [t.humanize, t] } %>
+    </div>
+    <%= f.submit "Save", class: "btn btn-primary" %>
+  <% end %>
+</div>
+
+<div class="card">
+  <h2>Onboarding Checklist</h2>
+  <% @onboarding_items.each do |item| %>
+    <p>
+      <%= item.item_key.humanize %> —
+      <% if item.completed? %>
+        <span class="badge badge-positive">Done</span>
+      <% else %>
+        <span class="badge badge-caution">Pending</span>
+        <%= button_to "Mark done", complete_employee_checklist_item_path(@employee, item), method: :patch, class: "btn btn-ghost" %>
+      <% end %>
+    </p>
+  <% end %>
+</div>
+
+<div class="card">
+  <h2>Documents</h2>
+  <% @employee.documents.each do |document| %>
+    <p><%= link_to document.title, url_for(document.file) %> (<%= document.category.humanize %>)</p>
+  <% end %>
+  <%= form_with url: employee_documents_path(@employee), local: true, multipart: true do %>
+    <div class="field">
+      <label>Title</label>
+      <%= text_field_tag "document[title]" %>
+    </div>
+    <div class="field">
+      <label>Category</label>
+      <%= select_tag "document[category]", options_for_select(Document.categories.keys.map { |c| [c.humanize, c] }) %>
+    </div>
+    <div class="field">
+      <label>File</label>
+      <%= file_field_tag "document[file]" %>
+    </div>
+    <%= submit_tag "Upload", class: "btn btn-ghost" %>
+  <% end %>
+</div>
+
+<div class="card">
+  <h2>Loan Ledger</h2>
+  <p>Not available yet — ships with Payroll v2.</p>
+</div>
+
+<div class="card">
+  <h2>Benefits</h2>
+  <p>Not available yet — ships with Benefits.</p>
+</div>
+
+<div class="card">
+  <h2>Offboarding</h2>
+  <% if @employee.active? %>
+    <%= form_with url: schedule_offboarding_employee_path(@employee), method: :patch, local: true do %>
+      <div class="field">
+        <label>Last working day</label>
+        <input type="date" name="last_working_day" required>
+      </div>
+      <div class="field">
+        <label>Reason for separation</label>
+        <input type="text" name="offboarding_reason">
+      </div>
+      <div class="field">
+        <label><input type="checkbox" name="rehire_eligible" value="1"> Rehire eligible</label>
+      </div>
+      <div class="field">
+        <label>Notes</label>
+        <textarea name="offboarding_notes"></textarea>
+      </div>
+      <button type="submit" class="btn btn-danger-outline">Offboard employee</button>
+    <% end %>
+  <% elsif @employee.offboarding? %>
+    <p>Last working day: <%= @employee.last_working_day %></p>
+    <% @offboarding_items.each do |item| %>
+      <p>
+        <%= item.item_key.humanize %> —
+        <% if item.completed? %>
+          <span class="badge badge-positive">Done</span>
+        <% else %>
+          <span class="badge badge-caution">Pending</span>
+          <%= button_to "Mark done", complete_employee_checklist_item_path(@employee, item), method: :patch, class: "btn btn-ghost" %>
+        <% end %>
+      </p>
+    <% end %>
+    <%= button_to "Mark offboarded", mark_offboarded_employee_path(@employee), method: :patch, class: "btn btn-danger-outline" %>
+  <% else %>
+    <p>Offboarded — last working day was <%= @employee.last_working_day %>.</p>
+  <% end %>
+</div>

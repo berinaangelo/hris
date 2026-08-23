@@ -1,0 +1,8 @@
+<h1>Org Chart</h1>
+
+<div class="card">
+  <p><strong><%= current_employee.company.name %></strong></p>
+  <% @roots.each do |root| %>
+    <%= render partial: "branch", locals: { employee: root, reports_by_manager_id: @reports_by_manager_id, depth: 0 } %>
+  <% end %>
+</div>

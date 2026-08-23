@@ -1,0 +1,43 @@
+<h1>People</h1>
+
+<div class="card">
+  <%= form_with url: employees_path, method: :get, local: true do %>
+    <div class="field">
+      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name">
+    </div>
+    <div class="field">
+      <select name="department" onchange="this.form.submit()">
+        <option value="">All departments</option>
+        <% @departments.each do |department| %>
+          <option value="<%= department %>" <%= "selected" if params[:department] == department %>><%= department %></option>
+        <% end %>
+      </select>
+    </div>
+    <button type="submit" class="btn btn-ghost">Filter</button>
+  <% end %>
+</div>
+
+<div class="card">
+  <table>
+    <thead><tr><th>Name</th><th>Title</th><th>Department</th><th>Manager</th><th>Status</th></tr></thead>
+    <tbody>
+      <% @employees.each do |employee| %>
+        <tr>
+          <td><%= link_to employee.full_name, employee_path(employee) %></td>
+          <td><%= employee.job_title %></td>
+          <td><%= employee.department %></td>
+          <td><%= employee.manager&.full_name || "—" %></td>
+          <td>
+            <% if employee.active? %>
+              —
+            <% else %>
+              <% badge = BadgePresenter.new(employee.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
+            <% end %>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<%= link_to "Add Employee", new_employee_path, class: "btn btn-primary" %>

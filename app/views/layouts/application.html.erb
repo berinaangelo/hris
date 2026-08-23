@@ -29,6 +29,7 @@
         <span class="brand">HRIS</span>
         <%= link_to "Home", root_path %>
         <%= link_to "Time Off", leave_requests_path %>
+        <%= link_to "My Profile", my_profile_path %>
         <% if current_employee.manager? || current_employee.admin? %>
           <%= link_to team_approvals_path do %>
             Approvals
@@ -37,7 +38,12 @@
             <% end %>
           <% end %>
         <% end %>
+        <% if current_employee.admin? %>
+          <%= link_to "People", employees_path %>
+          <%= link_to "Org Chart", org_chart_path %>
+        <% end %>
         <span class="nav-spacer"></span>
+        <%= link_to "Account Settings", account_settings_path %>
         <span class="nav-user"><%= current_employee.full_name %></span>
         <%= button_to "Sign out", session_path, method: :delete, class: "link-button" %>
       </nav>

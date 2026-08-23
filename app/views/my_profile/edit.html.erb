@@ -1,0 +1,32 @@
+<h1>Edit personal info</h1>
+
+<div class="card">
+  <%= form_with model: current_employee, url: my_profile_path, method: :patch, local: true do |f| %>
+    <div class="field">
+      <%= f.label :personal_email %>
+      <%= f.email_field :personal_email %>
+    </div>
+    <div class="field">
+      <%= f.label :mobile_number %>
+      <%= f.text_field :mobile_number %>
+    </div>
+    <div class="field">
+      <%= f.label :home_address %>
+      <%= f.text_field :home_address %>
+    </div>
+    <div class="field">
+      <%= f.label :birthdate %>
+      <%= f.date_field :birthdate %>
+    </div>
+    <div class="field">
+      <%= f.label :emergency_contact_name %>
+      <%= f.text_field :emergency_contact_name %>
+    </div>
+    <div class="field">
+      <%= f.label :emergency_contact_phone %>
+      <%= f.text_field :emergency_contact_phone %>
+    </div>
+    <%= f.submit "Save", class: "btn btn-primary" %>
+    <%= link_to "Cancel", my_profile_path, class: "btn btn-ghost" %>
+  <% end %>
+</div>

@@ -33,3 +33,6 @@
 # Ignore key files for decrypting credentials and more.
 /config/*.key
 
+# Personal Claude Code overrides (permissions, etc.) — not shared with the team.
+/.claude/settings.local.json
+

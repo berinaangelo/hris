@@ -16,6 +16,22 @@ Rails.application.routes.draw do
     end
   end
 
+  resources :employees, path: "people", only: [:index, :new, :create, :show, :update] do
+    member do
+      patch :schedule_offboarding
+      patch :mark_offboarded
+    end
+    resources :checklist_items, only: [], controller: "employees/checklist_items" do
+      patch :complete, on: :member
+    end
+    resources :documents, only: [:create], controller: "employees/documents"
+  end
+
+  resource :my_profile, only: [:show, :edit, :update], controller: "my_profile"
+  resource :account_settings, only: [:show, :update], controller: "account_settings"
+  resource :password, only: [:edit, :update], controller: "passwords"
+  get "org_chart", to: "org_chart#show"
+
   # Split into config/routes/*.rb (via `draw`) once a section grows —
   # see kos/decisions/rails-routes-split-into-dedicated-files.md. Not
   # worth it yet at this line count.

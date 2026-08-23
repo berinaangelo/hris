@@ -6,7 +6,9 @@ class BadgePresenter
   CATEGORY_BY_STATUS = {
     "pending" => :caution,
     "approved" => :positive,
-    "rejected" => :negative
+    "rejected" => :negative,
+    "offboarding" => :caution,
+    "offboarded" => :neutral
   }.freeze
 
   def initialize(status)

@@ -1,0 +1,29 @@
+<h1>Account Settings</h1>
+
+<div class="card">
+  <p><strong><%= current_employee.full_name %></strong></p>
+  <p>Employee ID: <%= current_employee.employee_number %></p>
+  <p>Work email: <%= current_employee.work_email %></p>
+  <p>Password last changed: <%= current_employee.password_changed_at&.to_date || "never" %></p>
+  <p>Last login: <%= current_employee.last_login_at || "—" %></p>
+  <%= link_to "Change password", edit_password_path, class: "btn btn-ghost" %>
+</div>
+
+<div class="card">
+  <h2>Notification preferences</h2>
+  <%= form_with model: current_employee, url: account_settings_path, method: :patch, local: true do |f| %>
+    <div class="field">
+      <label><%= f.check_box :leave_request_updates_notifications %> Leave request updates</label>
+    </div>
+    <div class="field">
+      <label><%= f.check_box :new_payslip_notifications %> New payslip available</label>
+    </div>
+    <div class="field">
+      <label><%= f.check_box :review_cycle_notifications %> Review cycle reminders</label>
+    </div>
+    <div class="field">
+      <label><%= f.check_box :company_announcement_notifications %> Company announcements</label>
+    </div>
+    <%= f.submit "Save preferences", class: "btn btn-primary" %>
+  <% end %>
+</div>
