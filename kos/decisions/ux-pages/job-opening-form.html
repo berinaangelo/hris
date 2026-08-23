@@ -1,0 +1,630 @@
+<title>HRIS Add/Edit Job Opening Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1440px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 76ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1440px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1440px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1440px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; min-height: 860px; }
+
+  .demo-strip { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--ink-light); padding: 0 0.15rem; }
+  .demo-strip label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; font-weight: 600; }
+  .demo-strip label::before { content: "☐"; }
+  .demo-strip span { color: var(--neutral); }
+  #hide1:checked ~ .page .frame-shell[data-n="1"] .demo-strip label::before,
+  #hide2:checked ~ .page .frame-shell[data-n="2"] .demo-strip label::before,
+  #hide3:checked ~ .page .frame-shell[data-n="3"] .demo-strip label::before { content: "☑"; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, Andrea Cruz — HR Admin) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+  .crumb { padding: 1rem 2rem 0; font-size: 0.75rem; color: var(--neutral); }
+  .crumb b { color: var(--ink-light); font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.6rem 0.95rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+  .btn-sm { padding: 0.4rem 0.7rem; font-size: 0.75rem; }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .greet-block { padding: 1.5rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  /* ---------- opening card grid (backdrop, reused verbatim from Job Openings) ---------- */
+
+  .pipeline-mini { display: flex; flex-wrap: wrap; gap: 0.5rem 0.85rem; font-size: 0.75rem; color: var(--ink-light); }
+  .pipeline-mini b { color: var(--ink); font-family: var(--font-mono); font-weight: 500; }
+
+  .link-chip {
+    display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.6rem; border-radius: 6px;
+    background: var(--surface); border: 1px solid var(--border); font-size: 0.75rem; color: var(--ink-light);
+    font-family: var(--font-mono); max-width: 100%; overflow: hidden;
+  }
+  .link-chip span.url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .link-chip svg { width: 12px; height: 12px; flex: 0 0 auto; color: var(--neutral); }
+
+  .opening-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin: 1.25rem 2rem 0; }
+  .opening-card { background: var(--white); padding: 1.15rem 1.2rem; display: flex; flex-direction: column; gap: 0.7rem; }
+  .opening-card .oc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+  .opening-card h4 { font-size: 0.9375rem; font-weight: 700; }
+  .opening-card .posted { font-size: 0.75rem; color: var(--neutral); margin-top: 0.2rem; }
+  .opening-card .card-foot { margin-top: auto; padding-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+  /* ---------- shared field styling ---------- */
+
+  .field { display: flex; flex-direction: column; gap: 0.3rem; }
+  .field label { font-size: 0.8125rem; font-weight: 600; color: var(--ink); }
+  .field label .opt { font-weight: 500; color: var(--neutral); text-transform: none; }
+  .plain-input, .plain-textarea {
+    width: 100%; padding: 0.6rem 0.75rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); background: var(--white);
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .plain-textarea { resize: vertical; min-height: 76px; font-family: inherit; line-height: 1.5; }
+  .plain-input:focus, .plain-textarea:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .field-hint { font-size: 0.75rem; color: var(--neutral); line-height: 1.45; }
+
+  .status-toggle-row { display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+  .status-toggle-row label { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.5rem 0.9rem; font-size: 0.8125rem; font-weight: 600; color: var(--ink-light); cursor: pointer; transition: background var(--t), color var(--t); }
+  .status-toggle-row label:first-child { border-right: 1px solid var(--border); }
+  .status-toggle-row label svg { width: 8px; height: 8px; }
+  #st1-open:checked ~ .status-toggle-row label[for="st1-open"],
+  #st2-open:checked ~ .status-toggle-row label[for="st2-open"],
+  #st3-open:checked ~ .status-toggle-row label[for="st3-open"] { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  #st1-closed:checked ~ .status-toggle-row label[for="st1-closed"],
+  #st2-closed:checked ~ .status-toggle-row label[for="st2-closed"],
+  #st3-closed:checked ~ .status-toggle-row label[for="st3-closed"] { background: var(--badge-neutral-bg); color: var(--badge-neutral-fg); }
+
+  /* ---------- Option 1: centered modal ---------- */
+
+  .modal-overlay {
+    display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.45);
+    align-items: center; justify-content: center; padding: 1.5rem; z-index: 5;
+  }
+  #hide1:checked ~ .page .frame-shell[data-n="1"] .modal-overlay { display: flex; }
+  .modal-card { width: 100%; max-width: 460px; background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); padding: 1.5rem; display: flex; flex-direction: column; gap: 1.1rem; max-height: 88%; overflow-y: auto; }
+  .modal-card-head { display: flex; align-items: center; justify-content: space-between; }
+  .modal-card-head h3 { font-size: 1.0625rem; font-weight: 700; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--surface); color: var(--ink-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; }
+  .modal-close svg { width: 15px; height: 15px; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+  /* ---------- Option 2: right-side drawer ---------- */
+
+  .drawer-overlay { display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.3); z-index: 5; }
+  #hide2:checked ~ .page .frame-shell[data-n="2"] .drawer-overlay { display: block; }
+  .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: min(420px, 92%); background: var(--white); box-shadow: -8px 0 24px rgba(27,42,74,0.16); display: none; flex-direction: column; z-index: 6; }
+  #hide2:checked ~ .page .frame-shell[data-n="2"] .drawer { display: flex; }
+  .drawer-head { padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid var(--border); }
+  .drawer-head .eyebrow2 { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); }
+  .drawer-head h3 { font-size: 1.0625rem; font-weight: 700; margin-top: 0.25rem; }
+  .drawer-head p { font-size: 0.8125rem; color: var(--ink-light); margin-top: 0.3rem; line-height: 1.45; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 1.1rem 1.5rem; display: flex; flex-direction: column; gap: 1.15rem; }
+  .drawer-section h4 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); margin-bottom: 0.6rem; }
+  .drawer-section { display: flex; flex-direction: column; gap: 0.75rem; }
+  .drawer-foot { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.6rem; }
+  .mini-preview-card { border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 0.95rem; display: flex; flex-direction: column; gap: 0.55rem; background: var(--surface); }
+  .mini-preview-card .oc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+  .mini-preview-card h4 { font-size: 0.875rem; font-weight: 700; }
+  .mini-preview-card .posted { font-size: 0.6875rem; color: var(--neutral); margin-top: 0.15rem; }
+
+  /* ---------- Option 3: inline edit-in-grid ---------- */
+
+  .opening-card.is-editing { gap: 0.6rem; box-shadow: inset 0 0 0 2px var(--accent); }
+  .oc-title-input { font-family: var(--font-display); font-size: 0.9375rem; font-weight: 700; width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 0.35rem 0.5rem; color: var(--ink); }
+  .oc-title-input:focus { outline: none; border-color: var(--accent); }
+  .oc-desc-input { width: 100%; border: 1px solid var(--border); border-radius: 6px; padding: 0.4rem 0.5rem; font-family: inherit; font-size: 0.8125rem; color: var(--ink-light); line-height: 1.45; resize: vertical; min-height: 56px; }
+  .oc-desc-input:focus { outline: none; border-color: var(--accent); }
+  .oc-inline-status { display: flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; color: var(--neutral); }
+  .oc-inline-status .status-toggle-row label { padding: 0.3rem 0.6rem; font-size: 0.75rem; }
+  .oc-link-preview { font-size: 0.6875rem; color: var(--neutral); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  @media (max-width: 480px) {
+    .opening-grid, .greet-block, .crumb { padding-left: 1.25rem; padding-right: 1.25rem; margin-left: 0; margin-right: 0; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" checked />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="checkbox" id="hide1" checked />
+<input class="state" type="checkbox" id="hide2" checked />
+<input class="state" type="checkbox" id="hide3" checked />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Add/Edit Job Opening — three recommendations</h1>
+      <p class="sub">
+        The form behind "New job opening" on
+        <a href="job-openings.html">Job Openings</a> and "Edit opening" on
+        <a href="job-opening-detail.html">Job Opening Detail</a> — the actual
+        first step of projects/hris/features/recruitment-ats/PLAN.md's core
+        flow, "HR creates a job opening." Per the plan's own in-scope list
+        this form is deliberately small: title, description, and open/closed
+        status — no department, location, or employment-type fields invented
+        beyond what's scoped.
+      </p>
+      <div class="assumptions">
+        <b>Shown as the Edit case</b> (fields prefilled with "Senior Backend
+        Engineer") since it exercises every field at once; New job opening is
+        the identical layout with empty fields, the header reading "New job
+        opening," and the primary button reading "Create job opening" instead
+        of "Save changes" — not rebuilt twice here. Uncheck each option's
+        "Show open" box to see the Job Openings grid underneath. The
+        application link (hris.app/apply/…) is auto-generated from the title
+        and shown read-only, not user-editable — candidates apply there, not
+        on a public job-ad page, per the plan's own scope correction. Status
+        badges follow decisions/ui/badge-system-four-categories.md: Open
+        reads Positive, Closed reads Neutral. Persona: Andrea Cruz, HR Admin,
+        today is Aug 22, 2026.
+      </div>
+      <nav class="tabbar">
+        <label for="tab1"><span class="n">01</span> Centered modal</label>
+        <label for="tab2"><span class="n">02</span> Right-side drawer <span class="chosen-badge">Chosen</span></label>
+        <label for="tab3"><span class="n">03</span> Inline edit-in-grid</label>
+      </nav>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — CENTERED MODAL ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="demo-strip"><label for="hide1">Show open</label><span>— toggle to see the Job Openings grid underneath</span></div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Recruitment → <b>Job Openings</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Job Openings</h2>
+              <p>3 open · 23 applicants across all stages · 6 closed</p>
+            </div>
+            <button class="btn-primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              New job opening
+            </button>
+          </div>
+
+          <div class="opening-grid">
+            <div class="opening-card">
+              <div class="oc-head"><div><h4>Senior Backend Engineer</h4><p class="posted">Posted Aug 10, 2026 · 12 days ago</p></div><span class="badge badge-positive">Open</span></div>
+              <div class="pipeline-mini"><b>5</b>&nbsp;New · <b>4</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer</div>
+              <div class="card-foot"><button class="btn-primary btn-sm" type="button">View pipeline</button><button class="btn-ghost btn-sm" type="button">Edit</button></div>
+            </div>
+            <div class="opening-card">
+              <div class="oc-head"><div><h4>Customer Support Representative</h4><p class="posted">Posted Aug 15, 2026 · 7 days ago</p></div><span class="badge badge-positive">Open</span></div>
+              <div class="pipeline-mini"><b>6</b>&nbsp;New · <b>2</b>&nbsp;Interviewing</div>
+              <div class="card-foot"><button class="btn-primary btn-sm" type="button">View pipeline</button><button class="btn-ghost btn-sm" type="button">Edit</button></div>
+            </div>
+            <div class="opening-card">
+              <div class="oc-head"><div><h4>Payroll Specialist</h4><p class="posted">Posted Aug 18, 2026 · 4 days ago</p></div><span class="badge badge-positive">Open</span></div>
+              <div class="pipeline-mini"><b>3</b>&nbsp;New</div>
+              <div class="card-foot"><button class="btn-primary btn-sm" type="button">View pipeline</button><button class="btn-ghost btn-sm" type="button">Edit</button></div>
+            </div>
+          </div>
+
+          <div style="height:1.5rem;"></div>
+
+          <div class="modal-overlay">
+            <div class="modal-card">
+              <div class="modal-card-head">
+                <h3>Edit job opening</h3>
+                <label class="modal-close" for="hide1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+
+              <div class="field">
+                <label for="m1-title">Job title</label>
+                <input class="plain-input" id="m1-title" type="text" value="Senior Backend Engineer" />
+              </div>
+
+              <div class="field">
+                <label for="m1-desc">Description</label>
+                <textarea class="plain-textarea" id="m1-desc" rows="5">We're looking for a senior backend engineer to help scale our core platform. Ruby on Rails experience preferred, 5+ years building production systems.</textarea>
+              </div>
+
+              <div class="field">
+                <label>Status</label>
+                <input class="state" type="radio" name="st1" id="st1-open" checked />
+                <input class="state" type="radio" name="st1" id="st1-closed" />
+                <div class="status-toggle-row">
+                  <label for="st1-open"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/></svg>Open</label>
+                  <label for="st1-closed"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/></svg>Closed</label>
+                </div>
+              </div>
+
+              <div class="field">
+                <label>Application link <span class="opt">(auto-generated)</span></label>
+                <span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="url">hris.app/apply/senior-backend-engineer</span></span>
+              </div>
+
+              <div class="modal-actions">
+                <label class="btn-ghost" for="hide1">Cancel</label>
+                <button class="btn-primary" type="button">Save changes</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="rationale">
+        <div>
+          <h3>Why this one</h3>
+          <p>Lightest possible chrome for a genuinely small form — three
+            fields, no reason to leave the Job Openings page or spend a whole
+            right-side panel on it. Matches the existing My Profile / Time
+            Off modal pattern instead of inventing a new mechanic for
+            something this size.</p>
+        </div>
+        <div>
+          <h3>Trade-off</h3>
+          <p>No live preview of the resulting card, and centered modals block
+            the whole page rather than letting HR glance at the surrounding
+            list while editing — fine for three fields, would get cramped if
+            the plan ever grows this form.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — RIGHT-SIDE DRAWER ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="demo-strip"><label for="hide2">Show open</label><span>— toggle to see the Job Openings grid underneath</span></div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Recruitment → <b>Job Openings</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Job Openings</h2>
+              <p>3 open · 23 applicants across all stages · 6 closed</p>
+            </div>
+            <button class="btn-primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              New job opening
+            </button>
+          </div>
+
+          <div class="opening-grid">
+            <div class="opening-card">
+              <div class="oc-head"><div><h4>Senior Backend Engineer</h4><p class="posted">Posted Aug 10, 2026 · 12 days ago</p></div><span class="badge badge-positive">Open</span></div>
+              <div class="pipeline-mini"><b>5</b>&nbsp;New · <b>4</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer</div>
+              <div class="card-foot"><button class="btn-primary btn-sm" type="button">View pipeline</button><button class="btn-ghost btn-sm" type="button">Edit</button></div>
+            </div>
+            <div class="opening-card">
+              <div class="oc-head"><div><h4>Customer Support Representative</h4><p class="posted">Posted Aug 15, 2026 · 7 days ago</p></div><span class="badge badge-positive">Open</span></div>
+              <div class="pipeline-mini"><b>6</b>&nbsp;New · <b>2</b>&nbsp;Interviewing</div>
+              <div class="card-foot"><button class="btn-primary btn-sm" type="button">View pipeline</button><button class="btn-ghost btn-sm" type="button">Edit</button></div>
+            </div>
+            <div class="opening-card">
+              <div class="oc-head"><div><h4>Payroll Specialist</h4><p class="posted">Posted Aug 18, 2026 · 4 days ago</p></div><span class="badge badge-positive">Open</span></div>
+              <div class="pipeline-mini"><b>3</b>&nbsp;New</div>
+              <div class="card-foot"><button class="btn-primary btn-sm" type="button">View pipeline</button><button class="btn-ghost btn-sm" type="button">Edit</button></div>
+            </div>
+          </div>
+
+          <div style="height:1.5rem;"></div>
+
+          <div class="drawer-overlay"></div>
+          <div class="drawer">
+            <div class="drawer-head">
+              <span class="eyebrow2">Editing</span>
+              <h3>Senior Backend Engineer</h3>
+              <p>Update the posting details, status, and application link below.</p>
+            </div>
+
+            <div class="drawer-body">
+              <div class="drawer-section">
+                <h4>Posting details</h4>
+                <div class="field">
+                  <label for="d2-title">Job title</label>
+                  <input class="plain-input" id="d2-title" type="text" value="Senior Backend Engineer" />
+                </div>
+                <div class="field">
+                  <label for="d2-desc">Description</label>
+                  <textarea class="plain-textarea" id="d2-desc" rows="5">We're looking for a senior backend engineer to help scale our core platform. Ruby on Rails experience preferred, 5+ years building production systems.</textarea>
+                </div>
+              </div>
+
+              <div class="drawer-section">
+                <h4>Status</h4>
+                <input class="state" type="radio" name="st2" id="st2-open" checked />
+                <input class="state" type="radio" name="st2" id="st2-closed" />
+                <div class="status-toggle-row">
+                  <label for="st2-open"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/></svg>Open</label>
+                  <label for="st2-closed"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="12"/></svg>Closed</label>
+                </div>
+              </div>
+
+              <div class="drawer-section">
+                <h4>Application link</h4>
+                <p class="field-hint">Generated automatically from the title — candidates apply here, not on a public job-ad page.</p>
+                <span class="link-chip"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg><span class="url">hris.app/apply/senior-backend-engineer</span></span>
+              </div>
+
+              <div class="drawer-section">
+                <h4>Preview</h4>
+                <p class="field-hint">The card HR will see on Job Openings.</p>
+                <div class="mini-preview-card">
+                  <div class="oc-head"><div><h4>Senior Backend Engineer</h4><p class="posted">Posted 12 days ago</p></div><span class="badge badge-positive">Open</span></div>
+                  <div class="pipeline-mini"><b>5</b>&nbsp;New · <b>4</b>&nbsp;Interviewing · <b>2</b>&nbsp;Offer</div>
+                </div>
+              </div>
+            </div>
+
+            <div class="drawer-foot">
+              <label class="btn-ghost" for="hide2">Cancel</label>
+              <button class="btn-primary" type="button">Save changes</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="rationale">
+        <div>
+          <h3>Why this one</h3>
+          <p>The sixth reuse of the same right-side drawer mechanic already
+            established for Payroll Run Detail, Time &amp; Attendance, Rate
+            Tables, Loan Ledger, and Hired Handoff — HR already knows this
+            interaction. It also travels cleanly to both entry points this
+            form needs: "New job opening" from the Job Openings grid, and
+            "Edit opening" from Job Opening Detail's kanban header, neither
+            of which has a grid to edit inline. The live card preview and the
+            auto-generated apply link both show the actual result before
+            commit, same reasoning as Add Employee's live directory-card
+            preview.</p>
+        </div>
+        <div>
+          <h3>Trade-off</h3>
+          <p>More chrome than three fields strictly need — a centered modal
+            would do the same job with less surface area. Worth it here for
+            consistency with the rest of the admin surface rather than
+            optimizing this one screen in isolation.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — INLINE EDIT-IN-GRID ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="demo-strip"><label for="hide3">Show open</label><span>— toggle to see the card in its normal (non-editing) state</span></div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → Recruitment → <b>Job Openings</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Job Openings</h2>
+              <p>3 open · 23 applicants across all stages · 6 closed</p>
+            </div>
+            <button class="btn-primary" type="button">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>
+              New job opening
+            </button>
+          </div>
+
+          <div class="opening-grid">
+            <div class="opening-card is-editing">
+              <input class="oc-title-input" type="text" value="Senior Backend Engineer" />
+              <textarea class="oc-desc-input" rows="3">We're looking for a senior backend engineer to help scale our core platform. Ruby on Rails experience preferred.</textarea>
+              <div class="oc-inline-status">
+                Status:
+                <input class="state" type="radio" name="st3" id="st3-open" checked />
+                <input class="state" type="radio" name="st3" id="st3-closed" />
+                <div class="status-toggle-row">
+                  <label for="st3-open">Open</label>
+                  <label for="st3-closed">Closed</label>
+                </div>
+              </div>
+              <p class="oc-link-preview">hris.app/apply/senior-backend-engineer</p>
+              <div class="card-foot">
+                <button class="btn-primary btn-sm" type="button">Save</button>
+                <label class="btn-ghost btn-sm" for="hide3">Cancel</label>
+              </div>
+            </div>
+
+            <div class="opening-card">
+              <div class="oc-head"><div><h4>Customer Support Representative</h4><p class="posted">Posted Aug 15, 2026 · 7 days ago</p></div><span class="badge badge-positive">Open</span></div>
+              <div class="pipeline-mini"><b>6</b>&nbsp;New · <b>2</b>&nbsp;Interviewing</div>
+              <div class="card-foot"><button class="btn-primary btn-sm" type="button">View pipeline</button><button class="btn-ghost btn-sm" type="button">Edit</button></div>
+            </div>
+            <div class="opening-card">
+              <div class="oc-head"><div><h4>Payroll Specialist</h4><p class="posted">Posted Aug 18, 2026 · 4 days ago</p></div><span class="badge badge-positive">Open</span></div>
+              <div class="pipeline-mini"><b>3</b>&nbsp;New</div>
+              <div class="card-foot"><button class="btn-primary btn-sm" type="button">View pipeline</button><button class="btn-ghost btn-sm" type="button">Edit</button></div>
+            </div>
+          </div>
+
+          <div style="height:1.5rem;"></div>
+        </div>
+
+      </div>
+
+      <div class="rationale">
+        <div>
+          <h3>Why this one</h3>
+          <p>Zero extra chrome — no overlay, no dimmed backdrop, editing
+            happens exactly where the card already lives. Closest to "click,
+            type, done" for a form this small, and the freshly created card
+            appears in the exact spot it'll occupy going forward instead of
+            being revealed after a drawer/modal closes.</p>
+        </div>
+        <div>
+          <h3>Trade-off</h3>
+          <p>Doesn't travel: this pattern only works from the Job Openings
+            grid. "Edit opening" on Job Opening Detail has no grid to edit
+            inline, so that entry point would need a completely different
+            mechanic (a modal or drawer after all) — meaning HR learns two
+            different ways to edit the same record depending on which page
+            they're on. Also collides with the card/list view toggle already
+            chosen for Job Openings; the inline form would need its own
+            layout for the list/table view too.</p>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

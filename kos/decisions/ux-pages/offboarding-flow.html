@@ -1,0 +1,706 @@
+<title>HRIS Offboarding Flow Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 70ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+  .flag {
+    display: block; margin-top: 0.6rem; padding-top: 0.6rem; border-top: 1px dashed rgba(255,255,255,0.16);
+    color: #F3C99A;
+  }
+  .flag b { color: #FBDDB2; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; min-height: 860px; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  .demo-strip { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: var(--neutral); flex-wrap: wrap; }
+  .demo-strip label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--white); }
+  .demo-strip input { accent-color: var(--accent); }
+  .demo-strip .sep { color: var(--border); }
+
+  /* ---------- shared app nav ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+  .back-link { display: inline-flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: #C7CEDE; text-decoration: none; }
+  .back-link svg { width: 14px; height: 14px; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), opacity var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 14px; height: 14px; }
+
+  .btn-danger-ghost {
+    background: var(--white); border: 1px solid #F3C6C6; color: var(--danger); border-radius: 8px; padding: 0.5rem 0.8rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: background var(--t), border-color var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-danger-ghost:hover { background: var(--badge-negative-bg); }
+  .btn-danger-ghost svg { width: 14px; height: 14px; }
+
+  .btn-text { background: none; border: none; color: var(--accent); font-weight: 600; font-size: 0.8125rem; cursor: pointer; padding: 0.3rem 0.1rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+  .btn-text svg { width: 13px; height: 13px; }
+
+  /* ---------- identity strip ---------- */
+
+  .identity-strip { display: flex; align-items: center; gap: 1rem; padding: 1.5rem 2rem; flex-wrap: wrap; border-bottom: 1px solid var(--border); }
+  .avatar-lg { width: 56px; height: 56px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; flex: 0 0 auto; }
+  .identity-who h2 { font-size: 1.15rem; font-weight: 700; }
+  .identity-who p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+  .identity-meta { margin-left: auto; display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; }
+  .identity-meta .id { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--neutral); }
+  .identity-meta .status-active { font-size: 0.8125rem; color: var(--badge-positive-fg); font-weight: 600; }
+
+  /* ---------- field grid / view ---------- */
+
+  .field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1.1rem; }
+  .field-view label { display: block; font-size: 0.75rem; color: var(--neutral); font-weight: 500; margin-bottom: 0.25rem; }
+  .field-view .val { font-size: 0.9375rem; color: var(--ink); }
+  .field-view .val.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .plain-input, .plain-select {
+    width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .plain-input:focus, .plain-select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  textarea.plain-input { resize: vertical; min-height: 64px; font-family: var(--font-body); }
+
+  .check-inline { display: flex; align-items: center; gap: 0.5rem; font-size: 0.875rem; color: var(--ink); }
+  .check-inline input { accent-color: var(--accent); width: 16px; height: 16px; }
+
+  /* ---------- sections ---------- */
+
+  .section { padding: 1.5rem 2rem; border-bottom: 1px solid var(--border); }
+  .section:last-child { border-bottom: none; }
+  .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; gap: 0.75rem; }
+  .section-head h3 { font-size: 1rem; font-weight: 700; }
+  .section-head .sub { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+
+  .checklist-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+  .checklist-row:last-child { border-bottom: none; }
+  .checklist-row svg.check { width: 18px; height: 18px; color: var(--badge-positive-fg); flex: 0 0 auto; }
+  .checklist-row svg.pending-icon { width: 18px; height: 18px; color: var(--neutral); opacity: 0.5; flex: 0 0 auto; }
+  .checklist-row .txt { flex: 1; font-size: 0.875rem; }
+
+  /* ---------- status swap: badges/labels toggled by demo-strip previews ---------- */
+
+  .status-before { }
+  .status-after { display: none; }
+
+  /* ---------- Option 1 &amp; 2: right-side drawer / modal open state ---------- */
+
+  .drawer-overlay { display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.3); z-index: 5; }
+  .drawer { position: absolute; top: 0; right: 0; bottom: 0; width: min(420px, 92%); background: var(--white); box-shadow: -8px 0 24px rgba(27,42,74,0.16); display: none; flex-direction: column; z-index: 6; }
+  .drawer-head { padding: 1.25rem 1.5rem 1rem; border-bottom: 1px solid var(--border); display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .drawer-head-txt .eyebrow2 { font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent); }
+  .drawer-head-txt h3 { font-size: 1.0625rem; font-weight: 700; margin-top: 0.25rem; }
+  .drawer-head-txt p { font-size: 0.8125rem; color: var(--ink-light); margin-top: 0.3rem; line-height: 1.45; }
+  .drawer-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--surface); color: var(--ink-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .drawer-close svg { width: 15px; height: 15px; }
+  .drawer-body { flex: 1; overflow-y: auto; padding: 1.1rem 1.5rem; display: flex; flex-direction: column; gap: 1.15rem; }
+  .drawer-field label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--ink); margin-bottom: 0.35rem; }
+  .drawer-foot { padding: 1rem 1.5rem; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 0.6rem; }
+
+  #obdrawer1:checked ~ .page .frame-shell[data-n="1"] .drawer-overlay,
+  #obdrawer3:checked ~ .page .frame-shell[data-n="3"] .drawer-overlay { display: block; }
+  #obdrawer1:checked ~ .page .frame-shell[data-n="1"] .drawer,
+  #obdrawer3:checked ~ .page .frame-shell[data-n="3"] .drawer { display: flex; }
+
+  #afterOffboard1:checked ~ .page .frame-shell[data-n="1"] .status-before,
+  #afterOffboard2:checked ~ .page .frame-shell[data-n="2"] .status-before { display: none; }
+  #afterOffboard1:checked ~ .page .frame-shell[data-n="1"] .status-after,
+  #afterOffboard2:checked ~ .page .frame-shell[data-n="2"] .status-after { display: inline-flex; }
+
+  /* ---------- Option 2: modal with gated clearance checklist ---------- */
+
+  .modal-overlay { display: none; position: absolute; inset: 0; z-index: 6; background: rgba(27,42,74,0.42); align-items: center; justify-content: center; padding: 1.5rem; overflow-y: auto; }
+  #obmodal2:checked ~ .page .frame-shell[data-n="2"] .modal-overlay { display: flex; }
+  .modal-box { background: var(--white); border-radius: 12px; box-shadow: var(--shadow-card); padding: 1.5rem; width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 1rem; margin: auto; }
+  .modal-box-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+  .modal-box-head-icon { width: 36px; height: 36px; border-radius: 8px; background: var(--badge-caution-bg); color: var(--badge-caution-fg); display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .modal-box-head-icon svg { width: 18px; height: 18px; }
+  .modal-box-head h3 { font-size: 1.05rem; font-weight: 700; }
+  .modal-box-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.3rem; line-height: 1.5; }
+  .modal-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--surface); color: var(--ink-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .modal-close svg { width: 15px; height: 15px; }
+  .modal-subhead { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .modal-field label { font-size: 0.75rem; font-weight: 600; color: var(--ink); display: block; margin-bottom: 0.35rem; }
+  .modal-field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; }
+  .modal-actions { display: flex; justify-content: flex-end; gap: 0.5rem; }
+
+  .clearance-check { float: left; clear: left; margin: 0.62rem 0.6rem 0 0; accent-color: var(--accent); width: 16px; height: 16px; }
+  .clearance-row { display: block; padding: 0.6rem 0; border-bottom: 1px dashed var(--border); font-size: 0.8125rem; color: var(--ink); cursor: pointer; overflow: hidden; }
+  .clearance-row:last-of-type { border-bottom: none; }
+
+  .confirm-btn { opacity: 0.4; pointer-events: none; }
+  .confirm-hint { font-size: 0.75rem; color: var(--neutral); margin-top: -0.4rem; }
+  #ob2chk1:checked ~ #ob2chk2:checked ~ #ob2chk3:checked ~ #ob2chk4:checked ~ .modal-actions .confirm-btn { opacity: 1; pointer-events: auto; }
+  #ob2chk1:checked ~ #ob2chk2:checked ~ #ob2chk3:checked ~ #ob2chk4:checked ~ .confirm-hint { display: none; }
+
+  /* ---------- Option 3: two-stage — schedule, then a persistent Separation panel ---------- */
+
+  .o3-offboarding-el, .o3-offboarded-el { display: none; }
+  .separation-panel { display: none; }
+  .sep-inprogress { display: none; }
+  .sep-done { display: none; }
+
+  #obStage3:checked ~ .page .frame-shell[data-n="3"] .o3-active-el { display: none; }
+  #obStage3:checked ~ .page .frame-shell[data-n="3"] .o3-offboarding-el { display: inline-flex; }
+  #obStage3:checked ~ .page .frame-shell[data-n="3"] .separation-panel { display: block; }
+  #obStage3:checked ~ .page .frame-shell[data-n="3"] .sep-inprogress { display: flex; }
+
+  #obStage3:checked ~ #obDone3:checked ~ .page .frame-shell[data-n="3"] .o3-offboarding-el { display: none; }
+  #obStage3:checked ~ #obDone3:checked ~ .page .frame-shell[data-n="3"] .o3-offboarded-el { display: inline-flex; }
+  #obStage3:checked ~ #obDone3:checked ~ .page .frame-shell[data-n="3"] .sep-inprogress { display: none; }
+  #obStage3:checked ~ #obDone3:checked ~ .page .frame-shell[data-n="3"] .sep-done { display: flex; }
+
+  .separation-panel { flex-direction: column; gap: 1.1rem; }
+  .sep-inprogress, .sep-done { flex-direction: column; gap: 1.1rem; }
+  .sep-summary { display: flex; align-items: center; gap: 0.7rem; padding: 0.85rem 1rem; border-radius: 8px; background: var(--badge-caution-bg); }
+  .sep-summary svg { width: 20px; height: 20px; color: var(--badge-caution-fg); flex: 0 0 auto; }
+  .sep-summary p { font-size: 0.8125rem; color: var(--badge-caution-fg); line-height: 1.5; }
+  .sep-summary p b { font-weight: 700; }
+  .sep-done .sep-summary { background: var(--badge-neutral-bg); }
+  .sep-done .sep-summary svg, .sep-done .sep-summary p { color: var(--badge-neutral-fg); }
+
+  .sep-actions { display: flex; justify-content: flex-end; }
+  .sep-done-tag { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--neutral); }
+  .sep-done-tag svg { width: 16px; height: 16px; color: var(--badge-positive-fg); }
+
+  @media (max-width: 480px) {
+    .section, .identity-strip, .modal-field-row { padding-left: 1.25rem; padding-right: 1.25rem; }
+    .modal-field-row { grid-template-columns: 1fr; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" checked />
+<input class="state" type="checkbox" id="obdrawer1" />
+<input class="state" type="checkbox" id="afterOffboard1" />
+<input class="state" type="checkbox" id="obmodal2" />
+<input class="state" type="checkbox" id="afterOffboard2" />
+<input class="state" type="checkbox" id="obdrawer3" />
+<input class="state" type="checkbox" id="obStage3" />
+<input class="state" type="checkbox" id="obDone3" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Offboarding Flow — three recommendations</h1>
+      <p class="sub">
+        What "Offboard" actually opens on decisions/ux-pages/employee-detail.html
+        — the entry point that was shown but left unbuilt when Employee Detail
+        was decided. Not on the original build list (same as Org Chart, this
+        was requested ad hoc). Subject is Jonas Rivera, the QA Engineer already
+        shown carrying the "Offboarded" badge on
+        decisions/ux-pages/people-directory.html — this flow is how he got
+        there. What changes across the three is how much of the real process
+        (last working day, reason, equipment/access/final-pay clearance) is
+        captured, and whether "Offboarded" is set instantly or only once
+        clearance is actually done.
+      </p>
+      <div class="assumptions">
+        <b>Reused, not re-decided here:</b> decisions/ui/color-palette-ink-and-amber.md,
+        decisions/type-system-neutral-and-efficient.md,
+        decisions/ui/badge-system-four-categories.md — "Active" shows no
+        badge, only "Offboarded" (Neutral) does, per that spec's own
+        "badges are for deviation" rule. Reason for separation, last
+        working day, and a four-item clearance checklist (equipment
+        returned, access revoked, final pay &amp; clearance, exit interview)
+        are this page's own invented scope — no PLAN.md names them.
+        <span class="flag">
+          <b>Decided 2026-08-23:</b> Option 3 chosen — see
+          decisions/ui/offboarding-flow-schedule-clearance-tracker.md.
+          Its transitional "Offboarding" status (Caution), distinct from
+          the terminal "Offboarded" (Neutral), is now defined in
+          badge-system-four-categories.md's mapping table, and People
+          Directory was updated the same day to show it (Jonas Rivera
+          demonstrates it there — visible by default, since he's still
+          working — alongside a new example of the terminal state).
+        </span>
+      </div>
+    </div>
+
+    <nav class="tabbar">
+      <label for="tab1"><span class="n">01</span> Quick drawer, instant status</label>
+      <label for="tab2"><span class="n">02</span> Modal, gated checklist</label>
+      <label for="tab3"><span class="n">03</span> Schedule + clearance tracker <span class="chosen-badge">Chosen</span></label>
+    </nav>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1 — QUICK DRAWER, INSTANT STATUS FLIP ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="obdrawer1">Open "Offboard" drawer</label>
+          <span class="sep">·</span>
+          <label for="afterOffboard1">Preview: after confirming</label>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <a class="back-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>People Directory</a>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="identity-strip">
+            <span class="avatar-lg">JR</span>
+            <div class="identity-who">
+              <h2>Jonas Rivera</h2>
+              <p>QA Engineer · Engineering</p>
+            </div>
+            <div class="identity-meta">
+              <span class="id">EMP-0089</span>
+              <span class="status-before"><span class="status-active">Active</span></span>
+              <span class="status-after"><span class="badge badge-neutral">Offboarded</span></span>
+              <label class="btn-danger-ghost status-before" for="obdrawer1">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Offboard
+              </label>
+              <span class="status-after" style="font-size:0.8125rem;color:var(--neutral);">Effective Sep 15, 2026</span>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Org position</h3></div>
+            <div class="field-grid">
+              <div class="field-view"><label>Job title</label><p class="val">QA Engineer</p></div>
+              <div class="field-view"><label>Department</label><p class="val">Engineering</p></div>
+              <div class="field-view"><label>Manager</label><p class="val">Ramon Dela Cruz</p></div>
+              <div class="field-view"><label>Start date</label><p class="val mono">Jun 3, 2022</p></div>
+              <div class="field-view"><label>Employment type</label><p class="val">Regular</p></div>
+            </div>
+          </div>
+
+          <div class="drawer-overlay"></div>
+          <div class="drawer">
+            <div class="drawer-head">
+              <div class="drawer-head-txt">
+                <p class="eyebrow2">Offboard employee</p>
+                <h3>Jonas Rivera</h3>
+                <p>Sets his record to Offboarded once confirmed. This can't be reversed from here — People Directory and payroll will treat him as separated immediately.</p>
+              </div>
+              <label class="drawer-close" for="obdrawer1"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+            </div>
+            <div class="drawer-body">
+              <div class="drawer-field">
+                <label for="d1-lastday">Last working day</label>
+                <input class="plain-input" id="d1-lastday" type="text" value="Sep 15, 2026" />
+              </div>
+              <div class="drawer-field">
+                <label for="d1-reason">Reason for separation</label>
+                <select class="plain-select" id="d1-reason">
+                  <option selected>Resignation</option>
+                  <option>Involuntary / termination</option>
+                  <option>End of contract</option>
+                  <option>Retirement</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <label class="check-inline"><input type="checkbox" checked /> Eligible for rehire</label>
+              <div class="drawer-field">
+                <label for="d1-notes">Notes</label>
+                <textarea class="plain-input" id="d1-notes" rows="3">Two weeks' notice given verbally Aug 21; resignation letter on file.</textarea>
+              </div>
+            </div>
+            <div class="drawer-foot">
+              <label class="btn-ghost" for="obdrawer1">Cancel</label>
+              <label class="btn-primary" for="afterOffboard1">Confirm offboarding</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Cheapest build — the seventh reuse of the same right-side drawer mechanic already shipped
+              for Payroll Run Detail, Time &amp; Attendance, Rate Tables, Loan Ledger, Hired Handoff, and
+              the Job Opening form. One form, one confirm, done.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>The separation is immediate (last day is today, or already passed). Weaker when the last
+              working day is genuinely in the future, like Jonas's here — the record reads Offboarded
+              three weeks before he's actually gone, and equipment/access/final-pay clearance has nowhere
+              to be tracked.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2 — MODAL, GATED CLEARANCE CHECKLIST ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="obmodal2">Open "Offboard" modal</label>
+          <span class="sep">·</span>
+          <label for="ob2chk1">1. Equipment</label>
+          <label for="ob2chk2">2. Access</label>
+          <label for="ob2chk3">3. Final pay</label>
+          <label for="ob2chk4">4. Exit interview</label>
+          <span class="sep">·</span>
+          <label for="afterOffboard2">Preview: after confirming</label>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <a class="back-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>People Directory</a>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="identity-strip">
+            <span class="avatar-lg">JR</span>
+            <div class="identity-who">
+              <h2>Jonas Rivera</h2>
+              <p>QA Engineer · Engineering</p>
+            </div>
+            <div class="identity-meta">
+              <span class="id">EMP-0089</span>
+              <span class="status-before"><span class="status-active">Active</span></span>
+              <span class="status-after"><span class="badge badge-neutral">Offboarded</span></span>
+              <label class="btn-danger-ghost status-before" for="obmodal2">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Offboard
+              </label>
+              <span class="status-after" style="font-size:0.8125rem;color:var(--neutral);">Effective Sep 15, 2026</span>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Org position</h3></div>
+            <div class="field-grid">
+              <div class="field-view"><label>Job title</label><p class="val">QA Engineer</p></div>
+              <div class="field-view"><label>Department</label><p class="val">Engineering</p></div>
+              <div class="field-view"><label>Manager</label><p class="val">Ramon Dela Cruz</p></div>
+              <div class="field-view"><label>Start date</label><p class="val mono">Jun 3, 2022</p></div>
+              <div class="field-view"><label>Employment type</label><p class="val">Regular</p></div>
+            </div>
+          </div>
+
+          <div class="modal-overlay">
+            <div class="modal-box">
+              <div class="modal-box-head">
+                <div class="modal-box-head-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86 1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0Z"/><path d="M12 9v4M12 17h.01"/></svg></div>
+                <label class="modal-close" for="obmodal2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+              </div>
+              <div>
+                <h3>Offboard Jonas Rivera?</h3>
+                <p>Sets his record to Offboarded once confirmed. Check off clearance before confirming — HR is attesting it's done, not just scheduled.</p>
+              </div>
+              <div class="modal-field-row">
+                <div class="modal-field"><label for="m2-lastday">Last working day</label><input class="plain-input" id="m2-lastday" type="text" value="Sep 15, 2026" /></div>
+                <div class="modal-field">
+                  <label for="m2-reason">Reason</label>
+                  <select class="plain-select" id="m2-reason">
+                    <option selected>Resignation</option>
+                    <option>Involuntary / termination</option>
+                    <option>End of contract</option>
+                    <option>Retirement</option>
+                  </select>
+                </div>
+              </div>
+              <p class="modal-subhead">Clearance checklist</p>
+              <input type="checkbox" id="ob2chk1" class="clearance-check" />
+              <label class="clearance-row" for="ob2chk1">Company equipment returned (laptop, ID)</label>
+              <input type="checkbox" id="ob2chk2" class="clearance-check" />
+              <label class="clearance-row" for="ob2chk2">System access revoked (email, tools)</label>
+              <input type="checkbox" id="ob2chk3" class="clearance-check" />
+              <label class="clearance-row" for="ob2chk3">Final pay &amp; clearance computed</label>
+              <input type="checkbox" id="ob2chk4" class="clearance-check" />
+              <label class="clearance-row" for="ob2chk4">Exit interview completed</label>
+              <p class="confirm-hint">Check all four to confirm.</p>
+              <div class="modal-actions">
+                <label class="btn-ghost" for="obmodal2">Cancel</label>
+                <label class="btn-primary confirm-btn" for="afterOffboard2">Confirm offboarding</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Same single-sitting shape as the Void &amp; Reissue modal on
+              decisions/ux-pages/payslip-detail-admin.html, but the confirm button stays disabled
+              until all four clearance boxes are ticked — HR can't fat-finger someone to Offboarded
+              with equipment still unreturned.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Clearance can genuinely happen in one sitting — a same-day exit. Still assumes it can
+              all be true right now: with Jonas's last day three weeks out, HR would have to either
+              leave the modal unconfirmed that long, or tick boxes that aren't actually true yet.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3 — SCHEDULE + PERSISTENT CLEARANCE TRACKER ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="obdrawer3">Open "Offboard" drawer</label>
+          <span class="sep">·</span>
+          <label for="obStage3">1. Preview: after scheduling</label>
+          <label for="obDone3">2. Preview: after clearance complete</label>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <a class="back-link" href="#"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"/></svg>People Directory</a>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="identity-strip">
+            <span class="avatar-lg">JR</span>
+            <div class="identity-who">
+              <h2>Jonas Rivera</h2>
+              <p>QA Engineer · Engineering</p>
+            </div>
+            <div class="identity-meta">
+              <span class="id">EMP-0089</span>
+              <span class="o3-active-el status-active">Active</span>
+              <span class="o3-offboarding-el badge badge-caution">Offboarding</span>
+              <span class="o3-offboarded-el badge badge-neutral">Offboarded</span>
+              <label class="btn-danger-ghost o3-active-el" for="obdrawer3">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Offboard
+              </label>
+            </div>
+          </div>
+
+          <div class="section">
+            <div class="section-head"><h3>Org position</h3></div>
+            <div class="field-grid">
+              <div class="field-view"><label>Job title</label><p class="val">QA Engineer</p></div>
+              <div class="field-view"><label>Department</label><p class="val">Engineering</p></div>
+              <div class="field-view"><label>Manager</label><p class="val">Ramon Dela Cruz</p></div>
+              <div class="field-view"><label>Start date</label><p class="val mono">Jun 3, 2022</p></div>
+              <div class="field-view"><label>Employment type</label><p class="val">Regular</p></div>
+            </div>
+          </div>
+
+          <div class="section separation-panel">
+            <div class="section-head">
+              <div>
+                <h3>Separation</h3>
+                <p class="sub">Reason: Resignation · Rehire eligible: Yes</p>
+              </div>
+            </div>
+
+            <div class="sep-inprogress">
+              <div class="sep-summary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                <p>Last working day <b>Sep 15, 2026</b> — 23 days out. Clearance can be checked off as it happens; "Mark offboarded" unlocks once the day passes and everything below is done.</p>
+              </div>
+              <div class="checklist-row"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg><span class="txt">Exit interview completed</span><span class="badge badge-positive">Done</span></div>
+              <div class="checklist-row"><svg class="check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg><span class="txt">Knowledge transfer notes filed</span><span class="badge badge-positive">Done</span></div>
+              <div class="checklist-row"><svg class="pending-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg><span class="txt">Company equipment returned (laptop, ID)</span><span class="badge badge-caution">Pending</span></div>
+              <div class="checklist-row"><svg class="pending-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg><span class="txt">System access revoked (email, tools)</span><span class="badge badge-caution">Pending</span></div>
+              <div class="checklist-row"><svg class="pending-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/></svg><span class="txt">Final pay &amp; clearance computed</span><span class="badge badge-caution">Pending</span></div>
+              <div class="sep-actions">
+                <button class="btn-primary" type="button" disabled style="opacity:0.4;cursor:not-allowed;">Mark offboarded</button>
+              </div>
+            </div>
+
+            <div class="sep-done">
+              <div class="sep-summary">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>
+                <p>Offboarded effective <b>Sep 15, 2026</b>. Clearance closed out, record locked for edits.</p>
+              </div>
+              <div class="sep-done-tag"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>Equipment returned, access revoked, final pay released, exit interview logged.</div>
+            </div>
+          </div>
+
+          <div class="drawer-overlay"></div>
+          <div class="drawer">
+            <div class="drawer-head">
+              <div class="drawer-head-txt">
+                <p class="eyebrow2">Schedule offboarding</p>
+                <h3>Jonas Rivera</h3>
+                <p>Records his separation and opens a Separation panel on this page to track clearance. Status becomes "Offboarding" now — not "Offboarded" yet.</p>
+              </div>
+              <label class="drawer-close" for="obdrawer3"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+            </div>
+            <div class="drawer-body">
+              <div class="drawer-field">
+                <label for="d3-lastday">Last working day</label>
+                <input class="plain-input" id="d3-lastday" type="text" value="Sep 15, 2026" />
+              </div>
+              <div class="drawer-field">
+                <label for="d3-reason">Reason for separation</label>
+                <select class="plain-select" id="d3-reason">
+                  <option selected>Resignation</option>
+                  <option>Involuntary / termination</option>
+                  <option>End of contract</option>
+                  <option>Retirement</option>
+                  <option>Other</option>
+                </select>
+              </div>
+              <label class="check-inline"><input type="checkbox" checked /> Eligible for rehire</label>
+              <div class="drawer-field">
+                <label for="d3-notes">Notes</label>
+                <textarea class="plain-input" id="d3-notes" rows="3">Two weeks' notice given verbally Aug 21; resignation letter on file.</textarea>
+              </div>
+            </div>
+            <div class="drawer-foot">
+              <label class="btn-ghost" for="obdrawer3">Cancel</label>
+              <label class="btn-primary" for="obStage3">Schedule offboarding</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Matches how separation actually works — a last day set weeks out, clearance done piecemeal
+              in between. Mirrors Employee Detail's own Onboarding checklist in reverse (same
+              checklist-row component, same "Pending → Mark done" shape), so the record tells the truth
+              at every point instead of only at the end.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Most build cost of the three, and the only one that touches the badge system — a real
+              "Offboarding" (Caution) status, not just a form. That's a genuine scope question flagged
+              above, not decided by this mockup: picking this means People Directory needs to show and
+              probably filter on it too.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+</div>

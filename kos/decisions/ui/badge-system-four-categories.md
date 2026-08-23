@@ -32,13 +32,17 @@ backgrounds unchanged.
 - Performance review (PIP outcome): Passed → Positive, Not Passed → Negative, Extended → Caution
 - "On PIP" profile flag → Caution
 - Loan: Active → Neutral, Paid off → Positive
+- Employee status: Offboarding (separation scheduled, clearance in
+  progress) → Caution, Offboarded (terminal) → Neutral — added
+  2026-08-23 with [[offboarding-flow-schedule-clearance-tracker]]
 
 **Rule:** badges are for deviation, not every state. Certifications and
 employee status show no badge in their normal state (valid cert, active
 employee) — a badge appears only for Expiring soon/Expired (Caution/
-Negative) or Offboarded (Neutral). Recruitment and PIP are the
-exception: every value gets a badge there, since the badge is the
-primary way those pipelines are read at a glance.
+Negative), Offboarding in progress (Caution), or Offboarded (Neutral).
+Recruitment and PIP are the exception: every value gets a badge there,
+since the badge is the primary way those pipelines are read at a
+glance.
 
 See [[dark-mode-deferred-tokenize-colors-now]] — these four categories
 should be implemented as named tokens, same reasoning as the base

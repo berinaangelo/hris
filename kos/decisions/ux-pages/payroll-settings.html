@@ -170,6 +170,16 @@
   .settings-link-row .txt p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
   .section-caption { font-size: 0.75rem; color: var(--neutral); padding: 0 1.5rem 1.15rem; margin-top: -0.5rem; }
 
+  /* ---------- parked/disabled settings (Pay Schedule lock, OT Rules, Deduction Defaults) ---------- */
+
+  .settings-row h3 .lock-ic { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; color: var(--neutral); vertical-align: -2px; margin-left: 0.4rem; }
+  .settings-row h3 .lock-ic svg { width: 13px; height: 13px; }
+  .settings-field input.disabled-input {
+    width: 100%; padding: 0.5rem 0.65rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-mono); font-size: 0.8125rem; color: var(--neutral); background: var(--surface);
+    cursor: not-allowed;
+  }
+
   /* ---------- toggle switch (shared visual, state lives in top-level checkboxes) ---------- */
 
   .toggle-switch { display: inline-flex; align-items: center; gap: 0.65rem; cursor: pointer; flex: 0 0 auto; }
@@ -296,7 +306,12 @@
         <b>Pay Schedule and Rate Tables sections are shown for page context
         only</b> — identical across all three options, not the subject of
         this comparison (Rate Tables already has its own decision, see
-        decisions/ui/rate-tables-landing-cards-edit-drawer.md). Projected
+        decisions/ui/rate-tables-landing-cards-edit-drawer.md). Overtime
+        Rules and Deduction Defaults (added 2026-08-23) are locked
+        placeholders, not part of any comparison — disabled fields, no
+        interactive state, parked here in case payroll scope expands to
+        cover them later; per the plan, OT and deductions stay manual line
+        items per run for v2. Projected
         payout figures are illustrative mock data, not computed. Viewing
         persona: Andrea Cruz, HR Admin, today is Aug 22, 2026 — the toggle
         starts ON (the legally-expected default) in every option; click it
@@ -339,7 +354,7 @@
           <div class="settings-card">
             <div class="settings-row">
               <div>
-                <h3>Pay Schedule</h3>
+                <h3>Pay Schedule<span class="lock-ic" title="Not configurable in v2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></h3>
                 <p class="settings-desc">Semi-monthly, the PH standard — one schedule per company for v2.</p>
               </div>
               <span class="badge badge-neutral">Fixed for v2</span>
@@ -372,6 +387,35 @@
                 <span class="toggle-state-lbl on-lbl">On</span>
                 <span class="toggle-track"><span class="thumb"></span></span>
               </label>
+            </div>
+          </div>
+
+          <div class="settings-card locked-card">
+            <div class="settings-row">
+              <div>
+                <h3>Overtime Rules<span class="lock-ic" title="Not configurable in v2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></h3>
+                <p class="settings-desc">OT is entered as a manual line item per payroll run for v2 — automatic multiplier rules aren't wired up. Parked here for when payroll scope is revisited.</p>
+              </div>
+              <span class="badge badge-neutral">Parked for later</span>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field"><label>Regular OT multiplier</label><input class="disabled-input" type="text" value="1.25×" disabled /></div>
+              <div class="settings-field"><label>Rest day / holiday multiplier</label><input class="disabled-input" type="text" value="1.30×" disabled /></div>
+              <div class="settings-field"><label>Night differential</label><input class="disabled-input" type="text" value="10%" disabled /></div>
+            </div>
+          </div>
+
+          <div class="settings-card locked-card">
+            <div class="settings-row">
+              <div>
+                <h3>Deduction Defaults<span class="lock-ic" title="Not configurable in v2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></h3>
+                <p class="settings-desc">Deductions are entered as manual line items per payroll run for v2 — no default rules apply automatically. Parked here for when payroll scope is revisited.</p>
+              </div>
+              <span class="badge badge-neutral">Parked for later</span>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field"><label>Cash advance repayment cap</label><input class="disabled-input" type="text" value="No cap set" disabled /></div>
+              <div class="settings-field"><label>Default deduction categories</label><input class="disabled-input" type="text" value="Bonus, Deduction, Cash advance, OT" disabled /></div>
             </div>
           </div>
 
@@ -422,7 +466,7 @@
           <div class="settings-card">
             <div class="settings-row">
               <div>
-                <h3>Pay Schedule</h3>
+                <h3>Pay Schedule<span class="lock-ic" title="Not configurable in v2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></h3>
                 <p class="settings-desc">Semi-monthly, the PH standard — one schedule per company for v2.</p>
               </div>
               <span class="badge badge-neutral">Fixed for v2</span>
@@ -464,6 +508,35 @@
               </div>
             </div>
             <p class="disabled-note">13th month pay is currently <b>disabled</b> for this company — no payout will be computed at year-end.</p>
+          </div>
+
+          <div class="settings-card locked-card">
+            <div class="settings-row">
+              <div>
+                <h3>Overtime Rules<span class="lock-ic" title="Not configurable in v2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></h3>
+                <p class="settings-desc">OT is entered as a manual line item per payroll run for v2 — automatic multiplier rules aren't wired up. Parked here for when payroll scope is revisited.</p>
+              </div>
+              <span class="badge badge-neutral">Parked for later</span>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field"><label>Regular OT multiplier</label><input class="disabled-input" type="text" value="1.25×" disabled /></div>
+              <div class="settings-field"><label>Rest day / holiday multiplier</label><input class="disabled-input" type="text" value="1.30×" disabled /></div>
+              <div class="settings-field"><label>Night differential</label><input class="disabled-input" type="text" value="10%" disabled /></div>
+            </div>
+          </div>
+
+          <div class="settings-card locked-card">
+            <div class="settings-row">
+              <div>
+                <h3>Deduction Defaults<span class="lock-ic" title="Not configurable in v2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></h3>
+                <p class="settings-desc">Deductions are entered as manual line items per payroll run for v2 — no default rules apply automatically. Parked here for when payroll scope is revisited.</p>
+              </div>
+              <span class="badge badge-neutral">Parked for later</span>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field"><label>Cash advance repayment cap</label><input class="disabled-input" type="text" value="No cap set" disabled /></div>
+              <div class="settings-field"><label>Default deduction categories</label><input class="disabled-input" type="text" value="Bonus, Deduction, Cash advance, OT" disabled /></div>
+            </div>
           </div>
 
           <div style="height:1.25rem;"></div>
@@ -515,7 +588,7 @@
           <div class="settings-card">
             <div class="settings-row">
               <div>
-                <h3>Pay Schedule</h3>
+                <h3>Pay Schedule<span class="lock-ic" title="Not configurable in v2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></h3>
                 <p class="settings-desc">Semi-monthly, the PH standard — one schedule per company for v2.</p>
               </div>
               <span class="badge badge-neutral">Fixed for v2</span>
@@ -558,6 +631,35 @@
             <p class="exemption-line" style="padding:0 1.5rem 1.15rem; font-size:0.8125rem; color:var(--ink-light);">
               <b style="color:var(--ink); font-weight:600;">Exemption on file:</b> All employees are managerial · recorded by Andrea Cruz, Aug 22, 2026
             </p>
+          </div>
+
+          <div class="settings-card locked-card">
+            <div class="settings-row">
+              <div>
+                <h3>Overtime Rules<span class="lock-ic" title="Not configurable in v2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></h3>
+                <p class="settings-desc">OT is entered as a manual line item per payroll run for v2 — automatic multiplier rules aren't wired up. Parked here for when payroll scope is revisited.</p>
+              </div>
+              <span class="badge badge-neutral">Parked for later</span>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field"><label>Regular OT multiplier</label><input class="disabled-input" type="text" value="1.25×" disabled /></div>
+              <div class="settings-field"><label>Rest day / holiday multiplier</label><input class="disabled-input" type="text" value="1.30×" disabled /></div>
+              <div class="settings-field"><label>Night differential</label><input class="disabled-input" type="text" value="10%" disabled /></div>
+            </div>
+          </div>
+
+          <div class="settings-card locked-card">
+            <div class="settings-row">
+              <div>
+                <h3>Deduction Defaults<span class="lock-ic" title="Not configurable in v2"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></h3>
+                <p class="settings-desc">Deductions are entered as manual line items per payroll run for v2 — no default rules apply automatically. Parked here for when payroll scope is revisited.</p>
+              </div>
+              <span class="badge badge-neutral">Parked for later</span>
+            </div>
+            <div class="settings-fields">
+              <div class="settings-field"><label>Cash advance repayment cap</label><input class="disabled-input" type="text" value="No cap set" disabled /></div>
+              <div class="settings-field"><label>Default deduction categories</label><input class="disabled-input" type="text" value="Bonus, Deduction, Cash advance, OT" disabled /></div>
+            </div>
           </div>
 
           <div style="height:1.25rem;"></div>

@@ -1,0 +1,685 @@
+<title>HRIS Org Chart Concepts</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, HR Admin — no Team tab) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  .card-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.8125rem; flex: 0 0 auto; }
+  .avatar-lg { width: 56px; height: 56px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; flex: 0 0 auto; }
+  /* company node — square, not circular, so it reads as "not a person" at a glance */
+  .avatar-co { border-radius: 8px; background: var(--ink); }
+
+  .dept-tag { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--ink-light); background: var(--surface); padding: 0.2rem 0.5rem; border-radius: 999px; display: inline-block; }
+
+  /* ---------- toolbar: search ---------- */
+
+  .toolbar { display: flex; align-items: center; gap: 0.75rem; padding: 1.25rem 2rem 0; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1; min-width: 220px; max-width: 340px; }
+  .search-wrap svg { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--neutral); }
+  .search-input {
+    width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.1rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); background: var(--white);
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .toolbar-spacer { flex: 1; }
+  .toolbar-count { font-size: 0.8125rem; color: var(--neutral); white-space: nowrap; }
+  .toolbar-hint { font-size: 0.8125rem; color: var(--neutral); padding: 0.35rem 2rem 0; }
+
+  /* ---------- chevron (shared, expand/collapse) ---------- */
+
+  .chevron { width: 14px; height: 14px; color: var(--neutral); flex: 0 0 auto; transition: transform var(--t); transform: rotate(-90deg); }
+
+  /* ================= Option 1: classic top-down tree ================= */
+
+  .chart-canvas { overflow-x: auto; padding: 2rem 2rem 2.5rem; }
+  .org-tree { display: flex; flex-direction: column; align-items: center; min-width: 720px; width: max-content; margin: 0 auto; }
+
+  .node-card {
+    display: flex; align-items: center; gap: 0.65rem; border: 1px solid var(--border); border-radius: var(--radius);
+    background: var(--white); padding: 0.65rem 0.85rem; min-width: 200px; text-align: left;
+  }
+  .node-card h4 { font-size: 0.875rem; font-weight: 700; }
+  .node-card .role { font-size: 0.75rem; color: var(--neutral); margin-top: 0.05rem; }
+  .node-root { box-shadow: var(--shadow-card); border-color: var(--ink); }
+  .node-root h4 { color: var(--white); }
+  .node-root { background: var(--ink); }
+  .node-root .role { color: #C7CEDE; }
+
+  label.node-card { cursor: pointer; user-select: none; transition: border-color var(--t), box-shadow var(--t); }
+  label.node-card:hover { border-color: var(--accent); box-shadow: var(--shadow-card); }
+  .node-card .who-text { display: flex; flex-direction: column; gap: 0.2rem; }
+  .node-card .count { font-size: 0.6875rem; color: var(--neutral); }
+
+  .tree-root { position: relative; }
+  .tree-root::after { content: ""; position: absolute; bottom: -2.25rem; left: 50%; width: 1px; height: 2.25rem; background: var(--border); }
+
+  .tree-row { display: flex; gap: 2.25rem; padding-top: 2.25rem; position: relative; }
+  .tree-row::before { content: ""; position: absolute; top: 0; left: 6%; right: 6%; height: 1px; background: var(--border); }
+
+  .tree-branch, .tree-leaf-top { position: relative; }
+  .tree-branch::before, .tree-leaf-top::before { content: ""; position: absolute; top: -2.25rem; left: 50%; width: 1px; height: 2.25rem; background: var(--border); }
+
+  .tree-children {
+    display: none; flex-wrap: wrap; gap: 0.6rem; justify-content: center; max-width: 620px;
+    border: 1px dashed var(--border); border-radius: 10px; background: var(--surface);
+    padding: 0.85rem; margin-top: 1.35rem; position: relative;
+  }
+  .tree-children::before { content: ""; position: absolute; top: -1.35rem; left: 50%; width: 1px; height: 1.35rem; background: var(--border); }
+  .tree-children .node-card { min-width: 172px; }
+
+  #node-eng:checked ~ .tree-children[data-node="eng"],
+  #node-fin:checked ~ .tree-children[data-node="fin"],
+  #node-sales:checked ~ .tree-children[data-node="sales"] { display: flex; }
+  #node-eng:checked ~ label .chevron[data-node="eng"],
+  #node-fin:checked ~ label .chevron[data-node="fin"],
+  #node-sales:checked ~ label .chevron[data-node="sales"] { transform: rotate(0deg); }
+
+  /* ================= Option 2: indented nested list ================= */
+
+  .tree-list { padding: 0.5rem 2rem 2rem; }
+  .list-row {
+    display: flex; align-items: center; gap: 0.65rem; padding: 0.65rem 0.5rem; border-bottom: 1px solid var(--border);
+  }
+  .list-row .who { display: flex; flex-direction: column; gap: 0.05rem; min-width: 0; }
+  .list-row h4 { font-size: 0.875rem; font-weight: 700; }
+  .list-row p { font-size: 0.75rem; color: var(--neutral); }
+  .list-row .spacer { flex: 1; }
+  .list-row .count { font-size: 0.75rem; color: var(--neutral); white-space: nowrap; }
+  .list-row .view-link { font-size: 0.75rem; font-weight: 600; color: var(--accent); opacity: 0; transition: opacity var(--t); white-space: nowrap; }
+  .list-row:hover .view-link { opacity: 1; }
+
+  label.list-row { cursor: pointer; user-select: none; }
+  label.list-row:hover { background: var(--badge-caution-bg); }
+
+  .list-root { background: var(--ink); color: var(--white); border-radius: 8px; border-bottom: none; margin-bottom: 0.4rem; }
+  .list-root h4 { color: var(--white); }
+  .list-root p { color: #C7CEDE; }
+
+  .depth-1 { padding-left: 1.6rem; }
+  .depth-2 { padding-left: 3.2rem; }
+
+  .list-body { display: none; flex-direction: column; }
+  #l-eng:checked ~ .list-body[data-node="eng"],
+  #l-fin:checked ~ .list-body[data-node="fin"],
+  #l-sales:checked ~ .list-body[data-node="sales"] { display: flex; }
+  #l-eng:checked ~ label .chevron[data-node="eng"],
+  #l-fin:checked ~ label .chevron[data-node="fin"],
+  #l-sales:checked ~ label .chevron[data-node="sales"] { transform: rotate(0deg); }
+
+  /* ================= Option 3: person-centered chain view ================= */
+
+  .chip-picker { display: flex; gap: 0.5rem; flex-wrap: wrap; padding: 1.25rem 2rem 0; }
+  .chip-picker label {
+    font-size: 0.8125rem; font-weight: 600; padding: 0.45rem 0.85rem; border-radius: 999px; border: 1px solid var(--border);
+    background: var(--white); color: var(--ink-light); cursor: pointer; white-space: nowrap; user-select: none;
+    transition: background var(--t), color var(--t), border-color var(--t);
+  }
+  #p-ramon:checked ~ .frame .chip-picker label[for="p-ramon"],
+  #p-mikaela:checked ~ .frame .chip-picker label[for="p-mikaela"],
+  #p-ferdinand:checked ~ .frame .chip-picker label[for="p-ferdinand"],
+  #p-isabel:checked ~ .frame .chip-picker label[for="p-isabel"],
+  #p-miguel:checked ~ .frame .chip-picker label[for="p-miguel"],
+  #p-andrea:checked ~ .frame .chip-picker label[for="p-andrea"] { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+  .chain-panel { display: none; padding: 1.5rem 2rem 2rem; flex-direction: column; align-items: center; gap: 1.5rem; }
+  #p-ramon:checked ~ .frame .chain-panel[data-p="ramon"],
+  #p-mikaela:checked ~ .frame .chain-panel[data-p="mikaela"],
+  #p-ferdinand:checked ~ .frame .chain-panel[data-p="ferdinand"],
+  #p-isabel:checked ~ .frame .chain-panel[data-p="isabel"],
+  #p-miguel:checked ~ .frame .chain-panel[data-p="miguel"],
+  #p-andrea:checked ~ .frame .chain-panel[data-p="andrea"] { display: flex; }
+
+  .crumb { display: flex; align-items: center; gap: 0.4rem; font-size: 0.8125rem; color: var(--neutral); flex-wrap: wrap; justify-content: center; }
+  .crumb svg { width: 13px; height: 13px; flex: 0 0 auto; }
+  .crumb .current { color: var(--ink); font-weight: 700; }
+
+  .focal-card {
+    display: flex; align-items: center; gap: 0.9rem; border: 1px solid var(--ink); border-radius: var(--radius);
+    background: var(--white); box-shadow: var(--shadow-card); padding: 1.1rem 1.4rem; min-width: 280px;
+  }
+  .focal-card h3 { font-size: 1.0625rem; font-weight: 800; }
+  .focal-card .role { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.15rem; }
+  .focal-card .tags { display: flex; gap: 0.4rem; margin-top: 0.4rem; align-items: center; }
+
+  .reports-section { width: 100%; max-width: 640px; }
+  .reports-section h4 { font-size: 0.8125rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: var(--neutral); margin-bottom: 0.75rem; text-align: center; }
+  .reports-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 0.75rem; }
+  .report-card {
+    border: 1px solid var(--border); border-radius: var(--radius); padding: 0.85rem; display: flex; align-items: center; gap: 0.6rem;
+  }
+  .report-card h4 { font-size: 0.875rem; font-weight: 700; }
+  .report-card p { font-size: 0.75rem; color: var(--neutral); }
+
+  .empty-state { display: flex; flex-direction: column; align-items: center; gap: 0.5rem; padding: 1.5rem 1rem; color: var(--neutral); text-align: center; }
+  .empty-state svg { width: 28px; height: 28px; color: var(--neutral); opacity: 0.6; }
+  .empty-state h4 { font-size: 0.875rem; font-weight: 700; color: var(--ink-light); }
+  .empty-state p { font-size: 0.8125rem; }
+
+  @media (max-width: 480px) {
+    .toolbar, .chart-canvas, .tree-list, .chip-picker, .chain-panel { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" checked />
+<input class="tab" type="radio" name="tab" id="tab2" />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="checkbox" id="node-eng" checked />
+<input class="state" type="checkbox" id="node-fin" checked />
+<input class="state" type="checkbox" id="node-sales" checked />
+<input class="state" type="checkbox" id="l-eng" checked />
+<input class="state" type="checkbox" id="l-fin" checked />
+<input class="state" type="checkbox" id="l-sales" checked />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Org Chart / Hierarchy Visualization — three recommendations</h1>
+      <p class="sub">
+        Where "who reports to whom" becomes visible without asking around —
+        the v1 org-structure field (<code>manager_id</code>) surfaced as its
+        own view, per <a href="../projects/hris/PLAN.md">the plan's</a> "org
+        structure drives directory/org-chart view" line. What changes across
+        the three is how an HR admin (or anyone) reads the company's shape:
+        a classic top-down tree, a scalable indented list, or a
+        person-centered "who's above/below them" navigator.
+      </p>
+      <div class="assumptions">
+        <b>Carried over, not re-decided here:</b> same roster as
+        People Directory — Ramon Dela Cruz's 5 Engineering/Design reports
+        (Mikaela Santos, Paolo Villanueva, Carlo Bautista, Diego Reyes,
+        Grace Lim), Ferdinand Ocampo's Finance (Isabel Torres), Miguel
+        Santos's Sales (Bea Fernandez), and Andrea Cruz in People. The
+        directory data shows all four department heads with no manager
+        (<span class="mono">—</span>) — rather than inventing a CEO/Owner
+        person not in the data, all three options fan them from a
+        company-level root ("Alon Pay", the illustrative employer name
+        already used for
+        <a href="job-application-form.html">Job Application Form</a>'s
+        white-labeling). Offboarded employees (Jonas Rivera) are excluded
+        by default — an org chart's job is who reports to whom right now,
+        not headcount history. Single-manager reporting only, no
+        dotted-line/matrix relationships, matching the plan's scope.
+        Search is illustrative in all three.
+      </div>
+      <nav class="tabbar">
+        <label for="tab1"><span class="n">01</span> Classic top-down tree <span class="chosen-badge">Chosen</span></label>
+        <label for="tab2"><span class="n">02</span> Indented nested list</label>
+        <label for="tab3"><span class="n">03</span> Person-centered chain view</label>
+      </nav>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============= OPTION 1: classic top-down tree ============= -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 20h16M4 20V8l8-4 8 4v12M9 20v-6h6v6"/></svg></span>HRIS</span>
+            <nav class="nav-tabs"><a href="#">Me</a><a class="active" href="#">Company</a></nav>
+            <span class="nav-spacer"></span>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input class="search-input" type="text" placeholder="Search by name or role..." />
+            </div>
+            <div class="toolbar-spacer"></div>
+            <span class="toolbar-count mono">12 people · 5 departments</span>
+          </div>
+          <p class="toolbar-hint">Click a manager card to collapse or expand their branch.</p>
+
+          <div class="chart-canvas">
+            <div class="org-tree">
+
+              <div class="tree-root">
+                <div class="node-card node-root">
+                  <span class="avatar avatar-co">AP</span>
+                  <div class="who-text"><h4>Alon Pay</h4><p class="role">Company</p></div>
+                </div>
+              </div>
+
+              <div class="tree-row">
+
+                <div class="tree-branch">
+                  <label class="node-card" for="node-eng">
+                    <span class="avatar">RD</span>
+                    <div class="who-text">
+                      <h4>Ramon Dela Cruz</h4>
+                      <p class="role">Engineering Manager</p>
+                      <span class="count mono">5 reports</span>
+                    </div>
+                    <svg class="chevron" data-node="eng" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </label>
+                  <div class="tree-children" data-node="eng">
+                    <div class="node-card"><span class="avatar">MS</span><div class="who-text"><h4>Mikaela Santos</h4><p class="role">Software Engineer II</p></div></div>
+                    <div class="node-card"><span class="avatar">PV</span><div class="who-text"><h4>Paolo Villanueva</h4><p class="role">QA Engineer</p></div></div>
+                    <div class="node-card"><span class="avatar">CB</span><div class="who-text"><h4>Carlo Bautista</h4><p class="role">Backend Engineer</p></div></div>
+                    <div class="node-card"><span class="avatar">DR</span><div class="who-text"><h4>Diego Reyes</h4><p class="role">Support Engineer</p></div></div>
+                    <div class="node-card"><span class="avatar">GL</span><div class="who-text"><h4>Grace Lim</h4><p class="role">Product Designer</p></div></div>
+                  </div>
+                </div>
+
+                <div class="tree-branch">
+                  <label class="node-card" for="node-fin">
+                    <span class="avatar">FO</span>
+                    <div class="who-text">
+                      <h4>Ferdinand Ocampo</h4>
+                      <p class="role">Finance Manager</p>
+                      <span class="count mono">1 report</span>
+                    </div>
+                    <svg class="chevron" data-node="fin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </label>
+                  <div class="tree-children" data-node="fin">
+                    <div class="node-card"><span class="avatar">IT</span><div class="who-text"><h4>Isabel Torres</h4><p class="role">Accountant</p></div></div>
+                  </div>
+                </div>
+
+                <div class="tree-branch">
+                  <label class="node-card" for="node-sales">
+                    <span class="avatar">MS</span>
+                    <div class="who-text">
+                      <h4>Miguel Santos</h4>
+                      <p class="role">Sales Lead</p>
+                      <span class="count mono">1 report</span>
+                    </div>
+                    <svg class="chevron" data-node="sales" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+                  </label>
+                  <div class="tree-children" data-node="sales">
+                    <div class="node-card"><span class="avatar">BF</span><div class="who-text"><h4>Bea Fernandez</h4><p class="role">Sales Associate</p></div></div>
+                  </div>
+                </div>
+
+                <div class="tree-leaf-top">
+                  <div class="node-card"><span class="avatar">AC</span><div class="who-text"><h4>Andrea Cruz</h4><p class="role">HR Admin</p></div></div>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>The default mental model everyone already has for "org chart" — boxes and lines, shape of the
+              company visible in one glance (Jakob's Law). Collapsing a branch is one click on the manager
+              card itself, no separate control to learn.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Company is small enough that the tree fits on screen (or one horizontal scroll) — true for
+              this roster today. A department with 30+ reports would need its branch collapsed by default
+              to stay readable; not a problem yet, worth flagging for later headcount.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============= OPTION 2: indented nested list ============= -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 20h16M4 20V8l8-4 8 4v12M9 20v-6h6v6"/></svg></span>HRIS</span>
+            <nav class="nav-tabs"><a href="#">Me</a><a class="active" href="#">Company</a></nav>
+            <span class="nav-spacer"></span>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input class="search-input" type="text" placeholder="Search by name or role..." />
+            </div>
+            <div class="toolbar-spacer"></div>
+            <span class="toolbar-count mono">12 people · 5 departments</span>
+          </div>
+          <p class="toolbar-hint">One scrollable column — stays a single column no matter how deep or wide the org gets.</p>
+
+          <div class="tree-list">
+            <div class="list-row list-root">
+              <span class="avatar avatar-co">AP</span>
+              <div class="who"><h4>Alon Pay</h4><p>Company</p></div>
+            </div>
+
+            <label class="list-row depth-1" for="l-eng">
+              <svg class="chevron" data-node="eng" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              <span class="avatar">RD</span>
+              <div class="who"><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div>
+              <span class="dept-tag">Engineering</span>
+              <span class="spacer"></span>
+              <span class="count mono">5 reports</span>
+            </label>
+            <div class="list-body" data-node="eng">
+              <div class="list-row depth-2"><span class="avatar">MS</span><div class="who"><h4>Mikaela Santos</h4><p>Software Engineer II</p></div><span class="dept-tag">Engineering</span><span class="spacer"></span><span class="view-link">View profile →</span></div>
+              <div class="list-row depth-2"><span class="avatar">PV</span><div class="who"><h4>Paolo Villanueva</h4><p>QA Engineer</p></div><span class="dept-tag">Engineering</span><span class="spacer"></span><span class="view-link">View profile →</span></div>
+              <div class="list-row depth-2"><span class="avatar">CB</span><div class="who"><h4>Carlo Bautista</h4><p>Backend Engineer</p></div><span class="dept-tag">Engineering</span><span class="spacer"></span><span class="view-link">View profile →</span></div>
+              <div class="list-row depth-2"><span class="avatar">DR</span><div class="who"><h4>Diego Reyes</h4><p>Support Engineer</p></div><span class="dept-tag">Engineering</span><span class="spacer"></span><span class="view-link">View profile →</span></div>
+              <div class="list-row depth-2"><span class="avatar">GL</span><div class="who"><h4>Grace Lim</h4><p>Product Designer</p></div><span class="dept-tag">Design</span><span class="spacer"></span><span class="view-link">View profile →</span></div>
+            </div>
+
+            <label class="list-row depth-1" for="l-fin">
+              <svg class="chevron" data-node="fin" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              <span class="avatar">FO</span>
+              <div class="who"><h4>Ferdinand Ocampo</h4><p>Finance Manager</p></div>
+              <span class="dept-tag">Finance</span>
+              <span class="spacer"></span>
+              <span class="count mono">1 report</span>
+            </label>
+            <div class="list-body" data-node="fin">
+              <div class="list-row depth-2"><span class="avatar">IT</span><div class="who"><h4>Isabel Torres</h4><p>Accountant</p></div><span class="dept-tag">Finance</span><span class="spacer"></span><span class="view-link">View profile →</span></div>
+            </div>
+
+            <label class="list-row depth-1" for="l-sales">
+              <svg class="chevron" data-node="sales" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+              <span class="avatar">MS</span>
+              <div class="who"><h4>Miguel Santos</h4><p>Sales Lead</p></div>
+              <span class="dept-tag">Sales</span>
+              <span class="spacer"></span>
+              <span class="count mono">1 report</span>
+            </label>
+            <div class="list-body" data-node="sales">
+              <div class="list-row depth-2"><span class="avatar">BF</span><div class="who"><h4>Bea Fernandez</h4><p>Sales Associate</p></div><span class="dept-tag">Sales</span><span class="spacer"></span><span class="view-link">View profile →</span></div>
+            </div>
+
+            <div class="list-row depth-1" style="border-bottom: none;">
+              <span class="avatar">AC</span>
+              <div class="who"><h4>Andrea Cruz</h4><p>HR Admin</p></div>
+              <span class="dept-tag">People</span>
+              <span class="spacer"></span>
+              <span class="view-link">View profile →</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Scales without limit — a 300-person company is still one scrollable column, never wider than
+              the screen. Reuses the exact accordion mechanic already built for
+              [[people-directory-card-grid-with-list-toggle|People Directory]]'s department groups, so
+              nothing new to learn on the build side either.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>The task is finding a specific person or drilling into one branch, not admiring the company's
+              overall shape — the tree's fan-out visual is gone, replaced by indentation depth, which reads
+              slower for "who's biggest" at a glance.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============= OPTION 3: person-centered chain view ============= -->
+    <div class="frame-shell" data-n="3">
+      <input class="state" type="radio" name="p" id="p-ramon" checked />
+      <input class="state" type="radio" name="p" id="p-mikaela" />
+      <input class="state" type="radio" name="p" id="p-ferdinand" />
+      <input class="state" type="radio" name="p" id="p-isabel" />
+      <input class="state" type="radio" name="p" id="p-miguel" />
+      <input class="state" type="radio" name="p" id="p-andrea" />
+      <div class="frame">
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M4 20h16M4 20V8l8-4 8 4v12M9 20v-6h6v6"/></svg></span>HRIS</span>
+            <nav class="nav-tabs"><a href="#">Me</a><a class="active" href="#">Company</a></nav>
+            <span class="nav-spacer"></span>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input class="search-input" type="text" placeholder="Search by name or role..." />
+            </div>
+          </div>
+          <p class="toolbar-hint">Pick anyone to see their reporting chain — demo picker below stands in for the search-to-select flow.</p>
+
+          <div class="chip-picker">
+            <label for="p-ramon">Ramon Dela Cruz</label>
+            <label for="p-mikaela">Mikaela Santos</label>
+            <label for="p-ferdinand">Ferdinand Ocampo</label>
+            <label for="p-isabel">Isabel Torres</label>
+            <label for="p-miguel">Miguel Santos</label>
+            <label for="p-andrea">Andrea Cruz</label>
+          </div>
+
+          <div class="chain-panel" data-p="ramon">
+            <div class="crumb"><span>Alon Pay</span></div>
+            <div class="focal-card">
+              <span class="avatar-lg">RD</span>
+              <div><h3>Ramon Dela Cruz</h3><p class="role">Engineering Manager</p><div class="tags"><span class="dept-tag">Engineering</span></div></div>
+            </div>
+            <div class="reports-section">
+              <h4>Direct reports (5)</h4>
+              <div class="reports-grid">
+                <div class="report-card"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer II</p></div></div>
+                <div class="report-card"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div>
+                <div class="report-card"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div>
+                <div class="report-card"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div>
+                <div class="report-card"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chain-panel" data-p="mikaela">
+            <div class="crumb">
+              <span>Alon Pay</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+              <span>Ramon Dela Cruz</span>
+            </div>
+            <div class="focal-card">
+              <span class="avatar-lg">MS</span>
+              <div><h3>Mikaela Santos</h3><p class="role">Software Engineer II</p><div class="tags"><span class="dept-tag">Engineering</span></div></div>
+            </div>
+            <div class="reports-section">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+                <h4>No direct reports</h4>
+                <p>Individual contributor role.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chain-panel" data-p="ferdinand">
+            <div class="crumb"><span>Alon Pay</span></div>
+            <div class="focal-card">
+              <span class="avatar-lg">FO</span>
+              <div><h3>Ferdinand Ocampo</h3><p class="role">Finance Manager</p><div class="tags"><span class="dept-tag">Finance</span></div></div>
+            </div>
+            <div class="reports-section">
+              <h4>Direct reports (1)</h4>
+              <div class="reports-grid">
+                <div class="report-card"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chain-panel" data-p="isabel">
+            <div class="crumb">
+              <span>Alon Pay</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m9 6 6 6-6 6"/></svg>
+              <span>Ferdinand Ocampo</span>
+            </div>
+            <div class="focal-card">
+              <span class="avatar-lg">IT</span>
+              <div><h3>Isabel Torres</h3><p class="role">Accountant</p><div class="tags"><span class="dept-tag">Finance</span></div></div>
+            </div>
+            <div class="reports-section">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+                <h4>No direct reports</h4>
+                <p>Individual contributor role.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="chain-panel" data-p="miguel">
+            <div class="crumb"><span>Alon Pay</span></div>
+            <div class="focal-card">
+              <span class="avatar-lg">MS</span>
+              <div><h3>Miguel Santos</h3><p class="role">Sales Lead</p><div class="tags"><span class="dept-tag">Sales</span></div></div>
+            </div>
+            <div class="reports-section">
+              <h4>Direct reports (1)</h4>
+              <div class="reports-grid">
+                <div class="report-card"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="chain-panel" data-p="andrea">
+            <div class="crumb"><span>Alon Pay</span></div>
+            <div class="focal-card">
+              <span class="avatar-lg">AC</span>
+              <div><h3>Andrea Cruz</h3><p class="role">HR Admin</p><div class="tags"><span class="dept-tag">People</span></div></div>
+            </div>
+            <div class="reports-section">
+              <div class="empty-state">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="7" r="4"/><path d="M2 21v-2a4 4 0 0 1 4-4h6a4 4 0 0 1 4 4v2"/></svg>
+                <h4>No direct reports</h4>
+                <p>Individual contributor role.</p>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Never renders more than one chain at a time, so it can't get slow or cluttered no matter how
+              big the company gets — the "who's above/below this specific person" god-moment answered in one
+              lookup, which is the more common real question than "show me the whole company."</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>You already know (or can search for) who you're asking about. Never shows the company's overall
+              shape at once — a new HR admin trying to learn the structure has to click through people one at
+              a time rather than see it laid out.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

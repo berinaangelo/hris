@@ -224,6 +224,18 @@
   .manager-banner svg { width: 16px; height: 16px; flex: 0 0 auto; }
   .manager-banner a { font-weight: 700; text-decoration: underline; }
 
+  /* ---------- Attendance (clock in/out) — disabled placeholder, added 2026-08-23 ---------- */
+
+  .card-label .lock-ic { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; color: var(--neutral); vertical-align: -2px; margin-left: 0.35rem; }
+  .card-label .lock-ic svg { width: 12px; height: 12px; }
+  .attendance-actions { display: flex; gap: 0.6rem; margin-top: 0.85rem; flex-wrap: wrap; }
+  .btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+  .attendance-strip { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.85rem 1rem; background: var(--surface); border-radius: 8px; flex-wrap: wrap; }
+  .attendance-strip svg.clock-ic { width: 18px; height: 18px; color: var(--ink-light); flex: 0 0 auto; margin-top: 0.1rem; }
+  .attendance-strip .txt { font-size: 0.875rem; flex: 1; min-width: 160px; }
+  .attendance-strip .attendance-actions { margin-top: 0.5rem; }
+  .attendance-strip .btn-ghost { padding: 0.4rem 0.7rem; font-size: 0.75rem; }
+
   /* ---------- Option 1: stat row + list ---------- */
 
   .mock1-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; padding: 1rem 2rem 0; }
@@ -288,7 +300,10 @@
         managers, per the absent-not-filtered rule in the navigation
         decision — flip the switch to see the manager-only badge count
         and approvals nudge appear. Balance figures (12.5 of 15 days) are
-        placeholder content, not a policy decision.
+        placeholder content, not a policy decision. An <b>Attendance</b>
+        card (added 2026-08-23) is page context, not part of this
+        comparison — Clock in/Clock out are disabled placeholders, the
+        self-service half of Time & Attendance isn't built yet.
       </div>
       <div class="role-switch">
         Viewing as:
@@ -342,6 +357,14 @@
               <p class="card-label">My requests</p>
               <p class="mock1-balance-num">1 <span class="count-pill" style="margin-left:0.4rem;">pending</span></p>
               <p style="font-size:0.75rem;color:var(--neutral);margin-top:0.85rem;">2 approved, 1 rejected this year</p>
+            </div>
+            <div class="card">
+              <p class="card-label">Attendance<span class="lock-ic" title="Coming soon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></p>
+              <p style="font-size:0.8125rem;color:var(--neutral);margin-top:0.85rem;">Not clocked in yet — self-service time tracking is still being built.</p>
+              <div class="attendance-actions">
+                <button class="btn-ghost" disabled>Clock in</button>
+                <button class="btn-ghost" disabled>Clock out</button>
+              </div>
             </div>
             <div class="card manager-only block">
               <p class="card-label">Team approvals</p>
@@ -457,6 +480,14 @@
                 <p style="font-size:0.875rem;margin-top:0.6rem;">1 request <span class="count-pill">pending</span></p>
                 <p style="font-size:0.8125rem;color:var(--neutral);margin-top:0.5rem;">2 approved, 1 rejected this year</p>
               </div>
+              <div class="card">
+                <p class="card-label">Attendance<span class="lock-ic" title="Coming soon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></span></p>
+                <p style="font-size:0.8125rem;color:var(--neutral);margin-top:0.6rem;">Not clocked in yet — self-service time tracking is still being built.</p>
+                <div class="attendance-actions">
+                  <button class="btn-ghost" disabled>Clock in</button>
+                  <button class="btn-ghost" disabled>Clock out</button>
+                </div>
+              </div>
               <div class="manager-card manager-only">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m22 4-10 10-3-3"/></svg>
                 <div class="txt"><b>3 requests</b> awaiting your approval as manager. <a href="#" style="color:inherit;">Review in Team →</a></div>
@@ -516,6 +547,15 @@
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
               <span class="txt"><b>12.5</b> days remaining of 15</span>
               <a class="link" href="#" style="color:var(--accent);font-weight:600;font-size:0.8125rem;text-decoration:none;">Request →</a>
+            </div>
+
+            <div class="attendance-strip">
+              <svg class="clock-ic" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+              <span class="txt">Not clocked in yet — self-service time tracking is still being built.</span>
+              <div class="attendance-actions">
+                <button class="btn-ghost" disabled>Clock in</button>
+                <button class="btn-ghost" disabled>Clock out</button>
+              </div>
             </div>
 
             <div>

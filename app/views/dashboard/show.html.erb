@@ -1,0 +1,41 @@
+<div class="hero">
+  <p>You report to <%= current_employee.manager&.full_name || "no one — top of the org" %> · <%= current_employee.department %></p>
+  <% if @leave_balance %>
+    <div class="figure"><%= number_with_precision(@leave_balance.remaining_days, precision: 1) %> days remaining</div>
+    <% used_ratio = @leave_balance.entitled_days.zero? ? 0 : (@leave_balance.used_days / @leave_balance.entitled_days * 100).round(1) %>
+    <div class="meter"><div class="meter-fill" style="width: <%= used_ratio %>%"></div></div>
+  <% else %>
+    <div class="figure">No leave balance on file yet</div>
+  <% end %>
+  <%= link_to "Request time off", new_leave_request_path, class: "btn btn-primary" %>
+</div>
+
+<div class="card">
+  <h2>My requests</h2>
+  <% if @leave_requests.any? %>
+    <table>
+      <thead><tr><th>Type</th><th>Dates</th><th>Days</th><th>Status</th></tr></thead>
+      <tbody>
+        <% @leave_requests.each do |request| %>
+          <tr>
+            <td><%= request.leave_type.name %></td>
+            <td><%= request.start_date %> – <%= request.end_date %></td>
+            <td><%= request.days_requested %></td>
+            <td><% badge = BadgePresenter.new(request.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  <% else %>
+    <p>No requests yet.</p>
+  <% end %>
+</div>
+
+<% if current_employee.manager? || current_employee.admin? %>
+  <% if @pending_approvals_count > 0 %>
+    <div class="card">
+      <p><strong><%= @pending_approvals_count %></strong> request<%= "s" unless @pending_approvals_count == 1 %> waiting on you.
+        <%= link_to "Review now", team_approvals_path %></p>
+    </div>
+  <% end %>
+<% end %>

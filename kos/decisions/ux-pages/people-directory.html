@@ -164,7 +164,9 @@
   .chip-filter.is-active { background: var(--ink); color: var(--white); border-color: var(--ink); }
   .toolbar-spacer { flex: 1; }
 
-  /* ---------- offboarded demo toggle (shared mechanic) ---------- */
+  /* ---------- offboarded demo toggle (shared mechanic) — hides only
+     terminal "Offboarded" people; "Offboarding" (still working) is
+     never hidden, see decisions/ui/offboarding-flow-schedule-clearance-tracker.md ---------- */
 
   .row-offboarded, .card-offboarded, .dept-row-offboarded { display: none; }
   #showOffboarded1:checked ~ .page .frame-shell[data-n="1"] .row-offboarded { display: table-row; }
@@ -283,10 +285,14 @@
         HR-Admin-only, absent (not filtered) for anyone else — this
         persona (Andrea Cruz) has no direct reports, so her nav shows
         Me/Company only, no Team tab, demonstrating that rule. Active
-        employees show no status badge — only "Offboarded" gets one
-        (Neutral), per decisions/ui/badge-system-four-categories.md's
-        own "badges are for deviation, not every state" rule; toggle
-        below previews it. Row density matches
+        employees show no status badge. Two exceptions, per
+        decisions/ui/badge-system-four-categories.md ("Offboarding"
+        added 2026-08-23 alongside
+        decisions/ui/offboarding-flow-schedule-clearance-tracker.md):
+        "Offboarding" (Caution) shows inline, on by default — that
+        person is still working and still needs to be findable — while
+        "Offboarded" (Neutral) stays hidden behind the toggle below, as
+        before. Row density matches
         decisions/ui/data-tables-comfortable-density.md (~46px,
         zebra-striped). Search/filter controls are illustrative here —
         a real build follows the sanitized-params pagination guard in
@@ -317,7 +323,7 @@
 
         <div class="demo-strip">
           <label for="showOffboarded1">Show offboarded</label>
-          <span>— per decisions/ui/badge-system-four-categories.md, hidden by default</span>
+          <span>— reveals fully Offboarded people only; Offboarding shows inline below already</span>
         </div>
 
         <div class="device">
@@ -362,13 +368,14 @@
                 <tr><td><div class="who"><span class="avatar">IT</span><h4>Isabel Torres</h4></div></td><td>Accountant</td><td>Finance</td><td class="muted">Ferdinand Ocampo</td><td class="mono">Jul 22, 2023</td><td class="muted">—</td></tr>
                 <tr><td><div class="who"><span class="avatar">MS</span><h4>Miguel Santos</h4></div></td><td>Sales Lead</td><td>Sales</td><td class="muted">—</td><td class="mono">May 5, 2021</td><td class="muted">—</td></tr>
                 <tr><td><div class="who"><span class="avatar">BF</span><h4>Bea Fernandez</h4></div></td><td>Sales Associate</td><td>Sales</td><td class="muted">Miguel Santos</td><td class="mono">Nov 11, 2024</td><td class="muted">—</td></tr>
-                <tr class="row-offboarded"><td><div class="who"><span class="avatar">JR</span><h4>Jonas Rivera</h4></div></td><td>QA Engineer</td><td>Engineering</td><td class="muted">Ramon Dela Cruz</td><td class="mono">Mar 1, 2022</td><td><span class="badge badge-neutral">Offboarded</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">JR</span><h4>Jonas Rivera</h4></div></td><td>QA Engineer</td><td>Engineering</td><td class="muted">Ramon Dela Cruz</td><td class="mono">Mar 1, 2022</td><td><span class="badge badge-caution">Offboarding</span></td></tr>
+                <tr class="row-offboarded"><td><div class="who"><span class="avatar">KA</span><h4>Kristine Aquino</h4></div></td><td>Sales Associate</td><td>Sales</td><td class="muted">Miguel Santos</td><td class="mono">Jun 10, 2019</td><td><span class="badge badge-neutral">Offboarded</span></td></tr>
               </tbody>
             </table>
           </div>
 
           <div class="pagination-bar">
-            <p>Showing 1–11 of 11</p>
+            <p>Showing 1–12 of 12</p>
             <div class="pagination-controls">
               <button class="btn-ghost" type="button" disabled>Prev</button>
               <button class="btn-ghost" type="button" disabled>Next</button>
@@ -400,7 +407,7 @@
 
         <div class="demo-strip">
           <label for="showOffboarded2">Show offboarded</label>
-          <span>— per decisions/ui/badge-system-four-categories.md, hidden by default</span>
+          <span>— reveals fully Offboarded people only; Offboarding shows inline below already</span>
         </div>
 
         <div class="device">
@@ -426,7 +433,7 @@
           <div style="margin-top:0.5rem;">
             <div class="dept-section">
               <label class="dept-head" for="dept1" style="margin:0;">
-                <h3>Engineering</h3><span class="count">5</span>
+                <h3>Engineering</h3><span class="count">6</span>
                 <div class="spacer"></div>
                 <svg class="chevron dept-chevron" data-d="1" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
               </label>
@@ -436,7 +443,7 @@
                 <div class="dept-row"><div class="who"><span class="avatar">PV</span><div><h4>Paolo Villanueva</h4><p>QA Engineer</p></div></div><span class="started mono">Since Jun 2023</span></div>
                 <div class="dept-row"><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div><span class="started mono">Since Feb 2022</span></div>
                 <div class="dept-row"><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div><span class="started mono">Since Oct 2024</span></div>
-                <div class="dept-row-offboarded"><div class="who"><span class="avatar">JR</span><div><h4>Jonas Rivera</h4><p>QA Engineer</p></div></div><span class="badge badge-neutral">Offboarded</span></div>
+                <div class="dept-row"><div class="who"><span class="avatar">JR</span><div><h4>Jonas Rivera</h4><p>QA Engineer</p></div></div><span class="badge badge-caution">Offboarding</span></div>
               </div>
             </div>
 
@@ -472,6 +479,7 @@
               <div class="dept-body" data-d="4">
                 <div class="dept-row"><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div><span class="started mono">Since May 2021</span></div>
                 <div class="dept-row"><div class="who"><span class="avatar">BF</span><div><h4>Bea Fernandez</h4><p>Sales Associate</p></div></div><span class="started mono">Since Nov 2024</span></div>
+                <div class="dept-row-offboarded"><div class="who"><span class="avatar">KA</span><div><h4>Kristine Aquino</h4><p>Sales Associate</p></div></div><span class="badge badge-neutral">Offboarded</span></div>
               </div>
             </div>
 
@@ -512,7 +520,7 @@
 
         <div class="demo-strip">
           <label for="showOffboarded3">Show offboarded</label>
-          <span>— per decisions/ui/badge-system-four-categories.md, hidden by default</span>
+          <span>— reveals fully Offboarded people only; Offboarding shows inline below already</span>
         </div>
 
         <div class="device">
@@ -559,7 +567,8 @@
               <div class="person-card"><span class="avatar">IT</span><h4>Isabel Torres</h4><p class="role">Accountant</p><div class="foot"><span class="dept-tag">Finance</span><span class="mono" style="font-size:0.75rem;color:var(--neutral);">2023</span></div></div>
               <div class="person-card"><span class="avatar">MS</span><h4>Miguel Santos</h4><p class="role">Sales Lead</p><div class="foot"><span class="dept-tag">Sales</span><span class="mono" style="font-size:0.75rem;color:var(--neutral);">2021</span></div></div>
               <div class="person-card"><span class="avatar">BF</span><h4>Bea Fernandez</h4><p class="role">Sales Associate</p><div class="foot"><span class="dept-tag">Sales</span><span class="mono" style="font-size:0.75rem;color:var(--neutral);">2024</span></div></div>
-              <div class="person-card card-offboarded"><span class="avatar">JR</span><h4>Jonas Rivera</h4><p class="role">QA Engineer</p><div class="foot"><span class="badge badge-neutral">Offboarded</span></div></div>
+              <div class="person-card"><span class="avatar">JR</span><h4>Jonas Rivera</h4><p class="role">QA Engineer</p><div class="foot"><span class="dept-tag">Engineering</span><span class="badge badge-caution">Offboarding</span></div></div>
+              <div class="person-card card-offboarded"><span class="avatar">KA</span><h4>Kristine Aquino</h4><p class="role">Sales Associate</p><div class="foot"><span class="badge badge-neutral">Offboarded</span></div></div>
             </div>
           </div>
 
@@ -579,12 +588,13 @@
                   <tr><td><div class="who"><span class="avatar">IT</span><h4>Isabel Torres</h4></div></td><td>Accountant</td><td>Finance</td><td class="muted">Ferdinand Ocampo</td><td class="mono">Jul 22, 2023</td><td class="muted">—</td></tr>
                   <tr><td><div class="who"><span class="avatar">MS</span><h4>Miguel Santos</h4></div></td><td>Sales Lead</td><td>Sales</td><td class="muted">—</td><td class="mono">May 5, 2021</td><td class="muted">—</td></tr>
                   <tr><td><div class="who"><span class="avatar">BF</span><h4>Bea Fernandez</h4></div></td><td>Sales Associate</td><td>Sales</td><td class="muted">Miguel Santos</td><td class="mono">Nov 11, 2024</td><td class="muted">—</td></tr>
-                  <tr class="row-offboarded"><td><div class="who"><span class="avatar">JR</span><h4>Jonas Rivera</h4></div></td><td>QA Engineer</td><td>Engineering</td><td class="muted">Ramon Dela Cruz</td><td class="mono">Mar 1, 2022</td><td><span class="badge badge-neutral">Offboarded</span></td></tr>
+                  <tr><td><div class="who"><span class="avatar">JR</span><h4>Jonas Rivera</h4></div></td><td>QA Engineer</td><td>Engineering</td><td class="muted">Ramon Dela Cruz</td><td class="mono">Mar 1, 2022</td><td><span class="badge badge-caution">Offboarding</span></td></tr>
+                  <tr class="row-offboarded"><td><div class="who"><span class="avatar">KA</span><h4>Kristine Aquino</h4></div></td><td>Sales Associate</td><td>Sales</td><td class="muted">Miguel Santos</td><td class="mono">Jun 10, 2019</td><td><span class="badge badge-neutral">Offboarded</span></td></tr>
                 </tbody>
               </table>
             </div>
             <div class="pagination-bar">
-              <p>Showing 1–11 of 11</p>
+              <p>Showing 1–12 of 12</p>
               <div class="pagination-controls">
                 <button class="btn-ghost" type="button" disabled>Prev</button>
                 <button class="btn-ghost" type="button" disabled>Next</button>

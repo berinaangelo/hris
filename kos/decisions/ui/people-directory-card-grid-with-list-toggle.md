@@ -26,11 +26,16 @@ https://claude.ai/code/artifact/2f32efcf-9d98-4c42-b895-f69ebc8ee912
   Employee / Role / Department / Manager / Start Date / Status columns,
   comfortable density per
   [[data-tables-comfortable-density]], with pagination controls below.
-- Active employees show no status badge (default/steady state);
-  "Offboarded" is the one status that gets a badge (Neutral), per
-  [[badge-system-four-categories]]'s "badges are for deviation, not
-  every state" rule — hidden by default, previewable via a demo toggle
-  in this mockup.
+- Active employees show no status badge (default/steady state). Two
+  deviation statuses get one, per [[badge-system-four-categories]]:
+  "Offboarding" (Caution) shows inline, on by default — that person is
+  still working and still needs to be findable — while "Offboarded"
+  (Neutral) stays hidden behind the "Show offboarded" toggle, unchanged
+  from the original decision. Updated 2026-08-23 alongside
+  [[offboarding-flow-schedule-clearance-tracker]]: Jonas Rivera now
+  demonstrates Offboarding (visible by default, his last day hasn't
+  passed yet), and a second example, Kristine Aquino, was added to keep
+  demonstrating the hidden terminal Offboarded state.
 
 Built on tokens already decided elsewhere:
 [[color-palette-ink-and-amber|Ink & Amber]] palette,

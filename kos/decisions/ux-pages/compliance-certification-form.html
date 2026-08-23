@@ -1,0 +1,389 @@
+<title>HRIS Add/Edit Certification</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3, h4 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 72ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  /* ---------- shared app nav ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+  .crumb { padding: 1rem 2rem 0; font-size: 0.75rem; color: var(--neutral); }
+  .crumb b { color: var(--ink-light); font-weight: 600; }
+
+  .greet-block { padding: 1.25rem 2rem 0; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; max-width: 60ch; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.55rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
+  .btn-primary svg { width: 15px; height: 15px; }
+
+  .btn-danger-ghost {
+    background: none; border: 1px solid var(--border); color: var(--danger); border-radius: 8px; padding: 0.55rem 0.85rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-danger-ghost:hover { background: var(--badge-negative-bg); border-color: transparent; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.4rem 0.75rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.35rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+  .btn-ghost svg { width: 13px; height: 13px; }
+
+  /* ---------- toolbar (reused from Compliance/Certifications) ---------- */
+
+  .toolbar { display: flex; align-items: center; gap: 0.65rem; padding: 1.25rem 2rem 0; flex-wrap: wrap; }
+  .search-wrap { position: relative; flex: 1 1 220px; min-width: 180px; max-width: 320px; }
+  .search-wrap svg { position: absolute; left: 0.65rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--neutral); }
+  .search-input { width: 100%; padding: 0.5rem 0.7rem 0.5rem 2.1rem; border: 1px solid var(--border); border-radius: 8px; font-family: var(--font-body); font-size: 0.8125rem; color: var(--ink); background: var(--white); }
+  .search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+  .chip-filter { padding: 0.4rem 0.75rem; border-radius: 999px; border: 1px solid var(--border); font-size: 0.75rem; font-weight: 600; color: var(--ink-light); background: var(--white); cursor: pointer; }
+  .chip-filter.is-active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+  .toolbar-spacer { flex: 1; }
+
+  /* ---------- table (reused from Compliance/Certifications' cptable) ---------- */
+
+  .table-wrap { overflow-x: auto; margin-top: 1.1rem; }
+  .cptable { width: 100%; border-collapse: collapse; font-size: 0.8125rem; min-width: 680px; }
+  .cptable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.65rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .cptable td { padding: 0.65rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .cptable tr:last-child td { border-bottom: none; }
+  .cptable .who { display: flex; align-items: center; gap: 0.6rem; }
+  .cptable .who h4 { font-size: 0.875rem; font-weight: 600; }
+  .cptable .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.1rem; }
+  .avatar { width: 30px; height: 30px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.6875rem; font-weight: 600; flex: 0 0 auto; }
+  .muted { color: var(--neutral); }
+  .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+  .expiry-cell { display: flex; flex-direction: column; }
+  .expiry-cell .rel { font-size: 0.75rem; margin-top: 0.1rem; }
+  .expiry-cell.is-negative .rel { color: var(--badge-negative-fg); }
+  .expiry-cell.is-caution .rel { color: var(--badge-caution-fg); }
+
+  /* ---------- right-side drawer (11th reuse of the drawer mechanic —
+     Payroll Run Detail / Time & Attendance / Rate Tables / Loan Ledger /
+     Hired Handoff / Job Opening Form / Offboarding / Roles & Access) ---------- */
+
+  .tt-scrim { display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.32); z-index: 4; }
+  .tt-drawer { display: none; position: absolute; top: 0; right: 0; bottom: 0; width: min(420px, 94%); background: var(--white); border-left: 1px solid var(--border); box-shadow: var(--shadow-card); z-index: 5; flex-direction: column; overflow-y: auto; }
+  .tt-drawer-body { padding: 1.1rem 1.25rem 1.5rem; display: none; flex-direction: column; gap: 1.1rem; }
+  .tt-drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; padding: 1.1rem 1.25rem 0.9rem; border-bottom: 1px solid var(--border); }
+  .tt-drawer-head-txt { display: flex; align-items: center; gap: 0.7rem; }
+  .tt-drawer-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .tt-drawer-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.15rem; }
+  .drawer-close { width: 28px; height: 28px; border-radius: 6px; border: none; background: var(--surface); color: var(--ink-light); cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto; }
+  .drawer-close svg { width: 15px; height: 15px; }
+
+  #drw-add:checked ~ .page .tt-scrim.for-add,
+  #drw-edit:checked ~ .page .tt-scrim.for-edit,
+  #drw-add:checked ~ .page .tt-drawer.for-add,
+  #drw-edit:checked ~ .page .tt-drawer.for-edit { display: flex; }
+  #drw-add:checked ~ .page .tt-drawer-body[data-p="add"],
+  #drw-edit:checked ~ .page .tt-drawer-body[data-p="edit"] { display: flex; }
+
+  /* ---------- form fields ---------- */
+
+  .field-edit label { display: block; font-size: 0.75rem; color: var(--neutral); font-weight: 500; margin-bottom: 0.25rem; }
+  .plain-input {
+    width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
+    font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
+    transition: border-color var(--t), box-shadow var(--t);
+  }
+  .plain-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+  .field-hint { font-size: 0.75rem; color: var(--neutral); margin-top: 0.3rem; }
+
+  .fixed-note { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.75rem 0.9rem; background: var(--surface); border-radius: 8px; font-size: 0.8125rem; line-height: 1.5; color: var(--ink-light); }
+  .fixed-note svg { width: 15px; height: 15px; color: var(--neutral); flex: 0 0 auto; margin-top: 0.1rem; }
+  .fixed-note b { color: var(--ink); font-weight: 600; }
+
+  .save-row { display: flex; gap: 0.6rem; justify-content: space-between; align-items: center; padding-top: 0.25rem; }
+  .save-row .right { display: flex; gap: 0.6rem; }
+
+  .demo-strip { display: flex; align-items: center; gap: 0.6rem; font-size: 0.75rem; color: var(--neutral); flex-wrap: wrap; }
+  .demo-strip label { display: inline-flex; align-items: center; gap: 0.4rem; cursor: pointer; user-select: none; padding: 0.3rem 0.6rem; border: 1px solid var(--border); border-radius: 999px; background: var(--white); }
+
+  @media (max-width: 480px) {
+    .section, .greet-block, .crumb, .toolbar { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input type="radio" name="drw" id="drw-none" style="position:absolute;opacity:0;pointer-events:none;" checked />
+<input type="radio" name="drw" id="drw-add" style="position:absolute;opacity:0;pointer-events:none;" />
+<input type="radio" name="drw" id="drw-edit" style="position:absolute;opacity:0;pointer-events:none;" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Add / Edit Certification</h1>
+      <p class="sub">
+        The form behind "Add certification" and each row's "Edit" on
+        [[../ux-pages/compliance-certifications.html|Compliance/
+        Certifications]] — left unwired when that page was decided
+        ("No row detail or edit modal wired in the mockup"). Built
+        directly, no three-option comparison, per the user's own call.
+      </p>
+      <div class="assumptions">
+        <b>Same two fields, nothing more:</b> employee and certification
+        name are carried straight from the list decision's fixed scope
+        — cert name and expiry date only, no issuing body, cert number,
+        or document upload
+        (kos/projects/hris/features/compliance-certification-tracking/PLAN.md).
+        Right-side drawer (11th reuse of the mechanic already used across
+        Rate Tables, Loan Ledger, Job Opening Form, Offboarding and Roles
+        &amp; Access), directly editable with no separate view/edit
+        toggle — opening it already signals intent, same reasoning as
+        Rate Tables' drawer option. Delete removes the record outright;
+        no archive/history since the list itself has no versioning.
+      </div>
+    </div>
+  </header>
+
+  <main class="stage">
+    <div class="frame-shell">
+      <div class="frame">
+
+        <div class="demo-strip">
+          <label for="drw-add">Preview "Add certification"</label>
+          <span>— empty drawer, employee and cert name required before saving</span>
+          <label for="drw-edit">Preview "Edit"</label>
+          <span>— Isabel Torres's CPA License Renewal, prefilled</span>
+        </div>
+
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs">
+              <a href="#">Me</a>
+              <a href="#">Team</a>
+              <a class="active" href="#">Company</a>
+            </div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <p class="crumb">Company → <b>Compliance / Certifications</b></p>
+
+          <div class="greet-block">
+            <div>
+              <h2>Compliance / Certifications</h2>
+              <p>10 certifications on file, sorted by soonest-expiring.</p>
+            </div>
+            <label class="btn-primary" for="drw-add"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg>Add certification</label>
+          </div>
+
+          <div class="toolbar">
+            <div class="search-wrap">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+              <input class="search-input" type="text" placeholder="Search by employee or certification..." />
+            </div>
+            <div class="chip-row">
+              <span class="chip-filter is-active">All</span>
+              <span class="chip-filter">Expired</span>
+              <span class="chip-filter">Expiring soon</span>
+              <span class="chip-filter">Valid</span>
+            </div>
+          </div>
+
+          <div class="table-wrap" style="padding: 0 2rem 1.5rem;">
+            <table class="cptable">
+              <thead><tr><th>Employee</th><th>Certification</th><th>Expiry</th><th>Status</th><th></th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Support Engineer</p></div></div></td><td class="muted">Forklift Operator Certification</td><td><div class="expiry-cell is-negative"><span class="mono">Jul 15, 2026</span><span class="rel">Expired 38 days ago</span></div></td><td><span class="badge badge-negative">Expired</span></td><td><button class="btn-ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button></td></tr>
+                <tr><td><div class="who"><span class="avatar">CB</span><div><h4>Carlo Bautista</h4><p>Backend Engineer</p></div></div></td><td class="muted">Fire Safety Officer Certification</td><td><div class="expiry-cell is-negative"><span class="mono">Aug 1, 2026</span><span class="rel">Expired 21 days ago</span></div></td><td><span class="badge badge-negative">Expired</span></td><td><button class="btn-ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button></td></tr>
+                <tr><td><div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Accountant</p></div></div></td><td class="muted">CPA License Renewal</td><td><div class="expiry-cell is-caution"><span class="mono">Aug 30, 2026</span><span class="rel">Expires in 8 days</span></div></td><td><span class="badge badge-caution">Expiring soon</span></td><td><label class="btn-ghost" for="drw-edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</label></td></tr>
+                <tr><td><div class="who"><span class="avatar">MS</span><div><h4>Miguel Santos</h4><p>Sales Lead</p></div></div></td><td class="muted">Professional Driver's License</td><td><div class="expiry-cell is-caution"><span class="mono">Sep 5, 2026</span><span class="rel">Expires in 14 days</span></div></td><td><span class="badge badge-caution">Expiring soon</span></td><td><button class="btn-ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button></td></tr>
+                <tr><td><div class="who"><span class="avatar">GL</span><div><h4>Grace Lim</h4><p>Product Designer</p></div></div></td><td class="muted">Security Guard License</td><td><div class="expiry-cell"><span class="mono">Oct 10, 2026</span></div></td><td class="muted">—</td><td><button class="btn-ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button></td></tr>
+                <tr><td><div class="who"><span class="avatar">RD</span><div><h4>Ramon Dela Cruz</h4><p>Engineering Manager</p></div></div></td><td class="muted">NBI Clearance (Employment)</td><td><div class="expiry-cell"><span class="mono">Jan 15, 2027</span></div></td><td class="muted">—</td><td><button class="btn-ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Edit</button></td></tr>
+              </tbody>
+            </table>
+            <p class="field-hint">Showing 6 of 10 — same data set as decisions/ux-pages/compliance-certifications.html, trimmed here since the table itself isn't what's being decided.</p>
+          </div>
+
+          <!-- ============ drawer: Add certification (empty) ============ -->
+          <div class="tt-scrim for-add"></div>
+          <div class="tt-drawer for-add">
+            <div class="tt-drawer-head">
+              <div class="tt-drawer-head-txt">
+                <div>
+                  <h3>Add certification</h3>
+                  <p>Tracked for one employee, sorted into the list by expiry date.</p>
+                </div>
+              </div>
+              <label class="drawer-close" for="drw-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+            </div>
+            <div class="tt-drawer-body" data-p="add">
+              <div class="field-edit">
+                <label for="add-emp">Employee</label>
+                <select class="plain-input" id="add-emp">
+                  <option value="">Search or select an employee…</option>
+                  <option>Ramon Dela Cruz — Engineering Manager</option>
+                  <option>Mikaela Santos — Software Engineer II</option>
+                  <option>Paolo Villanueva — QA Engineer</option>
+                  <option>Grace Lim — Product Designer</option>
+                  <option>Ferdinand Ocampo — Finance Manager</option>
+                  <option>Miguel Santos — Sales Lead</option>
+                  <option>Bea Fernandez — Sales Associate</option>
+                </select>
+              </div>
+              <div class="field-edit">
+                <label for="add-name">Certification name</label>
+                <input class="plain-input" id="add-name" type="text" placeholder="e.g. First Aid &amp; BLS Certification" />
+              </div>
+              <div class="field-edit">
+                <label for="add-exp">Expiry date</label>
+                <input class="plain-input" id="add-exp" type="date" />
+                <p class="field-hint">Drives the Status badge automatically — Expiring soon inside 30 days, Expired once past.</p>
+              </div>
+              <div class="fixed-note">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+                <p>No issuing body, certificate number, or document upload in this version — <b>employee, name, and expiry only</b>, per the feature's fixed scope.</p>
+              </div>
+              <div class="save-row">
+                <span></span>
+                <div class="right">
+                  <label class="btn-ghost" for="drw-none">Cancel</label>
+                  <button class="btn-primary" type="button" disabled><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save certification</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- ============ drawer: Edit (prefilled — Isabel Torres) ============ -->
+          <div class="tt-scrim for-edit"></div>
+          <div class="tt-drawer for-edit">
+            <div class="tt-drawer-head">
+              <div class="tt-drawer-head-txt">
+                <span class="avatar">IT</span>
+                <div>
+                  <h3>Edit certification</h3>
+                  <p>Isabel Torres · Accountant</p>
+                </div>
+              </div>
+              <label class="drawer-close" for="drw-none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+            </div>
+            <div class="tt-drawer-body" data-p="edit">
+              <div class="field-edit">
+                <label for="edit-emp">Employee</label>
+                <select class="plain-input" id="edit-emp">
+                  <option selected>Isabel Torres — Accountant</option>
+                  <option>Ramon Dela Cruz — Engineering Manager</option>
+                  <option>Mikaela Santos — Software Engineer II</option>
+                  <option>Paolo Villanueva — QA Engineer</option>
+                  <option>Grace Lim — Product Designer</option>
+                  <option>Ferdinand Ocampo — Finance Manager</option>
+                </select>
+              </div>
+              <div class="field-edit">
+                <label for="edit-name">Certification name</label>
+                <input class="plain-input" id="edit-name" type="text" value="CPA License Renewal" />
+              </div>
+              <div class="field-edit">
+                <label for="edit-exp">Expiry date</label>
+                <input class="plain-input" id="edit-exp" type="date" value="2026-08-30" />
+                <p class="field-hint">Currently <span class="badge badge-caution">Expiring soon</span> — 8 days out.</p>
+              </div>
+              <div class="save-row">
+                <button class="btn-danger-ghost" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2m3 0-1 14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2L4 6"/></svg>Delete</button>
+                <div class="right">
+                  <label class="btn-ghost" for="drw-none">Cancel</label>
+                  <button class="btn-primary" type="button"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Save changes</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+  </main>
+</div>

@@ -24,6 +24,30 @@
   </head>
 
   <body>
-    <%= yield %>
+    <% if current_employee %>
+      <nav class="app-nav">
+        <span class="brand">HRIS</span>
+        <%= link_to "Home", root_path %>
+        <%= link_to "Time Off", leave_requests_path %>
+        <% if current_employee.manager? || current_employee.admin? %>
+          <%= link_to team_approvals_path do %>
+            Approvals
+            <% if (count = LeaveRequests::PendingForApprover.call(current_employee).count) > 0 %>
+              <span class="badge badge-caution"><%= count %></span>
+            <% end %>
+          <% end %>
+        <% end %>
+        <span class="nav-spacer"></span>
+        <span class="nav-user"><%= current_employee.full_name %></span>
+        <%= button_to "Sign out", session_path, method: :delete, class: "link-button" %>
+      </nav>
+    <% end %>
+
+    <% if notice %><p class="flash flash-notice"><%= notice %></p><% end %>
+    <% if alert %><p class="flash flash-alert"><%= alert %></p><% end %>
+
+    <main class="app-main">
+      <%= yield %>
+    </main>
   </body>
 </html>

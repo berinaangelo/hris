@@ -1,10 +1,101 @@
 /*
  * This is a manifest file that'll be compiled into application.css.
  *
- * With Propshaft, assets are served efficiently without preprocessing steps. You can still include
- * application-wide styles in this file, but keep in mind that CSS precedence will follow the standard
- * cascading order, meaning styles declared later in the document or manifest will override earlier ones,
- * depending on specificity.
- *
- * Consider organizing styles into separate files for maintainability.
+ * Plain hand-written CSS for now (Propshaft, no preprocessing step
+ * wired up yet) — the `dartsass-rails` gem is in the Gemfile for the
+ * real Bulma/SCSS build per kos/decisions/tech-stack-hotwire-over-coffeescript.md,
+ * not yet set up. Colors below are the real Ink & Amber values from
+ * kos/decisions/ui/color-palette-ink-and-amber.md, not placeholders.
  */
+
+:root {
+  --ink: #1B2A4A;
+  --ink-light: #3E5378;
+  --accent: #E8630A;
+  --neutral: #697488;
+  --surface: #F6F7F9;
+  --success: #16A34A;
+  --warning: #D97706;
+  --danger: #DC2626;
+  --positive-bg: #E7F6EC; --positive-text: #14532D;
+  --caution-bg: #FEF3E2;  --caution-text: #78350F;
+  --negative-bg: #FCE8E8; --negative-text: #7F1D1D;
+  --neutral-bg: #E9ECF1;  --neutral-text: #24344C;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "Archivo", "Work Sans", system-ui, sans-serif;
+  background: var(--surface);
+  color: var(--ink);
+}
+
+.app-nav {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  background: var(--ink);
+  color: #fff;
+  padding: 0.9rem 1.5rem;
+}
+.app-nav a { color: #fff; text-decoration: none; opacity: 0.85; }
+.app-nav a:hover { opacity: 1; }
+.app-nav .brand { font-weight: 700; letter-spacing: 0.02em; }
+.nav-spacer { flex: 1; }
+.nav-user { opacity: 0.85; font-size: 0.9rem; }
+.link-button {
+  background: none; border: none; color: #fff; opacity: 0.85; cursor: pointer;
+  font: inherit; padding: 0;
+}
+
+.app-main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+
+.flash { margin: 0; padding: 0.75rem 1.5rem; font-size: 0.9rem; }
+.flash-notice { background: var(--positive-bg); color: var(--positive-text); }
+.flash-alert { background: var(--negative-bg); color: var(--negative-text); }
+
+.hero {
+  background: var(--ink);
+  color: #fff;
+  border-radius: 12px;
+  padding: 2rem;
+  margin-bottom: 2rem;
+}
+.hero .figure { font-family: "IBM Plex Mono", monospace; font-size: 2.5rem; font-weight: 600; }
+.hero .meter { height: 6px; background: rgba(255,255,255,0.2); border-radius: 4px; margin: 1rem 0; }
+.hero .meter-fill { height: 100%; background: var(--accent); border-radius: 4px; }
+
+.btn {
+  display: inline-block; padding: 0.55rem 1.1rem; border-radius: 6px;
+  border: none; font: inherit; cursor: pointer; text-decoration: none;
+}
+.btn-primary { background: var(--accent); color: #fff; }
+.btn-ghost { background: transparent; color: var(--ink); border: 1px solid var(--neutral); }
+.btn-danger-outline { background: transparent; color: var(--danger); border: 1px solid var(--danger); }
+
+table { width: 100%; border-collapse: collapse; background: #fff; border-radius: 8px; overflow: hidden; }
+th, td { text-align: left; padding: 0.7rem 1rem; border-bottom: 1px solid #E5E7EB; font-size: 0.9rem; }
+th { color: var(--neutral); font-weight: 600; text-transform: uppercase; font-size: 0.75rem; }
+
+.card { background: #fff; border-radius: 10px; padding: 1.5rem; margin-bottom: 1.5rem; }
+
+.badge {
+  display: inline-block; font-family: "IBM Plex Mono", monospace; text-transform: uppercase;
+  font-size: 0.7rem; padding: 0.15rem 0.5rem; border-radius: 4px;
+}
+.badge-positive { background: var(--positive-bg); color: var(--positive-text); }
+.badge-caution  { background: var(--caution-bg);  color: var(--caution-text); }
+.badge-negative { background: var(--negative-bg); color: var(--negative-text); }
+.badge-neutral  { background: var(--neutral-bg);  color: var(--neutral-text); }
+
+.field { margin-bottom: 1rem; }
+.field label { display: block; font-size: 0.85rem; margin-bottom: 0.3rem; color: var(--neutral); }
+.field input, .field select, .field textarea {
+  width: 100%; padding: 0.5rem; border: 1px solid #D1D5DB; border-radius: 6px; font: inherit;
+}
+
+.auth-split { display: flex; min-height: 100vh; }
+.auth-split .brand-pane { flex: 0 0 44%; background: var(--ink); color: #fff; padding: 3rem; }
+.auth-split .form-pane { flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem; }
+.auth-split form { width: 100%; max-width: 360px; }

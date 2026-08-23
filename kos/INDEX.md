@@ -1,6 +1,6 @@
 # Knowledge Base Index
 
-Last updated: 2026-08-22
+Last updated: 2026-08-23
 
 One line per note/project, link + why-it-exists, mirroring the folder
 structure below. Read this first; open only the files you actually need.
@@ -104,6 +104,19 @@ structure below. Read this first; open only the files you actually need.
 - [thirteenth-month-pay-mandatory-in-ph](decisions/thirteenth-month-pay-mandatory-in-ph.md)
   — legally mandated for PH rank-and-file employees (PD 851); included
   in payroll v2 with a company toggle
+- [time-attendance-correction-request-and-manual-edit](decisions/time-attendance-correction-request-and-manual-edit.md)
+  — time-attendance scope extension: employees never edit their own
+  punch, only request a correction; supervisor and admin can both
+  manually edit, gated by one company-level permission (default on); an
+  optional single approver step (default off, my own assumption) never
+  blocks payroll from using the current record; no chain, per
+  [[approval-chains-scrapped-fallback-design]]; mockup adds a demo Admin/
+  Manager role switch (manager reused this same page, row-scoped to
+  reports, resolving
+  [[ui/time-attendance-attendance-first-templates-drawer]]'s open
+  question), a correction-requests card, a disabled per-row edit action,
+  and an admin-only settings card — all disabled placeholders; same
+  mockup at [decisions/ux-pages/time-attendance.html](decisions/ux-pages/time-attendance.html)
 - [ats-checker-reuse-parked-for-recruitment](decisions/ats-checker-reuse-parked-for-recruitment.md)
   — existing resume-scoring tool reusable later, doesn't pull
   recruitment/ATS into scope now
@@ -154,6 +167,13 @@ structure below. Read this first; open only the files you actually need.
   — navy hero block leads with leave balance, chosen over a stat-row
   grid and a compact feed; requests list + manager-only approvals nudge
   below; mockup at [decisions/ux-pages/home-dashboard.html](decisions/ux-pages/home-dashboard.html)
+- [home-dashboard-attendance-clock-in-out-disabled](decisions/ui/home-dashboard-attendance-clock-in-out-disabled.md)
+  — Attendance card (Clock in/Clock out) added to the same Home dashboard,
+  the self-service half of time-attendance the HR-Admin-only Time &
+  Attendance screen doesn't cover; buttons are disabled placeholders
+  (feature committed, not yet designed) styled `.btn-ghost` to keep
+  "Request time off" the only amber CTA; same mockup at
+  [decisions/ux-pages/home-dashboard.html](decisions/ux-pages/home-dashboard.html)
 - [my-profile-summary-plus-modal](decisions/ui/my-profile-summary-plus-modal.md)
   — read-only summary column + edit-in-a-modal, chosen over a
   whole-page edit toggle and per-section edit cards; HR-owned vs.
@@ -196,7 +216,10 @@ structure below. Read this first; open only the files you actually need.
 - [people-directory-card-grid-with-list-toggle](decisions/ui/people-directory-card-grid-with-list-toggle.md)
   — photo-forward card grid as the v1 default, chosen over a dense data
   table and department-grouped sections; adds a card/list toggle so the
-  table view is always one click away; first Company-tab page; mockup
+  table view is always one click away; first Company-tab page; updated
+  2026-08-23 to show "Offboarding" (Caution, visible by default) inline
+  alongside the existing "Offboarded" (Neutral, hidden behind the "Show
+  offboarded" toggle); mockup
   at [decisions/ux-pages/people-directory.html](decisions/ux-pages/people-directory.html)
 - [employee-detail-inline-edit-with-reserved-tabs](decisions/ui/employee-detail-inline-edit-with-reserved-tabs.md)
   — hybrid of inline per-section edit (no modal, nothing hidden) with
@@ -299,6 +322,14 @@ structure below. Read this first; open only the files you actually need.
   disable — no confirmation step, the switch stays instant; first mockup
   of the Payroll Settings screen itself; mockup at
   [decisions/ux-pages/payroll-settings.html](decisions/ux-pages/payroll-settings.html)
+- [payroll-settings-parked-overtime-deduction-defaults](decisions/ui/payroll-settings-parked-overtime-deduction-defaults.md)
+  — two new sections on the same Payroll Settings screen (v2,
+  payroll-v2), Overtime Rules and Deduction Defaults, shown as locked/
+  disabled placeholders (not live settings) since OT and deductions stay
+  manual line items per run for v2 per the plan; parked for a future
+  payroll scope expansion; built directly, no three-option comparison;
+  same mockup at
+  [decisions/ux-pages/payroll-settings.html](decisions/ux-pages/payroll-settings.html)
 - [job-openings-card-grid-with-list-toggle](decisions/ui/job-openings-card-grid-with-list-toggle.md)
   — HR-Admin Job Openings landing page (post-MVP, recruitment-ats,
   deliberately deferred to last); card grid (title/status/pipeline-stage
@@ -338,6 +369,131 @@ structure below. Read this first; open only the files you actually need.
   chosen over a lightweight confirm modal and a redirect into the full
   Add Employee page; mockup at
   [decisions/ux-pages/hired-handoff.html](decisions/ux-pages/hired-handoff.html)
+- [job-opening-form-right-side-drawer](decisions/ui/job-opening-form-right-side-drawer.md)
+  — the Add/Edit Job Opening form (post-MVP, recruitment-ats) behind both
+  "New job opening" (Job Openings) and "Edit opening" (Job Opening
+  Detail); a right-side drawer (6th reuse of the Payroll Run
+  Detail/Time & Attendance/Rate Tables/Loan Ledger/Hired Handoff drawer
+  mechanic) with title/description/status fields, a read-only
+  auto-generated apply link, and a live card preview, chosen over a
+  centered modal and an inline edit-in-grid option that couldn't travel
+  to the Job Opening Detail entry point; mockup at
+  [decisions/ux-pages/job-opening-form.html](decisions/ux-pages/job-opening-form.html)
+- [org-chart-classic-top-down-tree](decisions/ui/org-chart-classic-top-down-tree.md)
+  — Org Chart / Hierarchy Visualization (v1, org structure/`manager_id`),
+  where "org structure drives directory/org-chart view" from the plan
+  lands; a classic boxes-and-lines tree fanned from a company-level root
+  ("Alon Pay", not an invented CEO — the directory data shows no manager
+  above the four department heads), chosen over an indented nested list
+  (scales without limit, same mechanic as People Directory's department
+  accordion) and a person-centered chain view (pick anyone, see only
+  their chain up/reports down); each manager card is its own
+  collapse/expand control; mockup at
+  [decisions/ux-pages/org-chart.html](decisions/ux-pages/org-chart.html)
+- [offboarding-flow-schedule-clearance-tracker](decisions/ui/offboarding-flow-schedule-clearance-tracker.md)
+  — what "Offboard" opens on Employee Detail, left unbuilt when that
+  page was decided; not on the original roadmap, requested ad hoc like
+  Org Chart; a two-stage flow — a right-side drawer (8th reuse of the
+  drawer mechanic) schedules the separation (status → new "Offboarding"
+  badge, Caution), then a persistent Separation section mirrors the
+  Onboarding checklist in reverse (equipment/access/final-pay/exit
+  interview) and gates "Mark offboarded" (status → terminal "Offboarded",
+  Neutral) until it's actually done; chosen over an instant-status quick
+  drawer and a single-sitting modal with a gated checklist; introduces
+  the Offboarding status into badge-system-four-categories.md's mapping
+  table; People Directory's own filter/display was updated the same day
+  to recognize it (Offboarding shown inline by default since that person
+  is still working, Offboarded stays hidden behind the existing toggle);
+  subject is Jonas Rivera (EMP-0089), now shown Offboarding (not yet
+  terminal — his last day hasn't passed) on People Directory, with a
+  second example, Kristine Aquino, added there to demonstrate the
+  terminal Offboarded state; mockup at
+  [decisions/ux-pages/offboarding-flow.html](decisions/ux-pages/offboarding-flow.html)
+
+- [password-recovery-flow-split-panel](decisions/ui/password-recovery-flow-split-panel.md)
+  — Forgot Password / Reset Password (not on the original roadmap, ad hoc
+  like Org Chart and Offboarding); reuses
+  [[login-page-split-panel|login's split panel]] outright per the user's
+  own call — every auth-adjacent screen inherits login's layout instead
+  of a fresh 3-option comparison; adds the terminal states login doesn't
+  need (link sent / link expired / password updated), built on the
+  job-application-form's icon-circle confirmation pattern; mockup at
+  [decisions/ux-pages/password-recovery-flow.html](decisions/ux-pages/password-recovery-flow.html)
+- [account-settings-summary-plus-modal](decisions/ui/account-settings-summary-plus-modal.md)
+  — Employee self-service Account Settings (change password,
+  notification preferences), not on the original roadmap, ad hoc like
+  Org Chart/Offboarding/Password Recovery; reuses
+  [[my-profile-summary-plus-modal|My Profile's Summary + modal]] pattern
+  outright per the user's own call, same reuse precedent as Password
+  Recovery; reached from the avatar menu, not a new Me sub-tab;
+  notification prefs are instant toggles (no save step, reuses the
+  13th-month toggle's "stays instant" precedent), password change stays
+  behind a modal; mockup at
+  [decisions/ux-pages/account-settings.html](decisions/ux-pages/account-settings.html)
+- [roles-access-reference-plus-assignment-drawer](decisions/ui/roles-access-reference-plus-assignment-drawer.md)
+  — HR-Admin Roles & Access (Company tab), scoped down from a full role
+  management UI since the three roles (employee/manager/admin) are
+  fixed, not a configurable permission matrix, per
+  [[rails-pundit-for-authorization]] and the plan's own wording; a
+  read-only capability comparison (disabled checkboxes) plus a roster
+  where the only editable action is changing one employee's access
+  level via a right-side drawer (10th reuse of the drawer mechanic); a
+  sole-Admin safeguard blocks removing the last Admin, demonstrated on
+  Andrea Cruz; built directly, no three-option comparison, per the
+  user's own call; mockup at
+  [decisions/ux-pages/roles-access.html](decisions/ux-pages/roles-access.html)
+- [compliance-certification-form-right-side-drawer](decisions/ui/compliance-certification-form-right-side-drawer.md)
+  — the Add/Edit Certification form behind
+  [[compliance-certifications-pinned-attention-full-list|Compliance/
+  Certifications]]' "Add certification" and per-row "Edit", left
+  unwired when that page was decided; a right-side drawer (11th reuse
+  of the drawer mechanic), same two carried-over fields (employee, cert
+  name) plus expiry date, no issuing body/number/upload; built
+  directly, no three-option comparison; mockup at
+  [decisions/ux-pages/compliance-certification-form.html](decisions/ux-pages/compliance-certification-form.html)
+
+## Schema
+- [core-v1-schema](decisions/schema/core-v1-schema.md) — companies,
+  employees (auth + profile combined), checklist_items (onboarding +
+  offboarding), documents, leave_types, leave_balances (a real rollup
+  table, mechanics documented), leave_requests; indexes and
+  `has_secure_password`-on-`employees` assumption flagged; translated
+  into `db/migrate/` and `app/models/`
+- [time-attendance-schema](decisions/schema/time-attendance-schema.md)
+  — shift_templates, attendance_records (shift snapshotted at punch
+  time), attendance_correction_requests; a future
+  `attendance_period_summaries` rollup table is commented out, not
+  built, with its rollup mechanics documented so it isn't forgotten;
+  translated into `db/migrate/` and `app/models/`
+- [payroll-v2-schema](decisions/schema/payroll-v2-schema.md) —
+  loans, rate_tables (JSON brackets/fields, heterogeneous per agency,
+  no version history), payroll_runs, payslips (Void & Reissue as a
+  self-referencing version chain), payslip_line_items; `companies
+  .thirteenth_month_pay_enabled` added, Overtime Rules/Deduction
+  Defaults deliberately left unmodeled (parked UI only); translated
+  into `db/migrate/` and `app/models/`
+- [performance-reviews-schema](decisions/schema/performance-reviews-schema.md)
+  — review_cycles + kpi_entries, one shape for regular and PIP cycles;
+  "On PIP" and overall rating both derived live, never stored;
+  translated into `db/migrate/` and `app/models/`
+- [compliance-certification-schema](decisions/schema/compliance-certification-schema.md)
+  — a single `certifications` table (cert_name, expiry_date only);
+  Expired/Expiring-soon/Valid derived live off a hardcoded 30-day
+  window, hard-delete, no version history; translated into
+  `db/migrate/` and `app/models/`
+- [recruitment-ats-schema](decisions/schema/recruitment-ats-schema.md)
+  — job_openings (slug-based public apply link) + job_candidates
+  (fixed-stage pipeline, résumé via Active Storage,
+  `hired_employee_id` linking to the auto-created employee record);
+  translated into `db/migrate/` and `app/models/`
+- [benefits-schema](decisions/schema/benefits-schema.md) —
+  benefit_enrollments + benefit_dependents, record-keeping only, no
+  status/badge; translated into `db/migrate/` and `app/models/`
+- [basic-reporting-schema](decisions/schema/basic-reporting-schema.md)
+  — no new tables; all 7 fixed reports mapped to existing tables/
+  indexes with the specific scale trigger that would ever justify a
+  rollup table, per the PLAN's own "no separate reporting database"
+  scope
 
 ## Reference
 - [ph-hr-payroll-compliance-glossary](reference/ph-hr-payroll-compliance-glossary.md)

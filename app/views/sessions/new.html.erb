@@ -1,0 +1,19 @@
+<div class="auth-split">
+  <div class="brand-pane">
+    <h1>HRIS</h1>
+    <p>Log in and your profile, manager, and team are already right.</p>
+  </div>
+  <div class="form-pane">
+    <%= form_with url: session_path, method: :post do %>
+      <div class="field">
+        <label for="work_email">Work email</label>
+        <input type="email" name="work_email" id="work_email" required autofocus>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" name="password" id="password" required>
+      </div>
+      <button type="submit" class="btn btn-primary">Sign in</button>
+    <% end %>
+  </div>
+</div>

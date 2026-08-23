@@ -1,0 +1,27 @@
+# Status -> badge-category CSS class, shared across every feature's
+# statuses instead of duplicated per view — see
+# kos/decisions/rails-presenters-decorators-for-view-formatting.md and
+# kos/decisions/ui/badge-system-four-categories.md.
+class BadgePresenter
+  CATEGORY_BY_STATUS = {
+    "pending" => :caution,
+    "approved" => :positive,
+    "rejected" => :negative
+  }.freeze
+
+  def initialize(status)
+    @status = status.to_s
+  end
+
+  def category
+    CATEGORY_BY_STATUS.fetch(@status, :neutral)
+  end
+
+  def css_class
+    "badge badge-#{category}"
+  end
+
+  def label
+    @status.humanize
+  end
+end

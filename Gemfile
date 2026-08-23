@@ -18,7 +18,22 @@ gem "stimulus-rails"
 gem "jbuilder"
 
 # Use Active Model has_secure_password [https://guides.rubyonrails.org/active_model_basics.html#securepassword]
-# gem "bcrypt", "~> 3.1.7"
+gem "bcrypt", "~> 3.1.7"
+
+# Role-based authorization via policy classes — see
+# kos/decisions/rails-pundit-for-authorization.md
+gem "pundit"
+# Thin controllers + single-purpose Interactors composed by an
+# Organizer — see kos/decisions/rails-thin-controllers-organizer-interactor-pattern.md
+gem "interactor-rails"
+# Component-based views — see kos/decisions/rails-viewcomponent-for-reusable-ui.md
+gem "view_component"
+# Pagination for server-rendered tables — see
+# kos/decisions/rails-datatable-pagy-turbo-frame-pattern.md
+gem "pagy"
+# SCSS compilation for the Bulma-based design system — see
+# kos/decisions/tech-stack-hotwire-over-coffeescript.md
+gem "dartsass-rails"
 
 # Windows does not include zoneinfo files, so bundle the tzinfo-data gem
 gem "tzinfo-data", platforms: %i[ windows jruby ]

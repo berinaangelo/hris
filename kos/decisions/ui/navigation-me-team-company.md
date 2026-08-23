@@ -16,8 +16,8 @@ each role's view: https://claude.ai/code/artifact/cdff8457-0fdf-48ea-b788-76c9cd
   default.
 - **Team** (managers and up) — Approvals, Team Calendar, Team Reviews.
 - **Company** (HR Admin only) — People Directory, Payroll, Reports,
-  Recruitment, Compliance. Every future backlog feature (see
-  [[../projects/hris/PLAN.md|roadmap tiers]]) lands here.
+  Recruitment, Compliance, Roles & Access. Every future backlog feature
+  (see [[../projects/hris/PLAN.md|roadmap tiers]]) lands here.
 
 A role that can't access a tab doesn't see it exist at all — not a
 filtered-down list, an absent tab.

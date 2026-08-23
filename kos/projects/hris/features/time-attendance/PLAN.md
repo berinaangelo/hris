@@ -17,10 +17,21 @@ fixed schedule.
    time (e.g. "Dayshift" 9:00–18:00, "Midshift" 16:00–22:00 — the
    common PH pattern).
 2. HR assigns each employee to a shift template.
-3. Employee clocks in/out each day (or HR records it).
+3. Employee clocks in/out each day.
 4. System compares actual time against the assigned shift and flags
    late/undertime.
-5. HR sees a daily/period attendance list per employee.
+5. HR/supervisor sees a daily/period attendance list per employee.
+6. If a punch is wrong or missed, the employee can't edit it themselves —
+   they request a correction from their supervisor or an admin.
+7. Supervisor or admin manually edits the employee's clock-in/clock-out,
+   gated by a company-level permission (`attendance_manual_edit_enabled`,
+   default **on**) — turning it off removes the edit action for both
+   roles.
+8. Optionally, a company can require an approver to sign off on
+   attendance edits/corrections (`attendance_approvers_enabled`, default
+   **off**) — purely an oversight layer. On or off, the current
+   attendance record is what payroll uses; approval status never gates
+   payroll inclusion.
 
 ## Why "configurable" means a template list, not a scheduling engine
 
@@ -36,11 +47,20 @@ builder, no per-day overrides, no shift-swap workflow. That's what keeps
 - `shift_templates` (company-level): `name`, `start_time`, `end_time` —
   editable list
 - Employee assigned to one `shift_template`
-- Daily clock-in/clock-out record per employee (simple digital punch or
-  manual entry by HR)
+- Daily clock-in/clock-out record per employee — a digital self-punch;
+  employees never edit their own record directly
 - Late/undertime flag — actual vs. assigned shift, a comparison, not a
   pay computation
 - Attendance list view per employee/period
+- Correction requests — an employee flags a wrong/missed punch to their
+  supervisor or an admin instead of editing it themselves
+- Manual edit — supervisor and admin can both edit an employee's
+  clock-in/clock-out, gated by one company-level permission,
+  `attendance_manual_edit_enabled` (default on)
+- Optional attendance approver — a company-level toggle,
+  `attendance_approvers_enabled` (default off); when on, edits/
+  corrections get a sign-off step, but this never blocks payroll from
+  using the record as it currently stands
 
 ## Out of scope
 
@@ -54,8 +74,19 @@ builder, no per-day overrides, no shift-swap workflow. That's what keeps
 - Biometric/hardware time clock integration
 - Geolocation/IP-based punch validation
 - Break time tracking
+- Employees editing their own clock-in/clock-out directly — always goes
+  through a correction request instead
+- Multi-step/conditional approver chains for attendance — per
+  [[../../../decisions/approval-chains-scrapped-fallback-design]], stays
+  a single optional approver, not a chain, same as the leave-request
+  fallback design
 
 ## Related decisions
 
 - [[statutory-deductions-as-editable-data-not-code]] — same
   data-over-engine principle applied to shift templates
+- [[../../../decisions/approval-chains-scrapped-fallback-design]] —
+  single optional approver only, no chain, for the same reasons
+- [[../../../decisions/rails-pundit-for-authorization]] — manual-edit
+  permission is a company-level toggle, not a new role or a permissions
+  matrix cell (roles stay employee/manager/admin, fixed)
