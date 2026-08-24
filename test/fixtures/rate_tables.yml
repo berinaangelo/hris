@@ -1,0 +1,79 @@
+# Bracket rows share one shape across agencies (min, max, employee_share,
+# employer_share, base_amount, percent_over_excess) — see
+# kos/decisions/schema/payroll-v2-schema.md. Each agency only populates
+# the keys it needs; Payroll::StatutoryDeductionCalculator dispatches on
+# which are present. Illustrative figures only, not verified against
+# current circulars — same caveat as kos/decisions/ux-pages/rate-tables.html.
+
+sss_acme:
+  company: acme
+  agency: sss
+  effective_date: 2026-01-01
+  updated_by: admin_amy
+  brackets:
+    - min: 0
+      max: 4249.99
+      employee_share: 180.00
+      employer_share: 380.00
+    - min: 4250.00
+      max:
+      employee_share: 202.50
+      employer_share: 427.50
+
+philhealth_acme:
+  company: acme
+  agency: philhealth
+  effective_date: 2026-01-01
+  updated_by: admin_amy
+  fields:
+    employee_share_percent: 2.5
+    employer_share_percent: 2.5
+    income_floor: 10000.00
+    income_ceiling: 100000.00
+
+pagibig_acme:
+  company: acme
+  agency: pagibig
+  effective_date: 2024-02-01
+  updated_by: admin_amy
+  brackets:
+    - min: 0
+      max: 1500.00
+      employee_share: 15.00
+      employer_share: 30.00
+    - min: 1500.01
+      max:
+      employee_share: 100.00
+      employer_share: 100.00
+  fields:
+    compensation_cap: 10000.00
+
+bir_acme:
+  company: acme
+  agency: bir
+  effective_date: 2023-01-01
+  updated_by: admin_amy
+  brackets:
+    - min: 0
+      max: 10416.67
+      base_amount: 0
+      percent_over_excess: 0
+    - min: 10416.67
+      max: 16666.67
+      base_amount: 0
+      percent_over_excess: 15
+    - min: 16666.67
+      max:
+      base_amount: 937.50
+      percent_over_excess: 20
+
+sss_globex:
+  company: globex
+  agency: sss
+  effective_date: 2026-01-01
+  updated_by: admin_gary
+  brackets:
+    - min: 0
+      max:
+      employee_share: 200.00
+      employer_share: 400.00

@@ -1,0 +1,38 @@
+<h1>Payslip — <%= @payslip.payroll_run.period_start %> to <%= @payslip.payroll_run.period_end %></h1>
+<p>Pay date <%= @payslip.payroll_run.pay_date %></p>
+
+<div class="card">
+  <h2>Earnings</h2>
+  <table>
+    <thead><tr><th>Description</th><th>Amount</th></tr></thead>
+    <tbody>
+      <% @payslip.payslip_line_items.select(&:earning?).each do |item| %>
+        <tr>
+          <td><%= item.description.presence || item.line_type.humanize %></td>
+          <td>₱<%= item.amount %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <h2>Deductions</h2>
+  <table>
+    <thead><tr><th>Description</th><th>Amount</th></tr></thead>
+    <tbody>
+      <% @payslip.payslip_line_items.select(&:deduction?).each do |item| %>
+        <tr>
+          <td><%= item.description.presence || item.line_type.humanize %></td>
+          <td>₱<%= item.amount %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>
+
+<div class="card">
+  <p>Gross pay: ₱<%= @payslip.gross_pay %></p>
+  <p>Total deductions: ₱<%= @payslip.total_deductions %></p>
+  <p><strong>Net pay: ₱<%= @payslip.net_pay %></strong></p>
+</div>

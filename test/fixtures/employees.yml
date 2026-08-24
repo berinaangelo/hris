@@ -16,6 +16,7 @@ manager_jane:
   start_date: 2020-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
   role: manager
+  basic_salary: 60000.00
   leave_request_updates_notifications: true
   attendance_correction_updates_notifications: true
   attendance_edit_approval_notifications: true
@@ -31,6 +32,7 @@ manager_optout:
   start_date: 2020-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
   role: manager
+  basic_salary: 58000.00
   leave_request_updates_notifications: false
   attendance_correction_updates_notifications: false
   attendance_edit_approval_notifications: false
@@ -46,6 +48,7 @@ worker_bob:
   department: Engineering
   start_date: 2021-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
+  basic_salary: 40000.00
   leave_request_updates_notifications: true
   attendance_correction_updates_notifications: true
 
@@ -61,6 +64,7 @@ worker_optout:
   department: Engineering
   start_date: 2021-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
+  basic_salary: 40000.00
   leave_request_updates_notifications: false
   attendance_correction_updates_notifications: false
 
@@ -76,6 +80,7 @@ worker_carol:
   department: Engineering
   start_date: 2021-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
+  basic_salary: 42000.00
   leave_request_updates_notifications: true
   attendance_correction_updates_notifications: true
 
@@ -90,6 +95,7 @@ admin_amy:
   start_date: 2019-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
   role: admin
+  basic_salary: 65000.00
   attendance_correction_updates_notifications: true
 
 worker_offboarding:
@@ -104,6 +110,7 @@ worker_offboarding:
   start_date: 2021-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
   status: offboarding
+  basic_salary: 40000.00
 
 # globex is a second company, added so the compliance-expiry digest job's
 # per-company grouping (Compliance::CheckExpiringCertifications) is actually
@@ -119,6 +126,7 @@ admin_gary:
   start_date: 2019-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
   role: admin
+  basic_salary: 65000.00
   compliance_certification_notifications: false
 
 worker_diane:
@@ -131,3 +139,4 @@ worker_diane:
   department: Clinical
   start_date: 2021-01-01
   password_digest: <%= BCrypt::Password.create("password") %>
+  basic_salary: 45000.00

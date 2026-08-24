@@ -1,0 +1,44 @@
+<h1>Payroll run — <%= @payroll_run.period_start %> to <%= @payroll_run.period_end %></h1>
+<p>
+  Pay date <%= @payroll_run.pay_date %> ·
+  <% badge = BadgePresenter.new(@payroll_run.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
+  <% if @payroll_run.finalized? %>
+    · finalized by <%= @payroll_run.finalized_by&.full_name %> on <%= @payroll_run.finalized_at&.to_date %>
+  <% end %>
+</p>
+
+<% if @payroll_run.open? %>
+  <%= button_to "Finalize payroll run", finalize_payroll_run_path(@payroll_run), method: :patch, class: "btn btn-primary",
+        data: { turbo_confirm: "Finalize this run? This locks every payslip and decrements loan installments." } %>
+<% end %>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Employee</th>
+        <th>Base salary</th>
+        <th>Loan deductions</th>
+        <th>Statutory</th>
+        <th>Net pay</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @payroll_run.payslips.each do |payslip| %>
+        <% presenter = PayslipPresenter.new(payslip) %>
+        <tr>
+          <td><%= payslip.employee.full_name %></td>
+          <td>₱<%= presenter.base_salary %></td>
+          <td>₱<%= presenter.loan_deductions %></td>
+          <td>₱<%= presenter.statutory_deductions %></td>
+          <td>₱<%= payslip.net_pay %></td>
+          <td>
+            <% status_badge = BadgePresenter.new(payslip.status) %>
+            <span class="<%= status_badge.css_class %>"><%= status_badge.label %></span>
+          </td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -65,6 +65,11 @@
       <%= f.label :employment_type %>
       <%= f.select :employment_type, Employee.employment_types.keys.map { |t| [t.humanize, t] } %>
     </div>
+    <div class="field">
+      <%= f.label :basic_salary, "Monthly basic salary" %>
+      <%= f.number_field :basic_salary, step: 0.01, min: 0 %>
+      <p><small>Required before this employee can be included in a payroll run — prorated per semi-monthly cutoff.</small></p>
+    </div>
     <%= f.submit "Save", class: "btn btn-primary" %>
   <% end %>
 </div>
@@ -114,11 +119,11 @@
 <div class="card">
   <h2>Benefits</h2>
   <% @employee.benefit_enrollments.each do |enrollment| %>
-    <%= render "benefit_enrollment_card", employee: @employee, enrollment: enrollment %>
+    <%= render "employees/benefit_enrollment_card", employee: @employee, enrollment: enrollment %>
   <% end %>
   <% unless @employee.benefit_enrollments.any?(&:new_record?) %>
     <h3>Add a plan</h3>
-    <%= render "benefit_enrollment_card", employee: @employee, enrollment: @employee.benefit_enrollments.build %>
+    <%= render "employees/benefit_enrollment_card", employee: @employee, enrollment: @employee.benefit_enrollments.build %>
   <% end %>
 </div>
 

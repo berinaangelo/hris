@@ -1,0 +1,37 @@
+<h1>Payroll</h1>
+
+<% if @open_run %>
+  <div class="card">
+    <h2>Currently open</h2>
+    <p>
+      <%= @open_run.period_start %> – <%= @open_run.period_end %> · Pay date <%= @open_run.pay_date %>
+      <span class="badge badge-neutral">Open</span>
+    </p>
+    <p><%= @open_run.payslips.count %> employees · Gross so far ₱<%= @open_run.payslips.sum(:gross_pay) %></p>
+    <%= link_to "Continue payroll run", payroll_run_path(@open_run), class: "btn btn-primary" %>
+  </div>
+<% else %>
+  <div class="card">
+    <p>No payroll run is currently open.</p>
+    <%= link_to "Open a payroll run", new_payroll_run_path, class: "btn btn-primary" %>
+  </div>
+<% end %>
+
+<div class="card">
+  <h2>History</h2>
+  <table>
+    <thead><tr><th>Cutoff</th><th>Pay date</th><th>Type</th><th>Employees</th><th>Gross</th><th>Net</th></tr></thead>
+    <tbody>
+      <% @history.each do |run| %>
+        <tr>
+          <td><%= link_to "#{run.period_start} – #{run.period_end}", payroll_run_path(run) %></td>
+          <td><%= run.pay_date %></td>
+          <td><%= run.run_type.humanize %></td>
+          <td><%= run.payslips.count %></td>
+          <td>₱<%= run.payslips.sum(:gross_pay) %></td>
+          <td>₱<%= run.payslips.sum(:net_pay) %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

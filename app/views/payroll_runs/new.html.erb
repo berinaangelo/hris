@@ -1,0 +1,21 @@
+<h1>Open a payroll run</h1>
+<p>Generates a draft payslip for every employee not yet offboarded, off their basic salary, active loans, and current rate tables. Nothing is final until you finalize the run.</p>
+
+<div class="card">
+  <%= form_with url: payroll_runs_path, local: true do %>
+    <div class="field">
+      <label for="period_start">Period start</label>
+      <input type="date" name="period_start" id="period_start" required>
+    </div>
+    <div class="field">
+      <label for="period_end">Period end</label>
+      <input type="date" name="period_end" id="period_end" required>
+    </div>
+    <div class="field">
+      <label for="pay_date">Pay date</label>
+      <input type="date" name="pay_date" id="pay_date" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Open run</button>
+    <%= link_to "Cancel", payroll_runs_path, class: "btn btn-ghost" %>
+  <% end %>
+</div>

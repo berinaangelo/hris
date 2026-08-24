@@ -1,0 +1,15 @@
+bob_company_loan:
+  employee: worker_bob
+  loan_type: company_loan
+  total_amount: 12000.00
+  monthly_amortization: 1000.00
+  remaining_installments: 12
+  status: active
+
+carol_pagibig_mpl_last_installment:
+  employee: worker_carol
+  loan_type: pagibig_mpl
+  total_amount: 500.00
+  monthly_amortization: 500.00
+  remaining_installments: 1
+  status: active

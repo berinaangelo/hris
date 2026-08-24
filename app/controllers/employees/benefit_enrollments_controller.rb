@@ -20,7 +20,13 @@ module Employees
       @employee = policy_scope(Employee).includes(benefit_enrollments: :benefit_dependents).find(params[:employee_id])
       authorize @employee, :update?
 
-      enrollment = @employee.benefit_enrollments.find(params[:id])
+      # .detect on the already-loaded association, not .find(id) — the
+      # latter re-queries and returns a fresh instance even when loaded,
+      # which would desync it from the array employees/show.html.erb
+      # iterates on a failed-validation re-render (see render_benefits_show).
+      enrollment = @employee.benefit_enrollments.detect { |candidate| candidate.id == params[:id].to_i }
+      raise ActiveRecord::RecordNotFound unless enrollment
+
       if enrollment.update(benefit_enrollment_params)
         redirect_to employee_path(@employee), notice: "Benefit plan updated."
       else

@@ -95,7 +95,8 @@ class EmployeesController < ApplicationController
       :first_name, :last_name, :personal_email, :work_email,
       :mobile_number, :home_address, :birthdate,
       :emergency_contact_name, :emergency_contact_phone,
-      :job_title, :department, :manager_id, :start_date, :employment_type
+      :job_title, :department, :manager_id, :start_date, :employment_type,
+      :basic_salary
     )
   end
 end

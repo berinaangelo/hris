@@ -1,0 +1,37 @@
+<h1>Rate Tables</h1>
+<p>Statutory deduction tables — SSS, PhilHealth, Pag-IBIG, BIR withholding. Editing here changes what future payroll runs look up; it never recomputes an already-finalized payslip.</p>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Agency</th>
+        <th>Effective date</th>
+        <th>Last updated</th>
+        <th></th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      <% @rate_tables.each do |rate_table| %>
+        <tr>
+          <td><%= rate_table.display_name %></td>
+          <td><%= rate_table.effective_date %></td>
+          <td>
+            <% if rate_table.updated_by %>
+              <%= rate_table.updated_by.full_name %> · <%= time_ago_in_words(rate_table.updated_at) %> ago
+            <% else %>
+              Never
+            <% end %>
+          </td>
+          <td>
+            <% if rate_table.stale? %>
+              <span class="badge badge-caution">Not reviewed in over a year</span>
+            <% end %>
+          </td>
+          <td><%= link_to "Edit rates", edit_rate_table_path(rate_table), class: "btn btn-ghost" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

@@ -1,0 +1,20 @@
+<h1>My Payslips</h1>
+
+<div class="card">
+  <table>
+    <thead><tr><th>Cutoff</th><th>Pay date</th><th>Net pay</th><th></th></tr></thead>
+    <tbody>
+      <% @payslips.each do |payslip| %>
+        <tr>
+          <td><%= payslip.payroll_run.period_start %> – <%= payslip.payroll_run.period_end %></td>
+          <td><%= payslip.payroll_run.pay_date %></td>
+          <td>₱<%= payslip.net_pay %></td>
+          <td><%= link_to "View", payslip_path(payslip), class: "btn btn-ghost" %></td>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+  <% if @payslips.none? %>
+    <p>No finalized payslips yet.</p>
+  <% end %>
+</div>

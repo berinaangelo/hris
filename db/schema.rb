@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_23_140002) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_24_100000) do
   create_table "active_storage_attachments", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.bigint "blob_id", null: false
     t.datetime "created_at", null: false
@@ -148,6 +148,7 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_23_140002) do
   create_table "employees", charset: "utf8mb4", collation: "utf8mb4_0900_ai_ci", force: :cascade do |t|
     t.boolean "attendance_correction_updates_notifications", default: true, null: false
     t.boolean "attendance_edit_approval_notifications", default: true, null: false
+    t.decimal "basic_salary", precision: 10, scale: 2
     t.date "birthdate"
     t.boolean "company_announcement_notifications", default: true, null: false
     t.bigint "company_id", null: false
@@ -384,7 +385,6 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_23_140002) do
     t.index ["company_id"], name: "index_shift_templates_on_company_id"
   end
 
-  add_foreign_key "active_storage_attachments", "active_storage_blobs", column: "blob_id"
   add_foreign_key "active_storage_variant_records", "active_storage_blobs", column: "blob_id"
   add_foreign_key "attendance_correction_requests", "attendance_records"
   add_foreign_key "attendance_correction_requests", "employees"

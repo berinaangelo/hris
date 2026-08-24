@@ -64,6 +64,13 @@ Rails.application.routes.draw do
   end
 
   resources :roles_access, only: [ :index, :edit, :update ]
+  resources :rate_tables, only: [ :index, :edit, :update ]
+  resources :payroll_runs, only: [ :index, :new, :create, :show ] do
+    member do
+      patch :finalize
+    end
+  end
+  resources :payslips, only: [ :index, :show ]
   resources :certifications, only: [ :index, :new, :create, :edit, :update, :destroy ]
   resources :company_review_cycles, only: [ :index, :new, :create, :show ]
   get "reports", to: "reports#index"

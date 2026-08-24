@@ -1,0 +1,43 @@
+<h1>Edit <%= @rate_table.display_name %> rates</h1>
+<p>Effective <%= @rate_table.effective_date %> · last updated by <%= @rate_table.updated_by&.full_name || "nobody yet" %></p>
+
+<div class="card">
+  <%= form_with model: @rate_table, url: rate_table_path(@rate_table), method: :patch, local: true do |f| %>
+    <div class="field">
+      <%= f.label :effective_date %>
+      <%= f.date_field :effective_date, required: true %>
+    </div>
+
+    <% if %w[sss pagibig bir].include?(@rate_table.agency) %>
+      <div class="field">
+        <label for="rate_table_brackets_json">
+          Brackets (JSON array)
+          <% if @rate_table.bir? %>
+            <small>Each row: <code>{"min", "max", "base_amount", "percent_over_excess"}</code> — deduction = base_amount + percent_over_excess × (gross − min).</small>
+          <% else %>
+            <small>Each row: <code>{"min", "max", "employee_share", "employer_share"}</code> — employee_share is the flat peso amount deducted for gross in that range.</small>
+          <% end %>
+        </label>
+        <textarea name="rate_table[brackets_json]" id="rate_table_brackets_json" rows="10"><%= JSON.pretty_generate(@rate_table.brackets.presence || []) %></textarea>
+      </div>
+    <% end %>
+
+    <div class="field">
+      <label for="rate_table_fields_json">
+        <% if @rate_table.philhealth? %>
+          Rate fields (JSON object)
+          <small>Keys: <code>employee_share_percent, employer_share_percent, income_floor, income_ceiling</code>.</small>
+        <% elsif @rate_table.pagibig? %>
+          Extra fields (JSON object)
+          <small>Key: <code>compensation_cap</code> — max monthly compensation used for computation.</small>
+        <% else %>
+          Extra fields (JSON object, optional)
+        <% end %>
+      </label>
+      <textarea name="rate_table[fields_json]" id="rate_table_fields_json" rows="6"><%= JSON.pretty_generate(@rate_table.fields.presence || {}) %></textarea>
+    </div>
+
+    <%= f.submit "Save changes", class: "btn btn-primary" %>
+    <%= link_to "Cancel", rate_tables_path, class: "btn btn-ghost" %>
+  <% end %>
+</div>
