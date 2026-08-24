@@ -1,5 +1,5 @@
 <div style="margin-left: <%= depth * 2 %>rem; padding: 0.5rem 0;">
-  <span class="badge badge-neutral"><%= employee.full_name %> · <%= employee.job_title %></span>
+  <%= link_to "#{employee.full_name} · #{employee.job_title}", employee_path(employee), class: "badge badge-neutral" %>
 </div>
 <% (reports_by_manager_id[employee.id] || []).each do |report| %>
   <%= render partial: "branch", locals: { employee: report, reports_by_manager_id: reports_by_manager_id, depth: depth + 1 } %>
