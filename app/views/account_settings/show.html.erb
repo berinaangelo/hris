@@ -3,17 +3,21 @@
 <div class="summary-modal-page" data-controller="modal" data-modal-open-value="<%= @open_password_modal ? "true" : "false" %>">
   <div class="mock-cols">
     <div class="summary-col">
-      <span class="avatar-lg"><%= current_employee.first_name.first %><%= current_employee.last_name.first %></span>
-      <h2><%= current_employee.full_name %></h2>
-      <p><%= current_employee.job_title %> · <%= current_employee.department %></p>
-      <span class="<%= status.css_class %>" style="margin-top:0.5rem;"><%= status.label %></span>
+      <div>
+        <span class="avatar-lg"><%= current_employee.first_name.first %><%= current_employee.last_name.first %></span>
+        <h2><%= current_employee.full_name %></h2>
+        <p><%= current_employee.job_title %> · <%= current_employee.department %></p>
+        <span class="<%= status.css_class %>" style="margin-top:0.5rem;"><%= status.label %></span>
 
-      <div class="summary-facts">
-        <div class="row"><span>Employee ID</span><span><%= current_employee.employee_number %></span></div>
-        <div class="row"><span>Work email</span><span class="email"><%= current_employee.work_email %></span></div>
-        <div class="row"><span>Password last changed</span><span><%= current_employee.password_changed_at&.to_date || "Never" %></span></div>
-        <div class="row"><span>Last login</span><span><%= current_employee.last_login_at&.to_fs(:short) || "—" %></span></div>
+        <div class="summary-facts">
+          <div class="row"><span>Employee ID</span><span><%= current_employee.employee_number %></span></div>
+          <div class="row"><span>Work email</span><span class="email"><%= current_employee.work_email %></span></div>
+          <div class="row"><span>Password last changed</span><span><%= current_employee.password_changed_at&.to_date || "Never" %></span></div>
+          <div class="row"><span>Last login</span><span><%= current_employee.last_login_at&.to_fs(:short) || "—" %></span></div>
+        </div>
       </div>
+
+     
 
       <button type="button" class="btn btn-primary summary-cta" data-action="modal#open">
         <%= lucide_icon(:lock, stroke_width: 2) %>

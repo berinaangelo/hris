@@ -1,7 +1,14 @@
-<%= link_to send(item.path_helper), class: ("active" if item.active) do %>
-  <%= lucide_icon item.icon %>
-  <%= item.label %>
-  <% if item.count.positive? %>
-    <span class="badge badge-caution"><%= item.count %></span>
+<% if item.http_method == :get %>
+  <%= link_to send(item.path_helper), class: ("active" if item.active) do %>
+    <%= lucide_icon item.icon %>
+    <%= item.label %>
+    <% if item.count.positive? %>
+      <span class="badge badge-caution"><%= item.count %></span>
+    <% end %>
+  <% end %>
+<% else %>
+  <%= button_to send(item.path_helper), method: item.http_method, class: "side-nav-button" do %>
+    <%= lucide_icon item.icon %>
+    <%= item.label %>
   <% end %>
 <% end %>

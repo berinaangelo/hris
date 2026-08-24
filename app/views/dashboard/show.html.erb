@@ -31,15 +31,23 @@
       <div class="req-list-head">
         <h3>My requests</h3>
       </div>
+      
       <% if @leave_requests.any? %>
-        <% @leave_requests.each do |request| %>
-          <% badge = BadgePresenter.new(request.status) %>
-          <div class="req-row">
-            <span class="dates"><%= request.start_date == request.end_date ? request.start_date.strftime("%b %-d") : "#{request.start_date.strftime("%b %-d")}–#{request.end_date.strftime("%-d")}" %></span>
-            <span class="type"><%= request.leave_type.name %></span>
-            <span class="<%= badge.css_class %>"><%= badge.label %></span>
-          </div>
-        <% end %>
+        
+      <div class="table-wrap pt-3">
+        <table class="reqtable">
+          <tbody>
+            <% @leave_requests.each do |request| %>
+              <% badge = BadgePresenter.new(request.status) %>
+              <tr>
+                <td class="dates pl-0"><%= request.start_date == request.end_date ? request.start_date.strftime("%b %-d") : "#{request.start_date.strftime("%b %-d")}–#{request.end_date.strftime("%-d")}" %></td>
+                <td class="type"><%= request.leave_type.name %></td>
+                <td class="mono has-text-right pr-0"><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
       <% else %>
         <p class="muted">No requests yet.</p>
       <% end %>

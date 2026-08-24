@@ -184,6 +184,8 @@
   .rating-hero .num { font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; line-height: 1; }
   .rating-hero .sub { font-size: 0.75rem; color: #C7CEDE; margin-top: 0.35rem; }
 
+  .kpi-preview-head { font-size: 0.9375rem; font-weight: 700; margin-top: 0.2rem; }
+
   /* ---------- Option 1: list + modal detail ---------- */
 
   .op1-body { padding: 1.5rem 2rem 2rem; }
@@ -232,14 +234,16 @@
   #cyc2-1:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-1"],
   #cyc2-2:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-2"],
   #cyc2-3:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-3"],
-  #cyc2-4:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-4"] {
+  #cyc2-4:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-4"],
+  #cyc2-5:checked ~ .page .frame-shell[data-n="2"] .cycle-list label[for="cyc2-5"] {
     background: var(--surface); box-shadow: inset 2px 0 0 var(--accent);
   }
 
   #cyc2-1:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="1"],
   #cyc2-2:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="2"],
   #cyc2-3:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="3"],
-  #cyc2-4:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="4"] { display: flex; }
+  #cyc2-4:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="4"],
+  #cyc2-5:checked ~ .page .frame-shell[data-n="2"] .op2-detail-panel[data-p="5"] { display: flex; }
 
   /* ---------- Option 3: timeline / accordion ---------- */
 
@@ -273,6 +277,7 @@
 <input class="state" type="radio" name="cyc2" id="cyc2-2" checked />
 <input class="state" type="radio" name="cyc2" id="cyc2-3" />
 <input class="state" type="radio" name="cyc2" id="cyc2-4" />
+<input class="state" type="radio" name="cyc2" id="cyc2-5" />
 <input class="state" type="checkbox" id="acc3-2" checked />
 <input class="state" type="checkbox" id="acc3-3" />
 <input class="state" type="checkbox" id="acc3-4" />
@@ -300,10 +305,14 @@
         the fixed KPI structure already on file
         (decisions/performance-review-kpi-based-not-form-builder.md):
         kpi_name / target / actual / score(1–5) / comment, overall
-        rating as a simple average. An "On PIP" badge would appear next
-        to a cycle here when one is active — not shown for this persona,
-        who isn't on one. A cycle in progress shows no scores until the
-        manager publishes it.
+        rating as a simple average. A published PIP cycle's outcome
+        (Passed/Not Passed/Extended, via BadgePresenter) shows as a
+        badge next to its rating — demonstrated on the H2 2024 cycle
+        below (Option 2). A cycle in progress shows its KPI targets (no
+        scores yet) beneath the "your manager is completing this cycle"
+        note — synced 2026-08-24 to match the real
+        review_cycles/_detail.html.erb, which renders that preview even
+        before scoring starts.
       </div>
     </div>
 
@@ -467,6 +476,10 @@
                 <span class="period">H1 2025 (Jan–Jun)</span>
                 <span class="meta">Regular · <span class="rating">3.9/5</span></span>
               </label>
+              <label for="cyc2-5">
+                <span class="period">H2 2024 (Jul–Dec)</span>
+                <span class="meta">PIP · <span class="rating">3.2/5</span></span>
+              </label>
             </div>
 
             <div class="op2-detail">
@@ -474,6 +487,17 @@
                 <div class="inprogress-note">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
                   Your manager is completing this cycle — you'll be notified when it's published. Runs through Dec 31, 2026.
+                </div>
+                <h3 class="kpi-preview-head">KPIs for this cycle</h3>
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th></tr></thead>
+                    <tbody>
+                      <tr><td><p class="name">Reduce checkout page load time</p></td><td class="muted">&lt;2.2s p95</td></tr>
+                      <tr><td><p class="name">Code review turnaround</p></td><td class="muted">&lt;20h avg</td></tr>
+                      <tr><td><p class="name">Ship the new onboarding flow</p></td><td class="muted">Launch by Nov 15</td></tr>
+                    </tbody>
+                  </table>
                 </div>
               </div>
 
@@ -558,6 +582,43 @@
                   <span style="font-size:0.75rem;color:#C7CEDE;">Reviewed by Ramon Dela Cruz</span>
                 </div>
                 <p style="font-size:0.8125rem;color:var(--neutral);">First full review cycle on file for this employee. KPI-level detail preserved the same way as later cycles.</p>
+              </div>
+
+              <div class="op2-detail-panel" data-p="5">
+                <div class="rating-hero">
+                  <div>
+                    <p class="card-label" style="color:#A9B4CB;">H2 2024 · Overall rating</p>
+                    <p class="num">3.2 <span style="font-size:1rem;font-family:var(--font-body);color:#C7CEDE;">/ 5</span></p>
+                  </div>
+                  <span style="font-size:0.75rem;color:#C7CEDE;">Reviewed by Ramon Dela Cruz</span>
+                </div>
+                <p><span class="badge badge-positive">Passed</span></p>
+                <div class="table-wrap">
+                  <table class="kpitable">
+                    <thead><tr><th>KPI</th><th>Target</th><th>Actual</th><th>Score</th></tr></thead>
+                    <tbody>
+                      <tr>
+                        <td><p class="name">Meet daily ticket resolution target</p></td>
+                        <td class="muted">&ge;12 tickets/day</td>
+                        <td class="muted">13 tickets/day avg</td>
+                        <td><div class="score-cell"><span class="fig">4/5</span><div class="score-track"><div class="score-fill" style="width:80%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Attendance and punctuality</p></td>
+                        <td class="muted">No unexcused lates/absences</td>
+                        <td class="muted">1 late, cleared</td>
+                        <td><div class="score-cell"><span class="fig">3/5</span><div class="score-track"><div class="score-fill" style="width:60%"></div></div></div></td>
+                      </tr>
+                      <tr>
+                        <td><p class="name">Code review turnaround</p></td>
+                        <td class="muted">&lt;24h avg</td>
+                        <td class="muted">22h avg</td>
+                        <td><div class="score-cell"><span class="fig">3/5</span><div class="score-track"><div class="score-fill" style="width:60%"></div></div></div></td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="manager-comment"><b>Ramon:</b> Consistent improvement across the PIP period — performance is now meeting expectations. Closing out the plan.</div>
               </div>
             </div>
           </div>

@@ -16,7 +16,5 @@
   </div>
 
   <span class="nav-spacer"></span>
-  <%= link_to "Account Settings", account_settings_path %>
   <span class="nav-avatar"><%= current_employee.first_name.first %><%= current_employee.last_name.first %></span>
-  <%= button_to "Sign out", session_path, method: :delete, class: "link-button" %>
 </nav>

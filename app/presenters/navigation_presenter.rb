@@ -3,7 +3,8 @@
 # PORO like the other presenters (badge_presenter.rb etc.) — no
 # view_context, the view resolves `path_helper` symbols itself.
 class NavigationPresenter
-  NavItem = Struct.new(:section, :label, :icon, :path_helper, :controller_paths, :count_proc, keyword_init: true) do
+  NavItem = Struct.new(:section, :label, :icon, :path_helper, :http_method, :controller_paths, :count_proc,
+                        keyword_init: true) do
     def matches?(request_controller_path)
       Array(controller_paths).any? do |path|
         request_controller_path == path || request_controller_path.start_with?("#{path}/")
@@ -12,7 +13,7 @@ class NavigationPresenter
   end
 
   Tab = Struct.new(:label, :path_helper, :active, :count, keyword_init: true)
-  SidebarItem = Struct.new(:label, :icon, :path_helper, :count, :active, keyword_init: true)
+  SidebarItem = Struct.new(:label, :icon, :path_helper, :http_method, :count, :active, keyword_init: true)
 
   SECTION_LABELS = { me: "Me", team: "Team", company: "Company" }.freeze
 
@@ -39,6 +40,10 @@ class NavigationPresenter
                 controller_paths: "my_profile"),
     NavItem.new(section: :me, label: "My Payslips", icon: :file, path_helper: :payslips_path,
                 controller_paths: "payslips"),
+    NavItem.new(section: :me, label: "Account Settings", icon: :settings, path_helper: :account_settings_path,
+                controller_paths: ""),
+    NavItem.new(section: :me, label: "Sign out", icon: :"log-out", path_helper: :session_path,
+                http_method: :delete, controller_paths: ""),
 
     NavItem.new(section: :team, label: "Approvals", icon: :"check-circle", path_helper: :team_approvals_path,
                 controller_paths: "team/approvals",
@@ -108,6 +113,7 @@ class NavigationPresenter
         label: item.label,
         icon: item.icon,
         path_helper: item.path_helper,
+        http_method: item.http_method || :get,
         count: count_for(item),
         active: item.matches?(@request_controller_path)
       )

@@ -474,6 +474,17 @@ structure below. Read this first; open only the files you actually need.
   "Upload" button component) — plus a minor Org Chart note, not fixed;
   everything else reads clean, Team Approvals called out as the
   strongest page
+- [attendance-corrections-list-plus-modal](decisions/ui/attendance-corrections-list-plus-modal.md)
+  — Attendance Corrections (Me tab, everyone), the employee's own
+  self-service page for filing/tracking correction requests, distinct
+  from the HR-Admin/manager-facing Time & Attendance page (approve/
+  reject already lives there); reuses
+  [[time-off-list-plus-modal|Time Off]]'s "List + Modal Form" shape
+  verbatim — history table default, "Request a correction" opens the
+  same modal mechanism; fields and the "at least one clock time"
+  validation demo are taken straight from the real form/model; built
+  directly, no three-option comparison; mockup at
+  [decisions/ux-pages/attendance-corrections.html](decisions/ux-pages/attendance-corrections.html)
 
 ## Schema
 - [core-v1-schema](decisions/schema/core-v1-schema.md) — companies,

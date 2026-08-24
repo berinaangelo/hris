@@ -3,17 +3,19 @@
 <div class="summary-modal-page" data-controller="modal" data-modal-open-value="<%= @open_profile_modal ? "true" : "false" %>">
   <div class="mock-cols">
     <div class="summary-col">
-      <span class="avatar-lg"><%= current_employee.first_name.first %><%= current_employee.last_name.first %></span>
-      <h2><%= current_employee.full_name %></h2>
-      <p><%= current_employee.job_title %> · <%= current_employee.department %></p>
-      <span class="<%= status.css_class %>" style="margin-top:0.5rem;"><%= status.label %></span>
+      <div>
+        <span class="avatar-lg"><%= current_employee.first_name.first %><%= current_employee.last_name.first %></span>
+        <h2><%= current_employee.full_name %></h2>
+        <p><%= current_employee.job_title %> · <%= current_employee.department %></p>
+        <span class="<%= status.css_class %>" style="margin-top:0.5rem;"><%= status.label %></span>
 
-      <div class="summary-facts">
-        <div class="row"><span>Employee ID</span><span><%= current_employee.employee_number %></span></div>
-        <div class="row"><span>Manager</span><span class="email"><%= current_employee.manager&.full_name || "—" %></span></div>
-        <div class="row"><span>Start date</span><span><%= current_employee.start_date %></span></div>
-        <div class="row"><span>Mobile</span><span><%= current_employee.mobile_number.presence || "—" %></span></div>
-        <div class="row"><span>Email</span><span class="email"><%= current_employee.personal_email.presence || "—" %></span></div>
+        <div class="summary-facts">
+          <div class="row"><span>Employee ID</span><span><%= current_employee.employee_number %></span></div>
+          <div class="row"><span>Manager</span><span class="email"><%= current_employee.manager&.full_name || "—" %></span></div>
+          <div class="row"><span>Start date</span><span><%= current_employee.start_date %></span></div>
+          <div class="row"><span>Mobile</span><span><%= current_employee.mobile_number.presence || "—" %></span></div>
+          <div class="row"><span>Email</span><span class="email"><%= current_employee.personal_email.presence || "—" %></span></div>
+        </div>
       </div>
 
       <button type="button" class="btn btn-primary summary-cta" data-action="modal#open">
@@ -21,6 +23,7 @@
         Edit personal info
       </button>
     </div>
+  
 
     <div>
       <div class="section">

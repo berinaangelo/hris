@@ -1,9 +1,18 @@
-<h1>Attendance Corrections</h1>
+<div class="mb-3">
+  <h2>Attendance Corrections</h2>
+</div>
 
 <div class="card">
   <% if @correction_requests.any? %>
     <table>
-      <thead><tr><th>Date</th><th>Requested clock in</th><th>Requested clock out</th><th>Status</th></tr></thead>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Requested clock in</th>
+          <th>Requested clock out</th>
+          <th>Status</th>
+        </tr>
+      </thead>
       <tbody>
         <% @correction_requests.each do |request| %>
           <tr>
@@ -20,4 +29,6 @@
   <% end %>
 </div>
 
+<div class='pt-3'>
 <%= link_to "Request a correction", new_attendance_correction_request_path, class: "btn btn-primary" %>
+</div>
