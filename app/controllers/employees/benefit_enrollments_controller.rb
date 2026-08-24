@@ -4,26 +4,28 @@ module Employees
   # mirroring employees/documents_controller.rb.
   class BenefitEnrollmentsController < ApplicationController
     def create
-      employee = policy_scope(Employee).find(params[:employee_id])
-      authorize employee, :update?
+      @employee = policy_scope(Employee).includes(benefit_enrollments: :benefit_dependents).find(params[:employee_id])
+      authorize @employee, :update?
 
-      enrollment = employee.benefit_enrollments.new(benefit_enrollment_params)
+      enrollment = @employee.benefit_enrollments.build(benefit_enrollment_params)
       if enrollment.save
-        redirect_to employee_path(employee), notice: "Benefit plan added."
+        redirect_to employee_path(@employee), notice: "Benefit plan added."
       else
-        redirect_to employee_path(employee), alert: enrollment.errors.full_messages.to_sentence
+        flash.now[:alert] = enrollment.errors.full_messages.to_sentence
+        render_benefits_show
       end
     end
 
     def update
-      employee = policy_scope(Employee).find(params[:employee_id])
-      authorize employee, :update?
+      @employee = policy_scope(Employee).includes(benefit_enrollments: :benefit_dependents).find(params[:employee_id])
+      authorize @employee, :update?
 
-      enrollment = employee.benefit_enrollments.find(params[:id])
+      enrollment = @employee.benefit_enrollments.find(params[:id])
       if enrollment.update(benefit_enrollment_params)
-        redirect_to employee_path(employee), notice: "Benefit plan updated."
+        redirect_to employee_path(@employee), notice: "Benefit plan updated."
       else
-        redirect_to employee_path(employee), alert: enrollment.errors.full_messages.to_sentence
+        flash.now[:alert] = enrollment.errors.full_messages.to_sentence
+        render_benefits_show
       end
     end
 
@@ -36,6 +38,18 @@ module Employees
     end
 
     private
+
+    # Failed create/update re-renders employees/show (rather than
+    # redirecting) so the admin's just-typed values survive, matching
+    # EmployeesController#update's own convention. @employee was loaded
+    # with benefit_enrollments eager-loaded above, so the invalid,
+    # unpersisted/unsaved enrollment this action just built is the same
+    # in-memory object the re-rendered view iterates over.
+    def render_benefits_show
+      @onboarding_items = @employee.checklist_items.onboarding.order(:position)
+      @offboarding_items = @employee.checklist_items.offboarding.order(:position)
+      render "employees/show", status: :unprocessable_entity
+    end
 
     def benefit_enrollment_params
       params.require(:benefit_enrollment).permit(

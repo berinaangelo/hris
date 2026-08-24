@@ -22,7 +22,7 @@
       <%= f.fields_for :benefit_dependents do |df| %>
         <div class="field kpi-entry-row">
           <%= df.text_field :name, placeholder: "Name" %>
-          <%= df.select :relationship, BenefitDependent.relationships.keys.map { |r| [ r.humanize, r ] } %>
+          <%= df.select :relationship, BenefitDependent.relationships.keys.map { |r| [ r.humanize, r ] }, include_blank: true %>
           <% if df.object.persisted? %>
             <label><%= df.check_box :_destroy %> Remove</label>
           <% end %>
