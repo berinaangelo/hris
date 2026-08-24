@@ -1,0 +1,58 @@
+<div class="auth-split">
+  <div class="brand-pane">
+    <span class="wordmark"><span class="mark"><%= lucide_icon(:building, stroke_width: 2) %></span> HRIS</span>
+
+    <div>
+      <h2 class="headline">We'll get you back in — safely.</h2>
+      <div class="moments">
+        <div class="moment"><%= lucide_icon(:"circle-check") %> Reset links only go to your HR-verified work email</div>
+        <div class="moment"><%= lucide_icon(:"circle-check") %> Links expire in 15 minutes, for your security</div>
+        <div class="moment"><%= lucide_icon(:"circle-check") %> Your password is never stored in plain text</div>
+      </div>
+    </div>
+
+    <span></span>
+  </div>
+
+  <div class="form-pane">
+    <div class="form-col">
+      <% if @sent %>
+        <div class="confirm-panel">
+          <div class="icon-circle"><%= lucide_icon(:mail) %></div>
+          <h3>Check your email</h3>
+          <p>If an account exists for that address, we've sent a link to reset your password. It expires in 15 minutes.</p>
+          <%= form_with url: password_resets_path, method: :post do %>
+            <input type="hidden" name="work_email" value="<%= params[:work_email] %>">
+            <button class="btn btn-primary" type="submit">Resend link</button>
+          <% end %>
+          <p class="footer-note"><%= link_to "Back to sign in", new_session_path, class: "link" %></p>
+        </div>
+      <% else %>
+        <div>
+          <h2>Forgot your password?</h2>
+          <p class="lede">Enter your work email and we'll send you a link to reset it.</p>
+        </div>
+
+        <%= form_with url: password_resets_path, method: :post do %>
+          <div class="field">
+            <label for="work_email">Work email</label>
+            <div class="input-wrap">
+              <%= lucide_icon(:mail, class: "icon-left") %>
+              <input class="<%= "has-error" if @email_error %>" id="work_email" name="work_email" type="email" placeholder="you@company.com" value="<%= params[:work_email] %>" required autofocus>
+            </div>
+            <% if @email_error %>
+              <p class="field-error"><%= @email_error %></p>
+            <% end %>
+          </div>
+
+          <button class="btn btn-primary" type="submit">
+            Send reset link
+            <%= lucide_icon(:"arrow-right", stroke_width: 2) %>
+          </button>
+        <% end %>
+
+        <p class="footer-note">Remembered it? <%= link_to "Back to sign in", new_session_path, class: "link" %></p>
+      <% end %>
+    </div>
+  </div>
+</div>

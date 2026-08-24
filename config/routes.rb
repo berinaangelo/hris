@@ -4,6 +4,7 @@ Rails.application.routes.draw do
   root "dashboard#show"
 
   resource :session, only: [ :new, :create, :destroy ]
+  resources :password_resets, param: :token, only: [ :new, :create, :edit, :update ]
 
   # Public, unauthenticated — see app/controllers/careers_controller.rb.
   get "apply/:slug", to: "careers#show", as: :careers

@@ -13,8 +13,14 @@ class MyProfileController < ApplicationController
     if current_employee.update(profile_params)
       redirect_to my_profile_path, notice: "Saved."
     else
-      flash.now[:alert] = current_employee.errors.full_messages.to_sentence
-      render :edit, status: :unprocessable_entity
+      # "Edit personal info" now lives as a modal on My Profile (see
+      # kos/decisions/ui/my-profile-summary-plus-modal.md) rather than a
+      # standalone page, so a failed submit re-renders that page with
+      # the modal forced back open instead of :edit.
+      @onboarding_items = current_employee.checklist_items.onboarding.order(:position)
+      @documents = current_employee.documents
+      @open_profile_modal = true
+      render :show, status: :unprocessable_entity
     end
   end
 

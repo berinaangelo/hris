@@ -1,19 +1,62 @@
 <div class="auth-split">
   <div class="brand-pane">
-    <h1>HRIS</h1>
-    <p>Log in and your profile, manager, and team are already right.</p>
+    <span class="wordmark"><span class="mark"><%= lucide_icon(:building, stroke_width: 2) %></span> HRIS</span>
+
+    <div>
+      <h2 class="headline">Log in and your profile, manager, and team are already right.</h2>
+      <div class="moments">
+        <div class="moment"><%= lucide_icon(:"circle-check") %> See your real leave balance before you request</div>
+        <div class="moment"><%= lucide_icon(:"circle-check") %> Get notified the same day a request is decided</div>
+        <div class="moment"><%= lucide_icon(:"circle-check") %> One accurate record — never updated twice</div>
+      </div>
+    </div>
+
+    <span></span>
   </div>
+
   <div class="form-pane">
-    <%= form_with url: session_path, method: :post do %>
-      <div class="field">
-        <label for="work_email">Work email</label>
-        <input type="email" name="work_email" id="work_email" required autofocus>
+    <div class="form-col">
+      <div>
+        <h2>Welcome back</h2>
+        <p class="lede">Sign in with the email your HR admin set up for you.</p>
       </div>
-      <div class="field">
-        <label for="password">Password</label>
-        <input type="password" name="password" id="password" required>
-      </div>
-      <button type="submit" class="btn btn-primary">Sign in</button>
-    <% end %>
+
+      <%= form_with url: session_path, method: :post do %>
+        <div class="field">
+          <label for="work_email">Work email</label>
+          <div class="input-wrap">
+            <%= lucide_icon(:mail, class: "icon-left") %>
+            <input id="work_email" name="work_email" type="email" placeholder="you@company.com" value="<%= params[:work_email] %>" required autofocus>
+          </div>
+        </div>
+
+        <div class="field" data-controller="password-visibility">
+          <label for="password">Password</label>
+          <div class="input-wrap">
+            <%= lucide_icon(:lock, class: "icon-left") %>
+            <input class="has-toggle" id="password" name="password" type="password" placeholder="••••••••" required data-password-visibility-target="input">
+            <button type="button" class="toggle-visibility" aria-label="Show password" data-action="password-visibility#toggle">
+              <%= lucide_icon(:eye) %>
+            </button>
+          </div>
+        </div>
+
+        <% if @login_error %>
+          <p class="field-error"><%= @login_error %></p>
+        <% end %>
+
+        <div class="row-between">
+          <label class="checkbox-inline"><input type="checkbox" name="remember_me" value="1"> Remember me</label>
+          <%= link_to "Forgot password?", new_password_reset_path, class: "link" %>
+        </div>
+
+        <button class="btn btn-primary" type="submit">
+          Sign in
+          <%= lucide_icon(:"arrow-right", stroke_width: 2) %>
+        </button>
+      <% end %>
+
+      <p class="footer-note">Don't have an account? <span class="link">Ask your HR administrator</span> to add you.</p>
+    </div>
   </div>
 </div>

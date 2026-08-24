@@ -13,8 +13,13 @@ class PasswordsController < ApplicationController
     if result.success?
       redirect_to account_settings_path, notice: "Password changed."
     else
-      flash.now[:alert] = result.message
-      render :edit, status: :unprocessable_entity
+      # "Change password" now lives as a modal on Account Settings (see
+      # kos/decisions/ui/account-settings-summary-plus-modal.md) rather
+      # than a standalone page, so a failed submit re-renders that page
+      # with the modal forced back open instead of :edit.
+      @password_errors = result.message
+      @open_password_modal = true
+      render "account_settings/show", status: :unprocessable_entity
     end
   end
 end

@@ -1,0 +1,72 @@
+<div class="auth-split">
+  <div class="brand-pane">
+    <span class="wordmark"><span class="mark"><%= lucide_icon(:building, stroke_width: 2) %></span> HRIS</span>
+
+    <div>
+      <h2 class="headline">We'll get you back in — safely.</h2>
+      <div class="moments">
+        <div class="moment"><%= lucide_icon(:"circle-check") %> Reset links only go to your HR-verified work email</div>
+        <div class="moment"><%= lucide_icon(:"circle-check") %> Links expire in 15 minutes, for your security</div>
+        <div class="moment"><%= lucide_icon(:"circle-check") %> Your password is never stored in plain text</div>
+      </div>
+    </div>
+
+    <span></span>
+  </div>
+
+  <div class="form-pane">
+    <div class="form-col">
+      <% if @expired %>
+        <div class="confirm-panel">
+          <div class="icon-circle is-caution"><%= lucide_icon(:clock) %></div>
+          <h3>This link has expired</h3>
+          <p>Reset links are valid for 15 minutes. Request a new one to keep going.</p>
+          <%= link_to "Send a new link", new_password_reset_path, class: "btn btn-primary" %>
+          <p class="footer-note"><%= link_to "Back to sign in", new_session_path, class: "link" %></p>
+        </div>
+      <% elsif @success %>
+        <div class="confirm-panel">
+          <div class="icon-circle"><%= lucide_icon(:"check-circle", stroke_width: 2) %></div>
+          <h3>Password updated</h3>
+          <p>You can now sign in with your new password.</p>
+          <%= link_to "Back to sign in", new_session_path, class: "btn btn-primary" %>
+        </div>
+      <% else %>
+        <div>
+          <h2>Set a new password</h2>
+          <p class="lede">Choose a new password for <%= @employee.work_email %></p>
+        </div>
+
+        <%= form_with url: password_reset_path(token: params[:token]), method: :patch do %>
+          <div class="field" data-controller="password-visibility">
+            <label for="new_password">New password</label>
+            <div class="input-wrap">
+              <%= lucide_icon(:lock, class: "icon-left") %>
+              <input class="has-toggle" id="new_password" name="new_password" type="password" placeholder="••••••••" minlength="8" required data-password-visibility-target="input">
+              <button type="button" class="toggle-visibility" aria-label="Show password" data-action="password-visibility#toggle">
+                <%= lucide_icon(:eye) %>
+              </button>
+            </div>
+            <p class="hint">Minimum 8 characters</p>
+          </div>
+
+          <div class="field" data-controller="password-visibility">
+            <label for="new_password_confirmation">Confirm new password</label>
+            <div class="input-wrap">
+              <%= lucide_icon(:lock, class: "icon-left") %>
+              <input class="has-toggle <%= "has-error" if @confirmation_error %>" id="new_password_confirmation" name="new_password_confirmation" type="password" placeholder="••••••••" minlength="8" required data-password-visibility-target="input">
+              <button type="button" class="toggle-visibility" aria-label="Show password" data-action="password-visibility#toggle">
+                <%= lucide_icon(:eye) %>
+              </button>
+            </div>
+            <% if @confirmation_error %>
+              <p class="field-error"><%= @confirmation_error %></p>
+            <% end %>
+          </div>
+
+          <button class="btn btn-primary" type="submit">Reset password</button>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+</div>

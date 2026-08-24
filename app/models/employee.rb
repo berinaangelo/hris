@@ -3,6 +3,15 @@ class Employee < ApplicationRecord
 
   has_secure_password
 
+  # Rails' built-in secure token support — no reset-token column needed,
+  # since the token is derived from the current password digest and
+  # therefore auto-invalidates the moment the password changes. 15
+  # minutes is a placeholder pending an actual policy decision, per
+  # kos/decisions/ui/password-recovery-flow-split-panel.md.
+  generates_token_for :password_reset, expires_in: 15.minutes do
+    password_salt&.last(10)
+  end
+
   belongs_to :company
   belongs_to :manager, class_name: "Employee", optional: true
   belongs_to :shift_template, optional: true

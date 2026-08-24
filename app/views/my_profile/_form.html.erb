@@ -1,0 +1,20 @@
+<%# Edit personal info form — lives inside the modal on My Profile.
+    Employment facts (job title/department/manager/start date) are
+    HR-managed and never appear here — see
+    kos/decisions/ui/my-profile-summary-plus-modal.md. %>
+<%= form_with model: current_employee, url: my_profile_path, method: :patch, class: "modal-form" do |f| %>
+  <% field_type = { personal_email: :email_field }.freeze %>
+  <% [:personal_email, :mobile_number, :home_address, :emergency_contact_name, :emergency_contact_phone].each do |attr| %>
+    <div class="field-edit">
+      <%= f.label attr %>
+      <%= f.public_send(field_type.fetch(attr, :text_field), attr, class: "plain-input #{"has-error" if current_employee.errors[attr].any?}") %>
+      <% if current_employee.errors[attr].any? %>
+        <p class="field-error"><%= current_employee.errors[attr].first %></p>
+      <% end %>
+    </div>
+  <% end %>
+  <div class="save-bar">
+    <button type="button" class="btn btn-ghost" data-action="modal#close">Cancel</button>
+    <%= f.submit "Save changes", class: "btn btn-primary" %>
+  </div>
+<% end %>

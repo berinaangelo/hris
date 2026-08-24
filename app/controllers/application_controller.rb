@@ -24,7 +24,17 @@ class ApplicationController < ActionController::Base
   end
 
   def current_employee
-    @current_employee ||= Employee.find_by(id: session[:employee_id])
+    @current_employee ||= Employee.find_by(id: session[:employee_id] || remembered_employee_id)
+  end
+
+  # Falls back to the "remember me" signed cookie (see
+  # SessionsController#remember_or_forget) when there's no session —
+  # e.g. the browser was closed and reopened.
+  def remembered_employee_id
+    return nil unless (id = cookies.signed[:employee_id])
+
+    session[:employee_id] = id
+    id
   end
 
   def require_employee

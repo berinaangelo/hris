@@ -1,29 +1,79 @@
-<h1>Account Settings</h1>
+<% status = EmployeeStatusPresenter.new(current_employee.status) %>
 
-<div class="card">
-  <p><strong><%= current_employee.full_name %></strong></p>
-  <p>Employee ID: <%= current_employee.employee_number %></p>
-  <p>Work email: <%= current_employee.work_email %></p>
-  <p>Password last changed: <%= current_employee.password_changed_at&.to_date || "never" %></p>
-  <p>Last login: <%= current_employee.last_login_at || "—" %></p>
-  <%= link_to "Change password", edit_password_path, class: "btn btn-ghost" %>
-</div>
+<div class="summary-modal-page" data-controller="modal" data-modal-open-value="<%= @open_password_modal ? "true" : "false" %>">
+  <div class="mock-cols">
+    <div class="summary-col">
+      <span class="avatar-lg"><%= current_employee.first_name.first %><%= current_employee.last_name.first %></span>
+      <h2><%= current_employee.full_name %></h2>
+      <p><%= current_employee.job_title %> · <%= current_employee.department %></p>
+      <span class="<%= status.css_class %>" style="margin-top:0.5rem;"><%= status.label %></span>
 
-<div class="card">
-  <h2>Notification preferences</h2>
-  <%= form_with model: current_employee, url: account_settings_path, method: :patch, local: true do |f| %>
-    <div class="field">
-      <label><%= f.check_box :leave_request_updates_notifications %> Leave request updates</label>
+      <div class="summary-facts">
+        <div class="row"><span>Employee ID</span><span><%= current_employee.employee_number %></span></div>
+        <div class="row"><span>Work email</span><span class="email"><%= current_employee.work_email %></span></div>
+        <div class="row"><span>Password last changed</span><span><%= current_employee.password_changed_at&.to_date || "Never" %></span></div>
+        <div class="row"><span>Last login</span><span><%= current_employee.last_login_at&.to_fs(:short) || "—" %></span></div>
+      </div>
+
+      <button type="button" class="btn btn-primary summary-cta" data-action="modal#open">
+        <%= lucide_icon(:lock, stroke_width: 2) %>
+        Change password
+      </button>
     </div>
-    <div class="field">
-      <label><%= f.check_box :new_payslip_notifications %> New payslip available</label>
+
+    <div>
+      <div class="section">
+        <div class="section-head">
+          <h3>Notification preferences</h3>
+          <p>Delivered by email. Changes take effect immediately — no separate save.</p>
+        </div>
+
+        <%= form_with model: current_employee, url: account_settings_path, method: :patch, data: { controller: "auto-submit" } do |f| %>
+          <div class="pref-row">
+            <div class="txt"><p class="name">Leave request updates</p><p class="desc">When your request is approved or rejected</p></div>
+            <label class="toggle-switch">
+              <%= f.check_box :leave_request_updates_notifications, class: "pref", data: { action: "change->auto-submit#submit" } %>
+              <span class="toggle-track"><span class="thumb"></span></span>
+            </label>
+          </div>
+          <div class="pref-row">
+            <div class="txt"><p class="name">New payslip available</p><p class="desc">When a payslip is issued for a finalized pay run</p></div>
+            <label class="toggle-switch">
+              <%= f.check_box :new_payslip_notifications, class: "pref", data: { action: "change->auto-submit#submit" } %>
+              <span class="toggle-track"><span class="thumb"></span></span>
+            </label>
+          </div>
+          <div class="pref-row">
+            <div class="txt"><p class="name">Review cycle reminders</p><p class="desc">When a performance review needs your input</p></div>
+            <label class="toggle-switch">
+              <%= f.check_box :review_cycle_notifications, class: "pref", data: { action: "change->auto-submit#submit" } %>
+              <span class="toggle-track"><span class="thumb"></span></span>
+            </label>
+          </div>
+          <div class="pref-row">
+            <div class="txt"><p class="name">Company announcements</p><p class="desc">General company-wide news and updates</p></div>
+            <label class="toggle-switch">
+              <%= f.check_box :company_announcement_notifications, class: "pref", data: { action: "change->auto-submit#submit" } %>
+              <span class="toggle-track"><span class="thumb"></span></span>
+            </label>
+          </div>
+        <% end %>
+      </div>
     </div>
-    <div class="field">
-      <label><%= f.check_box :review_cycle_notifications %> Review cycle reminders</label>
+  </div>
+
+  <dialog class="app-modal modal-sm" data-modal-target="dialog" data-action="click->modal#closeOnBackdrop">
+    <div class="app-modal-content">
+      <div class="modal-box-head">
+        <div>
+          <h3>Change password</h3>
+          <p>You'll stay signed in on this device.</p>
+        </div>
+        <button type="button" class="modal-close" data-action="modal#close" aria-label="Close">
+          <%= lucide_icon(:x, stroke_width: 2) %>
+        </button>
+      </div>
+      <%= render "passwords/form", password_errors: @password_errors %>
     </div>
-    <div class="field">
-      <label><%= f.check_box :company_announcement_notifications %> Company announcements</label>
-    </div>
-    <%= f.submit "Save preferences", class: "btn btn-primary" %>
-  <% end %>
+  </dialog>
 </div>

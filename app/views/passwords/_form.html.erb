@@ -1,0 +1,23 @@
+<%# Change-password form — lives inside the modal on Account Settings.
+    Locals: password_errors (String or nil). %>
+<%= form_with url: password_path, method: :patch, class: "modal-form" do %>
+  <div class="field-edit">
+    <label for="current_password">Current password</label>
+    <input class="plain-input" id="current_password" name="current_password" type="password" placeholder="••••••••" required>
+  </div>
+  <div class="field-edit">
+    <label for="new_password">New password</label>
+    <input class="plain-input" id="new_password" name="new_password" type="password" placeholder="At least 8 characters" minlength="8" required>
+  </div>
+  <div class="field-edit">
+    <label for="new_password_confirmation">Confirm new password</label>
+    <input class="plain-input <%= "has-error" if password_errors %>" id="new_password_confirmation" name="new_password_confirmation" type="password" placeholder="••••••••" minlength="8" required>
+    <% if password_errors %>
+      <p class="field-error"><%= password_errors %></p>
+    <% end %>
+  </div>
+  <div class="save-bar">
+    <button type="button" class="btn btn-ghost" data-action="modal#close">Cancel</button>
+    <button type="submit" class="btn btn-primary">Save new password</button>
+  </div>
+<% end %>
