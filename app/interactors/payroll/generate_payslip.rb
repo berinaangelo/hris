@@ -19,7 +19,7 @@ module Payroll
       add_base_salary(payslip, employee)
       add_loan_deductions(payslip, employee)
       add_statutory_deductions(payslip, employee)
-      total_up(payslip)
+      Payroll::RecomputePayslipTotals.call!(payslip: payslip)
 
       context.payslip = payslip
     end
@@ -55,12 +55,6 @@ module Payroll
           line_type: "statutory_#{rate_table.agency}", direction: :deduction, source: :statutory, amount: deduction
         )
       end
-    end
-
-    def total_up(payslip)
-      earnings = payslip.payslip_line_items.earning.sum(:amount)
-      deductions = payslip.payslip_line_items.deduction.sum(:amount)
-      payslip.update!(gross_pay: earnings, total_deductions: deductions, net_pay: earnings - deductions)
     end
   end
 end

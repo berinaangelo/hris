@@ -1,0 +1,38 @@
+<%# Independently editable card per loan, mirroring
+    employees/_benefit_enrollment_card.html.erb's shape. The flat-table
+    + edit-drawer UI from
+    kos/decisions/ui/loan-ledger-flat-table-edit-drawer.md is a later
+    UX pass — no drawer component exists in the Rails app yet, so this
+    ships the same working card pattern already used for Benefits. %>
+<div class="card">
+  <%= form_with model: [ employee, loan ], local: true do |f| %>
+    <div class="field">
+      <%= f.label :loan_type %>
+      <%= f.select :loan_type, Loan.loan_types.keys.map { |t| [ t.humanize, t ] } %>
+    </div>
+    <div class="field">
+      <%= f.label :total_amount %>
+      <%= f.number_field :total_amount, step: 0.01, min: 0.01, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :monthly_amortization %>
+      <%= f.number_field :monthly_amortization, step: 0.01, min: 0.01, required: true %>
+    </div>
+    <div class="field">
+      <%= f.label :remaining_installments %>
+      <%= f.number_field :remaining_installments, min: 0, required: true %>
+    </div>
+
+    <% if loan.persisted? %>
+      <p>
+        <% badge = BadgePresenter.new(loan.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
+        <%= loan.total_installments - loan.remaining_installments %> of <%= loan.total_installments %> installments paid (<%= loan.progress_percent %>%)
+      </p>
+    <% end %>
+
+    <%= f.submit(loan.persisted? ? "Save" : "Add loan", class: "btn btn-ghost") %>
+  <% end %>
+  <% if loan.persisted? && loan.deletable? %>
+    <%= button_to "Remove loan", [ employee, loan ], method: :delete, class: "btn btn-danger-outline" %>
+  <% end %>
+</div>

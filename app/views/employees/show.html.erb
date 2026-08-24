@@ -113,7 +113,13 @@
 
 <div class="card">
   <h2>Loan Ledger</h2>
-  <p>Not available yet — ships with Payroll v2.</p>
+  <% @employee.loans.each do |loan| %>
+    <%= render "employees/loan_card", employee: @employee, loan: loan %>
+  <% end %>
+  <% unless @employee.loans.any?(&:new_record?) %>
+    <h3>Add a loan</h3>
+    <%= render "employees/loan_card", employee: @employee, loan: @employee.loans.build %>
+  <% end %>
 </div>
 
 <div class="card">

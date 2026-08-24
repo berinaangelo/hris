@@ -28,7 +28,7 @@
       <% @payroll_run.payslips.each do |payslip| %>
         <% presenter = PayslipPresenter.new(payslip) %>
         <tr>
-          <td><%= payslip.employee.full_name %></td>
+          <td><%= link_to payslip.employee.full_name, payslip_path(payslip) %></td>
           <td>₱<%= presenter.base_salary %></td>
           <td>₱<%= presenter.loan_deductions %></td>
           <td>₱<%= presenter.statutory_deductions %></td>

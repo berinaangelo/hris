@@ -31,6 +31,8 @@ module Payroll
       loan_line_items = PayslipLineItem.where(payslip: payroll_run.payslips, source: :loan)
 
       loan_line_items.each do |line_item|
+        next unless line_item.loan # belt-and-suspenders: Loan#deletable? already blocks destroying a referenced loan
+
         line_item.loan.with_lock do
           loan = line_item.loan
           loan.decrement!(:remaining_installments)

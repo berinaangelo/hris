@@ -56,6 +56,7 @@ Rails.application.routes.draw do
     end
     resources :documents, only: [ :create ], controller: "employees/documents"
     resources :benefit_enrollments, only: [ :create, :update, :destroy ], controller: "employees/benefit_enrollments"
+    resources :loans, only: [ :create, :update, :destroy ], controller: "employees/loans"
   end
 
   resource :attendance, only: [], controller: "attendance" do
@@ -70,7 +71,13 @@ Rails.application.routes.draw do
       patch :finalize
     end
   end
-  resources :payslips, only: [ :index, :show ]
+  resources :payslips, only: [ :index, :show ] do
+    member do
+      patch :void_and_reissue
+      patch :finalize
+    end
+    resources :line_items, only: [ :create, :update, :destroy ], controller: "payslips/line_items"
+  end
   resources :certifications, only: [ :index, :new, :create, :edit, :update, :destroy ]
   resources :company_review_cycles, only: [ :index, :new, :create, :show ]
   get "reports", to: "reports#index"

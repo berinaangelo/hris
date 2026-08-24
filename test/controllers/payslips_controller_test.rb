@@ -32,6 +32,92 @@ class PayslipsControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "an admin can view any payslip in their company" do
+    sign_in employees(:admin_amy)
+
+    get payslip_path(@payslip)
+
+    assert_response :success
+  end
+
+  test "an admin cannot view another company's payslip" do
+    sign_in employees(:admin_gary)
+
+    get payslip_path(@payslip)
+
+    assert_response :not_found
+  end
+
+  test "an admin's own payslips index still only shows their own" do
+    sign_in employees(:admin_amy)
+    admin_payslip = PayrollRun.find(@payslip.payroll_run_id).payslips.find_by(employee: employees(:admin_amy))
+
+    get payslips_path
+
+    assert_response :success
+    assert_select "a[href=?]", payslip_path(admin_payslip)
+    assert_select "a[href=?]", payslip_path(@payslip), count: 0
+  end
+
+  test "viewing own payslip marks it viewed" do
+    sign_in employees(:worker_bob)
+    assert_nil @payslip.viewed_at
+
+    get payslip_path(@payslip)
+
+    assert_not_nil @payslip.reload.viewed_at
+  end
+
+  test "admin can void and reissue a finalized payslip" do
+    sign_in employees(:admin_amy)
+
+    assert_difference "Payslip.count", 1 do
+      patch void_and_reissue_payslip_path(@payslip), params: { void_reason: "Overtime was entered incorrectly" }
+    end
+
+    assert @payslip.reload.voided?
+    assert_equal "Overtime was entered incorrectly", @payslip.void_reason
+    reissue = @payslip.reissued_version
+    assert reissue.draft?
+    assert_equal @payslip.payslip_line_items.count, reissue.payslip_line_items.count
+    assert_redirected_to payslip_path(reissue)
+  end
+
+  test "void and reissue fails on a payslip that isn't finalized" do
+    sign_in employees(:admin_amy)
+    draft = Payslip.create!(payroll_run: @payslip.payroll_run, employee: employees(:worker_optout), status: :draft)
+
+    assert_no_difference "Payslip.count" do
+      patch void_and_reissue_payslip_path(draft), params: { void_reason: "irrelevant" }
+    end
+
+    assert_redirected_to payslip_path(draft)
+  end
+
+  test "a manager cannot void and reissue a payslip" do
+    sign_in employees(:manager_jane)
+
+    # Manager's policy_scope only contains their own payslips, so
+    # someone else's payslip isn't even found — same 404 shape as a
+    # plain employee peeking at a colleague's payslip.
+    patch void_and_reissue_payslip_path(@payslip), params: { void_reason: "nope" }
+
+    assert_response :not_found
+    assert @payslip.reload.finalized?
+  end
+
+  test "admin can finalize a draft reissue" do
+    sign_in employees(:admin_amy)
+    patch void_and_reissue_payslip_path(@payslip), params: { void_reason: "correction" }
+    reissue = @payslip.reload.reissued_version
+    original_remaining = loans(:bob_company_loan).remaining_installments
+
+    patch finalize_payslip_path(reissue)
+
+    assert reissue.reload.finalized?
+    assert_equal original_remaining, loans(:bob_company_loan).reload.remaining_installments
+  end
+
   private
 
   def sign_in(employee)

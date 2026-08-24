@@ -29,7 +29,7 @@ class EmployeesController < ApplicationController
   end
 
   def show
-    @employee = policy_scope(Employee).includes(benefit_enrollments: :benefit_dependents).find(params[:id])
+    @employee = policy_scope(Employee).includes(:loans, benefit_enrollments: :benefit_dependents).find(params[:id])
     authorize @employee
     @onboarding_items = @employee.checklist_items.onboarding.order(:position)
     @offboarding_items = @employee.checklist_items.offboarding.order(:position)

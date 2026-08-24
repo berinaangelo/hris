@@ -1,11 +1,50 @@
 class PayslipsController < ApplicationController
   def index
     authorize Payslip
-    @payslips = policy_scope(Payslip).finalized.includes(:payroll_run).order(created_at: :desc)
+    # Always "mine," regardless of role — an admin's broadened
+    # policy_scope (any company payslip, for #show's drill-in) would
+    # otherwise leak into this self-service list.
+    @payslips = current_employee.payslips.finalized.includes(:payroll_run).order(created_at: :desc)
   end
 
   def show
-    @payslip = policy_scope(Payslip).includes(:payroll_run, :payslip_line_items).find(params[:id])
+    @payslip = policy_scope(Payslip)
+                 .includes(:payroll_run, :payslip_line_items, :previous_version, :reissued_version, :generated_by, :employee)
+                 .find(params[:id])
     authorize @payslip
+
+    mark_viewed if @payslip.employee == current_employee
+  end
+
+  def void_and_reissue
+    @payslip = policy_scope(Payslip).find(params[:id])
+    authorize @payslip, :void_and_reissue?
+
+    result = Payroll::VoidAndReissuePayslip.call(payslip: @payslip, void_reason: params[:void_reason])
+
+    if result.success?
+      redirect_to payslip_path(result.new_payslip), notice: "Payslip voided — reissue is a draft you can edit before finalizing."
+    else
+      redirect_to payslip_path(@payslip), alert: result.message
+    end
+  end
+
+  def finalize
+    @payslip = policy_scope(Payslip).find(params[:id])
+    authorize @payslip, :finalize?
+
+    result = Payroll::FinalizePayslip.call(payslip: @payslip, finalized_by: current_employee)
+
+    if result.success?
+      redirect_to payslip_path(@payslip), notice: "Payslip finalized."
+    else
+      redirect_to payslip_path(@payslip), alert: result.message
+    end
+  end
+
+  private
+
+  def mark_viewed
+    @payslip.update_column(:viewed_at, Time.current) if @payslip.viewed_at.nil?
   end
 end

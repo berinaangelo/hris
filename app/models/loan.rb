@@ -9,8 +9,27 @@ class Loan < ApplicationRecord
   validates :total_amount, :monthly_amortization, presence: true, numericality: { greater_than: 0 }
   validates :remaining_installments, presence: true, numericality: { greater_than_or_equal_to: 0 }
 
-  # remaining_installments is decremented by Payroll::AddLoanDeductions
-  # each run, not a callback here — see
+  # remaining_installments is decremented by Payroll::FinalizeRun each
+  # run, not a callback here — see
   # kos/decisions/rails-callback-objects-for-cache-busting.md and
   # kos/decisions/schema/payroll-v2-schema.md.
+
+  # A loan already referenced by a generated payslip is a financial
+  # record, never deleted outright — see
+  # kos/decisions/ui/loan-ledger-flat-table-edit-drawer.md.
+  def deletable?
+    payslip_line_items.none?
+  end
+
+  # "X of Y installments" / "X% paid" — computed on the fly, not a
+  # persisted column, per the same decision doc.
+  def total_installments
+    (total_amount / monthly_amortization).round
+  end
+
+  def progress_percent
+    return 0 if total_installments.zero?
+
+    (((total_installments - remaining_installments).to_f / total_installments) * 100).round
+  end
 end

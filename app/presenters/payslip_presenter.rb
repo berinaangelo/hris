@@ -22,6 +22,19 @@ class PayslipPresenter
     line_items.select { |item| item.line_type.start_with?("statutory_") }.sum(&:amount)
   end
 
+  # Oldest → newest, for the Payslip Detail (admin) "Correction history"
+  # rail. Walks previous_version back to the root, then reissued_version
+  # forward — a chain is expected to stay short (one void & reissue at a
+  # time), so this isn't eager-loading-optimized for arbitrary depth.
+  def version_chain
+    root = @payslip
+    root = root.previous_version while root.previous_version
+
+    chain = [ root ]
+    chain << chain.last.reissued_version while chain.last.reissued_version
+    chain
+  end
+
   private
 
   def line_items
