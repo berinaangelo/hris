@@ -116,8 +116,10 @@
   <% @employee.benefit_enrollments.each do |enrollment| %>
     <%= render "benefit_enrollment_card", employee: @employee, enrollment: enrollment %>
   <% end %>
-  <h3>Add a plan</h3>
-  <%= render "benefit_enrollment_card", employee: @employee, enrollment: @employee.benefit_enrollments.build %>
+  <% unless @employee.benefit_enrollments.any?(&:new_record?) %>
+    <h3>Add a plan</h3>
+    <%= render "benefit_enrollment_card", employee: @employee, enrollment: @employee.benefit_enrollments.build %>
+  <% end %>
 </div>
 
 <div class="card">
