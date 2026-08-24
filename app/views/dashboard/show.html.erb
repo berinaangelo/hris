@@ -83,7 +83,7 @@
         <% if @pending_correction_requests_count > 0 %>
           <div class="manager-card">
             <%= lucide_icon(:"circle-check", stroke_width: 1.75) %>
-            <div class="txt"><b><%= pluralize(@pending_correction_requests_count, "attendance correction") %></b> waiting on you. <%= link_to "Review now", team_attendance_correction_requests_path %></div>
+            <div class="txt"><b><%= pluralize(@pending_correction_requests_count, "attendance correction") %></b> waiting on you. <%= link_to "Review now", team_attendance_records_path %></div>
           </div>
         <% end %>
 

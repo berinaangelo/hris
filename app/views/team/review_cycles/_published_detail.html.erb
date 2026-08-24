@@ -1,14 +1,18 @@
-<div class="review-cycle-published">
-  <h3><%= cycle.start_date %> – <%= cycle.end_date %> (<%= cycle.pip? ? "PIP" : "Regular" %>)</h3>
-  <% if cycle.overall_rating %>
-    <p>Overall rating: <strong><%= cycle.overall_rating.round(1) %>/5</strong></p>
-  <% end %>
-  <% if cycle.pip? && cycle.outcome %>
-    <% badge = BadgePresenter.new(cycle.outcome) %>
-    <p>Outcome: <span class="<%= badge.css_class %>"><%= badge.label %></span></p>
-  <% end %>
-  <%= render "review_cycles/kpi_table", kpi_entries: cycle.kpi_entries %>
-  <% if cycle.manager_comment.present? %>
-    <p><strong>Your comment:</strong> <%= cycle.manager_comment %></p>
-  <% end %>
+<div class="rating-hero">
+  <div>
+    <p class="card-label" style="color:#A9B4CB;"><%= cycle.start_date.strftime("%b %Y") %>–<%= cycle.end_date.strftime("%b %Y") %> · <%= cycle.pip? ? "PIP" : "Overall rating" %></p>
+    <p class="num"><%= cycle.overall_rating ? cycle.overall_rating.round(1) : "—" %> <span class="denom">/ 5</span></p>
+  </div>
+  <span class="sub">Published <%= cycle.updated_at.to_date.to_fs(:long) %></span>
 </div>
+
+<% if cycle.pip? && cycle.outcome %>
+  <% badge = BadgePresenter.new(cycle.outcome) %>
+  <p><span class="<%= badge.css_class %>"><%= badge.label %></span></p>
+<% end %>
+
+<%= render "review_cycles/kpi_table", kpi_entries: cycle.kpi_entries, compact: true %>
+
+<% if cycle.manager_comment.present? %>
+  <div class="manager-comment"><b>You:</b> <%= cycle.manager_comment %></div>
+<% end %>

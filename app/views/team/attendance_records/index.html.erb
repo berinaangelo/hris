@@ -1,69 +1,185 @@
-<h1>Team attendance</h1>
+<% content_for :title, "Team Attendance" %>
 
-<div class="card">
-  <%= form_with url: team_attendance_records_path, method: :get, local: true do %>
-    <div class="field">
-      <label>From</label>
-      <input type="date" name="start_date" value="<%= @start_date %>">
+<div class="team-attendance-page">
+  <div class="greet-block">
+    <div>
+      <h2>Time &amp; attendance</h2>
+      <p><%= current_employee.admin? ? "Every employee's attendance, correction requests, and settings." : "Your direct reports' attendance and correction requests." %></p>
     </div>
-    <div class="field">
-      <label>To</label>
-      <input type="date" name="end_date" value="<%= @end_date %>">
-    </div>
-    <button type="submit" class="btn btn-ghost">Filter</button>
-  <% end %>
-</div>
-
-<% if current_employee.admin? %>
-  <div class="card">
-    <h2>Attendance settings</h2>
-    <%= form_with model: current_employee.company, url: team_attendance_settings_path, method: :patch, local: true do |f| %>
-      <div class="field">
-        <label><%= f.check_box :attendance_manual_edit_enabled %> Manual edit permission</label>
-        <p>Lets managers and admins manually edit an employee's clock-in/clock-out.</p>
-      </div>
-      <div class="field">
-        <label><%= f.check_box :attendance_approvers_enabled %> Attendance approvers</label>
-        <p>Optional sign-off step on attendance edits. Payroll always uses the current record regardless.</p>
-      </div>
-      <%= f.submit "Save settings", class: "btn btn-primary" %>
-    <% end %>
   </div>
-<% end %>
 
-<div class="card">
-  <table>
-    <thead><tr><th>Employee</th><th>Date</th><th>Clock in</th><th>Clock out</th><th>Status</th><th>Approval</th><th></th></tr></thead>
-    <tbody>
-      <% @attendance_records.each do |attendance_record| %>
-        <tr>
-          <td><%= attendance_record.employee.full_name %></td>
-          <td><%= attendance_record.date %></td>
-          <td><%= attendance_record.clock_in_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
-          <td><%= attendance_record.clock_out_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
-          <td>
-            <% if attendance_record.status %>
-              <% badge = BadgePresenter.new(attendance_record.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
-            <% else %>
-              —
-            <% end %>
-          </td>
-          <td>
-            <% if attendance_record.edit_approval_not_required? %>
-              —
-            <% else %>
-              <% badge = BadgePresenter.new(attendance_record.edit_approval_status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
-            <% end %>
-          </td>
-          <td>
-            <% if policy(attendance_record).update? %>
-              <%= link_to "Edit", edit_team_attendance_record_path(attendance_record) %>
-            <% else %>
-              —
-            <% end %>
-          </td>
-        </tr>
+  <% if current_employee.admin? %>
+    <div class="settings-card">
+      <%= form_with model: current_employee.company, url: team_attendance_settings_path, method: :patch, local: true do |f| %>
+        <div class="settings-row">
+          <div>
+            <h4>Manual edit permission</h4>
+            <p class="settings-desc">Lets managers and admins manually edit an employee's clock-in/clock-out.</p>
+          </div>
+          <label class="toggle-switch">
+            <span class="toggle-state-lbl"><%= current_employee.company.attendance_manual_edit_enabled? ? "On" : "Off" %></span>
+            <%= f.check_box :attendance_manual_edit_enabled, class: "toggle-input" %>
+          </label>
+        </div>
+        <div class="settings-row">
+          <div>
+            <h4>Attendance approvers</h4>
+            <p class="settings-desc">Optional sign-off step on attendance edits. Payroll always uses the current record regardless.</p>
+          </div>
+          <label class="toggle-switch">
+            <span class="toggle-state-lbl"><%= current_employee.company.attendance_approvers_enabled? ? "On" : "Off" %></span>
+            <%= f.check_box :attendance_approvers_enabled, class: "toggle-input" %>
+          </label>
+        </div>
+        <div class="settings-row settings-row-actions">
+          <%= f.submit "Save settings", class: "btn-primary" %>
+        </div>
       <% end %>
-    </tbody>
-  </table>
+    </div>
+  <% end %>
+
+  <% if @correction_pending.any? %>
+    <div class="cr-card">
+      <div class="cr-card-head">
+        <span class="badge badge-caution"><%= @correction_pending.size %> pending</span>
+        <h3>Correction requests</h3>
+      </div>
+      <% @correction_pending.each do |correction_request| %>
+        <div class="cr-row">
+          <span class="txt"><b><%= correction_request.employee.full_name %></b> — <%= correction_request.reason %></span>
+          <span data-controller="modal">
+            <button type="button" class="btn-ghost" data-action="modal#open">Review</button>
+            <%= render "shared/drawer", title: "Review correction request" do %>
+              <div class="tt-drawer-row">
+                <div class="name-row"><h4><%= correction_request.employee.full_name %></h4><span class="badge badge-caution">Pending</span></div>
+                <p class="assigned"><%= correction_request.reason %> — <%= correction_request.date %></p>
+              </div>
+              <div class="tt-compare">
+                <div>
+                  <p class="lbl">Current</p>
+                  <p class="val">
+                    In <%= correction_request.attendance_record&.clock_in_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %>
+                    · Out <%= correction_request.attendance_record&.clock_out_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %>
+                  </p>
+                </div>
+                <div>
+                  <p class="lbl">Requested</p>
+                  <p class="val">
+                    In <%= correction_request.requested_clock_in_at&.strftime("%l:%M %p") || "—" %>
+                    · Out <%= correction_request.requested_clock_out_at&.strftime("%l:%M %p") || "—" %>
+                  </p>
+                </div>
+              </div>
+              <p class="tt-drawer-note">Rejecting leaves the record unchanged; approving updates it to the requested time immediately.</p>
+              <div class="tt-drawer-foot">
+                <%= button_to "Approve", approve_team_attendance_correction_request_path(correction_request), method: :patch, class: "btn-primary" %>
+                <%= button_to "Reject", reject_team_attendance_correction_request_path(correction_request), method: :patch, class: "btn-ghost danger" %>
+              </div>
+            <% end %>
+          </span>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
+  <% if @correction_decided.any? %>
+    <div class="card">
+      <h3>Recently decided corrections</h3>
+      <div class="table-wrap">
+        <table class="dectable">
+          <thead><tr><th>Employee</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody>
+            <% @correction_decided.each do |correction_request| %>
+              <tr>
+                <td><%= correction_request.employee.full_name %></td>
+                <td class="mono"><%= correction_request.date %></td>
+                <td><% badge = BadgePresenter.new(correction_request.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="card">
+    <%= form_with url: team_attendance_records_path, method: :get, local: true, html: { class: "filter-row" } do %>
+      <div class="field">
+        <label>From</label>
+        <input type="date" name="start_date" value="<%= @start_date %>">
+      </div>
+      <div class="field">
+        <label>To</label>
+        <input type="date" name="end_date" value="<%= @end_date %>">
+      </div>
+      <button type="submit" class="btn-ghost">Filter</button>
+    <% end %>
+
+    <div class="table-wrap">
+      <table class="cptable">
+        <thead><tr><th>Employee</th><th>Shift</th><th>Clock in</th><th>Clock out</th><th>Status</th><th>Approval</th><th>Actions</th></tr></thead>
+        <tbody>
+          <% @attendance_records.each do |attendance_record| %>
+            <tr>
+              <td>
+                <div class="who">
+                  <span class="avatar"><%= attendance_record.employee.first_name.first %><%= attendance_record.employee.last_name.first %></span>
+                  <div><h4><%= attendance_record.employee.full_name %></h4><p><%= attendance_record.employee.job_title %></p></div>
+                </div>
+              </td>
+              <td><span class="shift-tag"><%= attendance_record.shift_template.name %></span></td>
+              <td class="mono"><%= attendance_record.clock_in_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
+              <td class="mono"><%= attendance_record.clock_out_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
+              <td>
+                <% if attendance_record.status %>
+                  <% badge = BadgePresenter.new(attendance_record.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
+                <% else %>
+                  <span class="muted">—</span>
+                <% end %>
+              </td>
+              <td>
+                <% if attendance_record.edit_approval_not_required? %>
+                  <span class="muted">—</span>
+                <% else %>
+                  <% badge = BadgePresenter.new(attendance_record.edit_approval_status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
+                <% end %>
+              </td>
+              <td>
+                <% if policy(attendance_record).update? %>
+                  <span data-controller="modal" data-modal-open-value="<%= @open_edit_drawer_for_id == attendance_record.id %>">
+                    <button type="button" class="icon-btn" data-action="modal#open" title="Edit (manual correction)">
+                      <%= lucide_icon(:pencil) %>
+                    </button>
+                    <%= render "shared/drawer", title: "Edit attendance — #{attendance_record.employee.full_name}" do %>
+                      <%= form_with model: attendance_record, url: team_attendance_record_path(attendance_record), method: :patch, local: true do |f| %>
+                        <input type="hidden" name="start_date" value="<%= @start_date %>">
+                        <input type="hidden" name="end_date" value="<%= @end_date %>">
+                        <div class="tt-drawer-field">
+                          <%= f.label :clock_in_at, "Clock in" %>
+                          <%= f.datetime_field :clock_in_at %>
+                        </div>
+                        <div class="tt-drawer-field">
+                          <%= f.label :clock_out_at, "Clock out" %>
+                          <%= f.datetime_field :clock_out_at %>
+                        </div>
+                        <p class="tt-drawer-note">Takes effect immediately — manual edits are never held for payroll.</p>
+                        <div class="tt-drawer-foot">
+                          <%= f.submit "Save edit", class: "btn-primary" %>
+                          <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+                        </div>
+                      <% end %>
+                    <% end %>
+                  </span>
+                <% elsif attendance_record.employee == current_employee %>
+                  <span class="muted" title="Self-edit not allowed — a correction request goes to your own manager">—</span>
+                <% else %>
+                  <span class="muted">—</span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

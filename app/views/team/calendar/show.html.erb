@@ -1,0 +1,50 @@
+<% content_for :title, "Team Calendar" %>
+
+<div class="team-calendar-page">
+  <div class="greet-block">
+    <div>
+      <h2>Team calendar</h2>
+      <p>This week</p>
+    </div>
+    <div class="legend">
+      <span class="dot"><span class="sw sw-positive"></span>Approved</span>
+      <span class="dot"><span class="sw sw-caution"></span>Pending</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="agenda-nav">
+      <h3><%= @week_range_label %></h3>
+      <div class="arrows">
+        <%= link_to team_calendar_path(week_start: @week_start - 7.days), class: "icon-btn", "aria-label": "Previous week" do %>
+          <%= lucide_icon(:"chevron-left") %>
+        <% end %>
+        <%= link_to team_calendar_path(week_start: @week_start + 7.days), class: "icon-btn", "aria-label": "Next week" do %>
+          <%= lucide_icon(:"chevron-right") %>
+        <% end %>
+      </div>
+    </div>
+
+    <% @days.each do |date, requests| %>
+      <div class="agenda-day<%= " today" if date == Date.current %>">
+        <div class="dcol">
+          <p class="dow"><%= date.strftime("%a") %></p>
+          <p class="dnum"><%= date.day %></p>
+        </div>
+        <div class="items">
+          <% if requests.empty? %>
+            <p class="agenda-empty">No one out</p>
+          <% else %>
+            <% requests.each do |request| %>
+              <div class="agenda-item">
+                <span class="avatar"><%= request.employee.first_name.first %><%= request.employee.last_name.first %></span>
+                <span class="name"><%= request.employee.full_name %></span>
+                <span class="type"><%= request.leave_type.name %> · <%= request.status.humanize %></span>
+              </div>
+            <% end %>
+          <% end %>
+        </div>
+      </div>
+    <% end %>
+  </div>
+</div>

@@ -6,7 +6,7 @@ module AttendanceRecords
   class ForDateRange
     def self.call(viewer:, start_date:, end_date:)
       scope = AttendanceRecordPolicy::Scope.new(viewer, AttendanceRecord).resolve
-      scope.includes(employee: :manager).where(date: start_date..end_date).order(date: :desc, employee_id: :asc)
+      scope.includes(:shift_template, employee: :manager).where(date: start_date..end_date).order(date: :desc, employee_id: :asc)
     end
   end
 end

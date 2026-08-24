@@ -15,6 +15,8 @@ Rails.application.routes.draw do
   resources :review_cycles, only: [ :index ]
 
   namespace :team do
+    resource :calendar, only: :show, controller: "calendar"
+
     resources :approvals, only: [ :index ] do
       member do
         patch :approve
@@ -22,14 +24,17 @@ Rails.application.routes.draw do
       end
     end
 
-    resources :attendance_correction_requests, only: [ :index ] do
+    # :index dropped 2026-08-24 — folded into team_attendance_records_path
+    # as part of the Team Attendance merge, see kos/decisions/ux-pages/time-attendance.html.
+    # member routes aren't gated by `only:`, so approve/reject stay.
+    resources :attendance_correction_requests, only: [] do
       member do
         patch :approve
         patch :reject
       end
     end
 
-    resources :attendance_records, only: [ :index, :edit, :update ]
+    resources :attendance_records, only: [ :index, :update ]
     resources :attendance_edit_approvals, only: [ :index ] do
       member do
         patch :approve

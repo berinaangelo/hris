@@ -153,6 +153,29 @@ module Team
       assert_select "span.badge-caution", text: "Pending"
     end
 
+    test "the merged page shows pending correction requests for the manager's own team" do
+      sign_in employees(:manager_jane)
+
+      get team_attendance_records_path
+
+      assert_response :success
+      assert_match "Correction requests", response.body
+      assert_match employees(:worker_bob).full_name, response.body
+    end
+
+    test "a failed edit reopens that record's drawer instead of a bare error" do
+      sign_in employees(:manager_jane)
+      record = attendance_records(:bob_late)
+
+      patch team_attendance_record_path(record), params: {
+        attendance_record: { clock_out_at: "2026-08-10T08:00:00" }
+      }
+
+      assert_response :unprocessable_entity
+      assert_not record.reload.manually_edited?
+      assert_select "span[data-modal-open-value=?]", "true"
+    end
+
     private
 
     def sign_in(employee)

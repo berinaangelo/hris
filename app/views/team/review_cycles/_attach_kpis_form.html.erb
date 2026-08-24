@@ -1,15 +1,20 @@
-<div class="review-cycle-open-form">
-  <h3>Add KPIs for <%= cycle.employee.full_name %>'s <%= cycle.start_date %> – <%= cycle.end_date %> cycle</h3>
-  <p>HR opened this cycle without KPIs yet — add 3–5 to get it running.</p>
+<p class="card-label" style="text-transform:none;letter-spacing:normal;font-weight:400;color:var(--neutral);">
+  <%= cycle.employee.first_name %>'s <%= cycle.start_date.strftime("%b %Y") %>–<%= cycle.end_date.strftime("%b %Y") %> cycle was opened without KPIs yet — add 3–5 to get it running.
+</p>
 
-  <%= form_with url: attach_kpis_team_review_cycle_path(cycle), method: :patch, local: true do %>
-    <% 5.times do %>
-      <div class="field kpi-entry-row">
-        <%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name" %>
-        <%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target" %>
-      </div>
-    <% end %>
+<%= form_with url: attach_kpis_team_review_cycle_path(cycle), method: :patch, local: true do %>
+  <div class="draftkpi-wrap">
+    <table class="draftkpi">
+      <% 5.times do %>
+        <tr>
+          <td><%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name", class: "plain-input compact" %></td>
+          <td><%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target", class: "plain-input compact" %></td>
+        </tr>
+      <% end %>
+    </table>
+  </div>
 
-    <button type="submit" class="btn btn-primary">Add KPIs</button>
-  <% end %>
-</div>
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">Add KPIs</button>
+  </div>
+<% end %>

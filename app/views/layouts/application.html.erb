@@ -40,15 +40,16 @@
         <%= link_to "My Profile", my_profile_path %>
         <%= link_to "My Payslips", payslips_path %>
         <% if current_employee.manager? || current_employee.admin? %>
-          <%= link_to "Team Reviews", team_review_cycles_path %>
           <%= link_to team_approvals_path do %>
             Approvals
             <% if (count = LeaveRequests::PendingForApprover.call(current_employee).count) > 0 %>
               <span class="badge badge-caution"><%= count %></span>
             <% end %>
           <% end %>
-          <%= link_to team_attendance_correction_requests_path do %>
-            Attendance Corrections
+          <%= link_to "Team Calendar", team_calendar_path %>
+          <%= link_to "Team Reviews", team_review_cycles_path %>
+          <%= link_to team_attendance_records_path do %>
+            Team Attendance
             <% if (count = AttendanceCorrectionRequests::PendingForApprover.call(current_employee).count) > 0 %>
               <span class="badge badge-caution"><%= count %></span>
             <% end %>

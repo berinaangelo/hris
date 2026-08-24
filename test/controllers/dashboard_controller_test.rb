@@ -7,7 +7,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
-    assert_select "a[href=?]", team_attendance_correction_requests_path, text: "Review now"
+    assert_select "a[href=?]", team_attendance_records_path, text: "Review now"
   end
 
   test "admin sees the pending-corrections card for company-wide requests" do
@@ -16,7 +16,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
-    assert_select "a[href=?]", team_attendance_correction_requests_path, text: "Review now"
+    assert_select "a[href=?]", team_attendance_records_path, text: "Review now"
   end
 
   test "a manager with no pending reports' requests doesn't see the card" do
@@ -26,7 +26,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
-    assert_select "a[href=?]", team_attendance_correction_requests_path, text: "Review now", count: 0
+    assert_select "a[href=?]", team_attendance_records_path, text: "Review now", count: 0
   end
 
   test "a plain employee never sees the card" do
@@ -35,7 +35,7 @@ class DashboardControllerTest < ActionDispatch::IntegrationTest
     get root_path
 
     assert_response :success
-    assert_select "a[href=?]", team_attendance_correction_requests_path, text: "Review now", count: 0
+    assert_select "a[href=?]", team_attendance_records_path, text: "Review now", count: 0
   end
 
   private

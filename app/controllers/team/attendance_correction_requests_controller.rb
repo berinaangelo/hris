@@ -1,13 +1,9 @@
 module Team
+  # #index folded into Team::AttendanceRecordsController#index as part
+  # of the Team Attendance merge — see
+  # kos/decisions/ux-pages/time-attendance.html. Approve/reject stay
+  # here and redirect back to that merged page.
   class AttendanceCorrectionRequestsController < ApplicationController
-    def index
-      authorize :team_approval, :index?
-
-      @pending = AttendanceCorrectionRequests::PendingForApprover.call(current_employee)
-      @decided = AttendanceCorrectionRequest.where(reviewed_by: current_employee).where.not(status: :pending)
-                                             .includes(:employee).order(reviewed_at: :desc).limit(10)
-    end
-
     def approve
       correction_request = AttendanceCorrectionRequest.find(params[:id])
       authorize correction_request, :approve?
@@ -15,10 +11,10 @@ module Team
       ActiveRecord::Base.transaction do
         AttendanceCorrection::ApproveRequest.call!(correction_request: correction_request, reviewer: current_employee)
       end
-      redirect_to team_attendance_correction_requests_path,
+      redirect_to team_attendance_records_path,
                   notice: "Approved #{correction_request.employee.full_name}'s correction request."
     rescue Interactor::Failure => e
-      redirect_to team_attendance_correction_requests_path, alert: e.context.message
+      redirect_to team_attendance_records_path, alert: e.context.message
     end
 
     def reject
@@ -28,10 +24,10 @@ module Team
       result = AttendanceCorrection::RejectRequest.call(correction_request: correction_request, reviewer: current_employee)
 
       if result.success?
-        redirect_to team_attendance_correction_requests_path,
+        redirect_to team_attendance_records_path,
                     notice: "Rejected #{correction_request.employee.full_name}'s correction request."
       else
-        redirect_to team_attendance_correction_requests_path, alert: result.message
+        redirect_to team_attendance_records_path, alert: result.message
       end
     end
   end

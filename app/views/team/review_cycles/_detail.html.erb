@@ -1,17 +1,18 @@
-<div class="card review-cycle-detail">
+<div class="roster-detail-panel">
   <% if employee.nil? %>
     <p>Select someone from your team.</p>
   <% else %>
-    <h2><%= employee.full_name %></h2>
     <% current_cycle = employee.review_cycles.max_by(&:start_date) %>
 
     <% if current_cycle.nil? %>
-      <%= render "open_cycle_form", employee: employee %>
+      <%= render "open_cycle_form", employee: employee, first_cycle: true %>
     <% elsif current_cycle.kpi_entries.empty? %>
       <%= render "attach_kpis_form", cycle: current_cycle %>
     <% elsif current_cycle.published? %>
       <%= render "published_detail", cycle: current_cycle %>
-      <%= render "open_cycle_form", employee: employee %>
+      <div class="divider-note">
+        <%= render "open_cycle_form", employee: employee, first_cycle: false %>
+      </div>
     <% elsif current_cycle.scoring_open? %>
       <%= render "scoring_form", cycle: current_cycle %>
     <% else %>

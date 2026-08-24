@@ -1,52 +1,80 @@
-<h1>Approvals</h1>
+<% content_for :title, "Approvals" %>
 
-<div class="card">
-  <% if @pending.any? %>
-    <table>
-      <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Days</th><th>Balance</th><th></th></tr></thead>
-      <tbody>
+<div class="team-approvals-page">
+  <div class="greet-block">
+    <h2>Approvals</h2>
+    <p><%= pluralize(@pending.size, "request") %> waiting on you</p>
+  </div>
+
+  <div class="card">
+    <% if @pending.any? %>
+      <div class="queue-live">
         <% @pending.each do |request| %>
-          <tr>
-            <td><%= request.employee.full_name %></td>
-            <td><%= request.leave_type.name %></td>
-            <td><%= request.start_date %> – <%= request.end_date %></td>
-            <td><%= request.days_requested %></td>
-            <td>
-              <% balance = request.employee.leave_balances.find_by(leave_type: request.leave_type, year: request.start_date.year) %>
-              <%= balance ? number_with_precision(balance.remaining_days, precision: 1) : "—" %>
-            </td>
-            <td>
-              <%= button_to "Approve", approve_team_approval_path(request), method: :patch, class: "btn btn-primary" %>
-              <%= form_with url: reject_team_approval_path(request), method: :patch, local: true do %>
-                <input type="text" name="decision_note" placeholder="Reason (optional)">
-                <button type="submit" class="btn btn-danger-outline">Reject</button>
+          <% balance = request.employee.leave_balances.find_by(leave_type: request.leave_type, year: request.start_date.year) %>
+          <% remaining = balance&.remaining_days %>
+          <% low = remaining && remaining - request.days_requested < 2 %>
+          <div class="req-item">
+            <span class="avatar"><%= request.employee.first_name.first %><%= request.employee.last_name.first %></span>
+            <div class="who">
+              <h4><%= request.employee.full_name %></h4>
+              <p><%= request.employee.job_title %></p>
+            </div>
+            <div class="mid">
+              <p class="line1">
+                <span class="type"><%= request.leave_type.name %></span> ·
+                <%= request.start_date == request.end_date ? request.start_date.to_fs(:long) : "#{request.start_date.strftime('%b %-d')}–#{request.end_date.strftime('%b %-d, %Y')}" %> ·
+                <%= pluralize(request.days_requested, "day") %>
+              </p>
+              <span class="balance-chip<%= " low" if low %>">
+                <%= lucide_icon(:calendar) %>
+                <% if remaining %>
+                  Balance <b><%= number_with_precision(remaining, precision: 1) %></b> of <%= number_with_precision(balance.entitled_days, precision: 1) %> days
+                  <% if low %> — would leave <b><%= number_with_precision(remaining - request.days_requested, precision: 1) %></b><% end %>
+                <% else %>
+                  No balance on file
+                <% end %>
+              </span>
+            </div>
+            <div class="actions">
+              <%= button_to approve_team_approval_path(request), method: :patch, class: "btn-primary" do %>
+                <%= lucide_icon(:"circle-check") %>Approve
               <% end %>
-            </td>
-          </tr>
+              <%= form_with url: reject_team_approval_path(request), method: :patch, local: true, class: "inline-reject-form" do %>
+                <input type="text" name="decision_note" placeholder="Reason (optional)">
+                <button type="submit" class="btn-danger-ghost"><%= lucide_icon(:x) %>Reject</button>
+              <% end %>
+            </div>
+          </div>
         <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p>You're all caught up.</p>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <%= lucide_icon(:"circle-check", stroke_width: 1.75) %>
+        <h3>You're all caught up</h3>
+        <p>No pending requests right now.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @decided.any? %>
+    <div class="card">
+      <div class="list-head"><h3>Recently decided</h3></div>
+      <div class="table-wrap">
+        <table class="dectable">
+          <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Status</th><th>Note</th></tr></thead>
+          <tbody>
+            <% @decided.each do |request| %>
+              <tr>
+                <td><%= request.employee.full_name %></td>
+                <td><%= request.leave_type.name %></td>
+                <td class="mono"><%= request.start_date %> – <%= request.end_date %></td>
+                <td><% badge = BadgePresenter.new(request.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+                <td><%= request.decision_note.presence || "—" %></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
   <% end %>
 </div>
-
-<% if @decided.any? %>
-  <div class="card">
-    <h2>Recently decided</h2>
-    <table>
-      <thead><tr><th>Employee</th><th>Type</th><th>Dates</th><th>Status</th><th>Note</th></tr></thead>
-      <tbody>
-        <% @decided.each do |request| %>
-          <tr>
-            <td><%= request.employee.full_name %></td>
-            <td><%= request.leave_type.name %></td>
-            <td><%= request.start_date %> – <%= request.end_date %></td>
-            <td><% badge = BadgePresenter.new(request.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
-            <td><%= request.decision_note.presence || "—" %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-<% end %>

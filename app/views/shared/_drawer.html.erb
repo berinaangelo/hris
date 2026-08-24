@@ -1,0 +1,26 @@
+<%# Reusable right-side slide-over drawer — variant of _modal.html.erb
+    (same modal_controller.js mechanics: open/close/backdrop/openValue),
+    styled as a slide-in panel instead of a centered dialog. First use:
+    Team Attendance's Edit/Review row actions.
+    See kos/decisions/ux-pages/time-attendance.html (Option 3).
+
+    Unlike _modal.html.erb, which is one-per-page, a drawer commonly
+    appears once per table row — wrap EACH instance and its own trigger
+    in their own `data-controller="modal"` element (don't share one
+    controller element across rows, or opening one opens them all).
+
+    Locals:
+      title: drawer heading text (required)
+    Yields the drawer body — forms/content go there, including any
+    `.tt-drawer-foot` action bar. %>
+<dialog data-modal-target="dialog" data-action="click->modal#closeOnBackdrop" class="app-modal app-drawer">
+  <div class="app-drawer-head">
+    <h3><%= title %></h3>
+    <button type="button" class="icon-btn" data-action="modal#close" aria-label="Close">
+      <%= lucide_icon(:x) %>
+    </button>
+  </div>
+  <div class="app-drawer-body">
+    <%= yield %>
+  </div>
+</dialog>

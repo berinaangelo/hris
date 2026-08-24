@@ -1,6 +1,9 @@
-<div class="review-cycle-in-progress">
-  <h3><%= cycle.start_date %> – <%= cycle.end_date %> (<%= cycle.pip? ? "PIP" : "Regular" %>)</h3>
-  <p><span class="badge badge-caution"><%= cycle.pip? ? "On PIP" : "In progress" %></span></p>
-  <p>This cycle runs until <%= cycle.end_date %>. Come back after it ends to score it.</p>
-  <%= render "review_cycles/kpi_table", kpi_entries: cycle.kpi_entries, scores_hidden: true %>
+<div class="inprogress-note">
+  <%= lucide_icon(cycle.pip? ? :"alert-triangle" : :clock, stroke_width: 1.75) %>
+  <% if cycle.pip? %>
+    PIP cycle running through <%= cycle.end_date.to_fs(:long) %> — outcome (Passed / Not Passed / Extended) is recorded at close.
+  <% else %>
+    Cycle is running — scoring opens after <%= cycle.end_date.to_fs(:long) %>.
+  <% end %>
 </div>
+<%= render "review_cycles/kpi_table", kpi_entries: cycle.kpi_entries, scores_hidden: true %>

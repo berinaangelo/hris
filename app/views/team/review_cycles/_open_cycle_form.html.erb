@@ -1,30 +1,41 @@
-<div class="review-cycle-open-form">
-  <h3>Start a new cycle for <%= employee.full_name %></h3>
+<% if local_assigns[:first_cycle] %>
+  <p class="card-label" style="text-transform:none;letter-spacing:normal;font-weight:400;color:var(--neutral);">
+    This will be <%= employee.first_name %>'s first review cycle. Set a few KPIs to open it.
+  </p>
+<% else %>
+  <p class="card-label">Start the next cycle</p>
+<% end %>
 
-  <%= form_with url: team_review_cycles_path, method: :post, local: true do %>
-    <input type="hidden" name="review_cycle[employee_id]" value="<%= employee.id %>">
+<%= form_with url: team_review_cycles_path, method: :post, local: true do %>
+  <input type="hidden" name="review_cycle[employee_id]" value="<%= employee.id %>">
 
-    <div class="field">
+  <% unless local_assigns[:first_cycle] %>
+    <div class="tt-drawer-field">
       <%= label_tag "review_cycle_cycle_type", "Cycle type" %>
-      <%= select_tag "review_cycle[cycle_type]", options_for_select([ [ "Regular", "regular" ], [ "PIP", "pip" ] ]) %>
+      <%= select_tag "review_cycle[cycle_type]", options_for_select([ [ "Regular", "regular" ], [ "PIP", "pip" ] ]), class: "plain-input compact" %>
     </div>
-    <div class="field">
-      <%= label_tag "review_cycle_start_date", "Start date" %>
-      <%= date_field_tag "review_cycle[start_date]", Date.current %>
-    </div>
-    <div class="field">
-      <%= label_tag "review_cycle_end_date", "End date" %>
-      <%= date_field_tag "review_cycle[end_date]", 6.months.from_now.to_date %>
-    </div>
-
-    <h4>KPIs (3–5)</h4>
-    <% 5.times do %>
-      <div class="field kpi-entry-row">
-        <%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name" %>
-        <%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target" %>
-      </div>
-    <% end %>
-
-    <button type="submit" class="btn btn-primary">Open cycle</button>
   <% end %>
-</div>
+  <div class="tt-drawer-field">
+    <%= label_tag "review_cycle_start_date", "Start date" %>
+    <%= date_field_tag "review_cycle[start_date]", Date.current, class: "plain-input compact" %>
+  </div>
+  <div class="tt-drawer-field">
+    <%= label_tag "review_cycle_end_date", "End date" %>
+    <%= date_field_tag "review_cycle[end_date]", 6.months.from_now.to_date, class: "plain-input compact" %>
+  </div>
+
+  <div class="draftkpi-wrap">
+    <table class="draftkpi">
+      <% 5.times do %>
+        <tr>
+          <td><%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name", class: "plain-input compact" %></td>
+          <td><%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target", class: "plain-input compact" %></td>
+        </tr>
+      <% end %>
+    </table>
+  </div>
+
+  <div class="form-actions">
+    <button type="submit" class="btn-primary">Open cycle</button>
+  </div>
+<% end %>

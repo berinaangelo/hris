@@ -8,7 +8,7 @@ module Team
 
       patch approve_team_attendance_correction_request_path(correction_request)
 
-      assert_redirected_to team_attendance_correction_requests_path
+      assert_redirected_to team_attendance_records_path
       assert correction_request.reload.approved?
     end
 
@@ -18,7 +18,7 @@ module Team
 
       patch reject_team_attendance_correction_request_path(correction_request)
 
-      assert_redirected_to team_attendance_correction_requests_path
+      assert_redirected_to team_attendance_records_path
       assert correction_request.reload.rejected?
     end
 
