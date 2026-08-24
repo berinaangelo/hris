@@ -1,13 +1,74 @@
 /*
  * Compiled by dartsass-rails into app/assets/builds/application.css.
  *
- * Still plain hand-written CSS (no SCSS features used yet) — the real
- * Bulma import per kos/decisions/tech-stack-hotwire-over-coffeescript.md
- * is a separate not-yet-done task. This file just needed to exist for
- * `dartsass:build` (and the assets:precompile/test tasks that hook into
- * it) to stop failing. Colors below are the real Ink & Amber values from
+ * Everything below this comment is still plain hand-written CSS (no
+ * SCSS features used) — the actual product design system, built one
+ * batch at a time straight from the kos/decisions/ux-pages/ mockups.
+ * Colors are the real Ink & Amber values from
  * kos/decisions/ui/color-palette-ink-and-amber.md, not placeholders.
+ *
+ * Bulma is `@use`d below (per kos/decisions/tech-stack-hotwire-over-coffeescript.md
+ * and kos/decisions/ui/bulma-vendored-prefixed.md) but every class it
+ * generates is namespaced "bulma-" — it deliberately does not style
+ * anything on the pages above, on purpose. It's there for a future
+ * page/feature to opt into by using .bulma-* classes, not a
+ * replacement for the hand-written system already in production use.
+ * One exception: the m-/p-/mt-/my-/etc. spacing helpers stay
+ * unprefixed, per the standing kos/decisions/ui/spacing-bulma-default.md
+ * decision — nothing else in the app uses those class names, so
+ * there's nothing for them to collide with.
  */
+
+// Vendored at app/assets/stylesheets/bulma/ (npm bulma@1.0.4's own
+// sass/ directory, unmodified except _index.scss no longer forwards
+// "base", and helpers/_index.scss no longer forwards "spacing" — see
+// each file's own comment for why). $class-prefix namespaces every
+// other class Bulma generates so nothing it outputs can collide with
+// this file's own .card/.field/.hero/etc. Color mapping is the one
+// already decided in kos/decisions/ui/color-palette-ink-and-amber.md's
+// own "Bulma mapping" line; font/radius aren't decided anywhere else,
+// chosen here to just keep .bulma-* classes visually consistent with
+// the rest of the app for whenever a page actually reaches for them.
+@use "bulma" with (
+  $class-prefix: "bulma-",
+  $primary: #1B2A4A,
+  $link: #E8630A,
+  $info: #3E5378,
+  $success: #16A34A,
+  $warning: #D97706,
+  $danger: #DC2626,
+  $family-sans-serif: '"Work Sans", "Helvetica Neue", Arial, sans-serif',
+  $family-monospace: '"IBM Plex Mono", ui-monospace, SFMono-Regular, monospace',
+  $radius: 8px
+);
+
+// Unprefixed spacing helpers (m-/p-/mt-/mr-/mb-/ml-/mx-/my-, 0 through
+// 6 plus "auto") — same scale/logic as Bulma's own
+// helpers/spacing.scss, kept as a small standalone generator instead
+// of forwarding that file, so it can stay unprefixed while everything
+// else Bulma generates stays "bulma-"-namespaced (Sass can't configure
+// $class-prefix two different ways for one loaded module in the same
+// compilation). See kos/decisions/ui/spacing-bulma-default.md and
+// kos/decisions/ui/bulma-vendored-prefixed.md.
+.marginless { margin: 0 !important; }
+.paddingless { padding: 0 !important; }
+
+$spacing-shortcuts: ("margin": "m", "padding": "p");
+$spacing-directions: ("top": "t", "right": "r", "bottom": "b", "left": "l");
+$spacing-values: ("0": 0, "1": 0.25rem, "2": 0.5rem, "3": 0.75rem, "4": 1rem, "5": 1.5rem, "6": 3rem, "auto": auto);
+
+@each $property, $shortcut in $spacing-shortcuts {
+  @each $name, $value in $spacing-values {
+    .#{$shortcut}-#{$name} { #{$property}: $value !important; }
+
+    @each $direction, $suffix in $spacing-directions {
+      .#{$shortcut}#{$suffix}-#{$name} { #{$property}-#{$direction}: $value !important; }
+    }
+
+    .#{$shortcut}x-#{$name} { #{$property}-left: $value !important; #{$property}-right: $value !important; }
+    .#{$shortcut}y-#{$name} { #{$property}-top: $value !important; #{$property}-bottom: $value !important; }
+  }
+}
 
 :root {
   --ink: #1B2A4A;
@@ -34,6 +95,15 @@
 }
 
 * { box-sizing: border-box; }
+// Stimulus toggles visibility by setting the `hidden` HTML
+// attribute/property (inline-edit, tabs, tree-node, view-toggle
+// controllers). The UA's own `[hidden]{display:none}` default rule is
+// low-priority and loses to any author rule of equal-or-higher
+// specificity that sets `display` on the same element (e.g. .benefit-
+// card, .tree-children both set display:flex directly) — the element
+// would render even while marked hidden. Force it here once instead of
+// guarding every such class individually.
+[hidden] { display: none !important; }
 body {
   margin: 0;
   font-family: var(--font-body);
@@ -46,28 +116,66 @@ h1, h2, h3 { font-family: var(--font-display); margin: 0; }
   * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
 }
 
+// Me/Team/Company pill-tab top bar + section sidebar — see
+// kos/decisions/ui/navigation-me-team-company.md and
+// app/presenters/navigation_presenter.rb.
 .app-nav {
   display: flex;
   align-items: center;
-  gap: 1.5rem;
+  gap: 1.25rem;
   background: var(--ink);
-  color: #fff;
-  padding: 0.9rem 1.5rem;
+  color: var(--white);
+  padding: 0 1.25rem;
+  height: 52px;
+  flex: 0 0 auto;
 }
-.app-nav a { color: #fff; text-decoration: none; opacity: 0.85; }
+.app-nav a { color: var(--white); text-decoration: none; opacity: 0.85; }
 .app-nav a:hover { opacity: 1; }
-.app-nav .brand { font-weight: 700; letter-spacing: 0.02em; }
+.wordmark {
+  font-family: var(--font-display); font-weight: 800; font-size: 1rem;
+  display: inline-flex; align-items: center; gap: 0.4rem; opacity: 1;
+}
+.wordmark .mark {
+  width: 20px; height: 20px; border-radius: 6px; background: var(--accent);
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+}
+.wordmark .mark svg { width: 14px; height: 14px; }
+.nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+.nav-tabs a {
+  display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem;
+  border-radius: 999px; font-size: 0.8125rem; font-weight: 600; opacity: 1; color: #B9C2D6;
+}
+.nav-tabs a:hover { color: var(--white); }
+.nav-tabs a.active { background: rgba(255, 255, 255, 0.14); color: var(--white); }
 .nav-spacer { flex: 1; }
-.nav-user { opacity: 0.85; font-size: 0.9rem; }
+.nav-avatar {
+  width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; font-weight: 600;
+}
 .link-button {
-  background: none; border: none; color: #fff; opacity: 0.85; cursor: pointer;
+  background: none; border: none; color: var(--white); opacity: 0.85; cursor: pointer;
   font: inherit; padding: 0;
 }
 
-.app-main { max-width: 960px; margin: 0 auto; padding: 2rem 1.5rem; }
+.app-body { display: flex; align-items: flex-start; }
+.app-body .app-main { flex: 1; min-width: 0; }
+
+.side-nav { flex: 0 0 220px; background: var(--white); border-right: 1px solid var(--border); padding: 1rem 0.75rem; }
+.side-nav a {
+  display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0.75rem; border-radius: 8px;
+  color: var(--ink-light); text-decoration: none; font-size: 0.875rem; font-weight: 500; margin-bottom: 0.15rem;
+}
+.side-nav a:hover { background: var(--surface); }
+.side-nav a svg { width: 16px; height: 16px; flex: 0 0 auto; }
+.side-nav a.active { background: var(--surface); color: var(--ink); font-weight: 600; }
+.side-nav a .badge { margin-left: auto; }
+
+.app-main { margin: 0 auto; padding: 2rem 1.5rem; }
 // Full-bleed auth screens (login, password recovery) opt out of the
-// generic page wrapper's max-width/padding — .auth-split is meant to
-// fill the viewport edge-to-edge, not sit in a padded 960px column.
+// generic page wrapper's padding — .auth-split is meant to fill the
+// viewport edge-to-edge. (max-width: none here is a no-op now that
+// .app-main itself has no max-width, kept in case one comes back.)
 .app-main:has(.auth-split) { max-width: none; margin: 0; padding: 0; }
 
 .flash { margin: 0; padding: 0.75rem 1.5rem; font-size: 0.9rem; }
@@ -115,7 +223,7 @@ th { color: var(--neutral); font-weight: 600; text-transform: uppercase; font-si
 }
 
 .auth-split { display: flex; min-height: 100vh; }
-.auth-split .brand-pane { flex: 0 0 44%; background: var(--ink); color: #fff; padding: 3rem; }
+.auth-split .brand-pane { flex: 0 0 45%; background: var(--ink); color: #fff; padding: 3rem; }
 .auth-split .form-pane { flex: 1; display: flex; align-items: center; justify-content: center; padding: 3rem; }
 .auth-split form { width: 100%; max-width: 360px; }
 
@@ -651,7 +759,15 @@ textarea.plain-input { resize: vertical; min-height: 64px; font-family: var(--fo
 
 // ---------- drawer variant of the shared modal (see _drawer.html.erb / _modal.html.erb) ----------
 
-dialog.app-modal.app-drawer {
+// [open] matters here — a <dialog> with no "open" attribute is
+// display:none by default; without gating on [open], this rule's own
+// specificity (3 classes) beats the UA default's dialog:not([open])
+// rule and forces the drawer to render even when closed. Every drawer
+// on a page would render stacked and visible at once — first hit when
+// this batch pushed the drawer count on one page (Employee Detail)
+// past what Team Attendance's original single-drawer pages happened to
+// exercise.
+dialog.app-modal.app-drawer[open] {
   position: fixed; inset: 0 0 0 auto; margin: 0; height: 100dvh; max-height: 100dvh;
   width: min(380px, 92vw); border-radius: 0; padding: 0; display: flex; flex-direction: column;
   animation: drawer-in 180ms ease;
@@ -840,3 +956,365 @@ dialog.app-modal.app-drawer::backdrop { background: rgba(27, 42, 74, 0.45); }
 .team-attendance-page .cptable .who h4 { font-size: 0.875rem; font-weight: 700; }
 .team-attendance-page .cptable .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.05rem; }
 .team-attendance-page .shift-tag { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; font-weight: 600; color: var(--ink-light); background: var(--surface); border: 1px solid var(--border); border-radius: 6px; padding: 0.15rem 0.5rem; white-space: nowrap; }
+
+// ============================================================
+// Batch 4 — Company: People & lifecycle UX pass. People Directory,
+// Add Employee, Employee Detail, Employee Benefits, Employee Loan
+// Ledger, Offboarding Flow, Org Chart, Roles & Access — see
+// kos/decisions/ux-pages/{people-directory,add-employee,employee-detail,
+// employee-benefits,employee-loan-ledger,offboarding-flow,org-chart,
+// roles-access}.html and their kos/decisions/ui/*.md decision docs.
+// Same page-scoped-wrapper convention as Batch 1/2/3; a few genuinely
+// cross-page pieces (toolbar/search/chip filters, .btn-primary alias)
+// are added unscoped since they're shared by several pages in this
+// batch, the same reasoning Batch 3 used for .avatar/.icon-btn/.mono.
+// ============================================================
+
+// ---------- shared chrome new to this batch ----------
+
+// The app's existing .btn-primary is a plain <a>/<button> element; this
+// batch's mockups style theirs with an icon + text row. Adds the look
+// without touching the base .btn/.btn-primary classes other pages rely on.
+// Batch 1-3 always paired .btn-primary/.btn-ghost with the base .btn
+// class for display/padding/cursor/text-decoration; this batch's
+// mockups use them standalone (no .btn), so make both self-sufficient
+// here rather than requiring every call site to add "btn" too.
+.btn-primary {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  border-radius: 8px; padding: 0.6rem 0.95rem; font-weight: 600; font-size: 0.8125rem;
+  border: none; cursor: pointer; text-decoration: none; transition: background var(--t), transform 80ms ease;
+}
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-primary:disabled { background: var(--border); color: var(--neutral); cursor: not-allowed; }
+.btn-primary svg { width: 15px; height: 15px; }
+
+.btn-ghost {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.4rem;
+  border-radius: 8px; padding: 0.55rem 0.9rem; font-weight: 600; font-size: 0.8125rem;
+  cursor: pointer; text-decoration: none; transition: border-color var(--t), background var(--t);
+}
+.btn-ghost:hover { background: var(--surface); }
+.btn-ghost:disabled { opacity: 0.5; cursor: not-allowed; }
+.btn-ghost svg { width: 14px; height: 14px; }
+
+.toolbar { display: flex; align-items: center; gap: 0.75rem; padding-bottom: 1.25rem; flex-wrap: wrap; }
+.toolbar-spacer { flex: 1; }
+.search-wrap { position: relative; flex: 1; min-width: 220px; max-width: 340px; margin: 0; }
+.search-wrap svg { position: absolute; left: 0.7rem; top: 50%; transform: translateY(-50%); width: 15px; height: 15px; color: var(--neutral); pointer-events: none; }
+.search-input {
+  width: 100%; padding: 0.55rem 0.75rem 0.55rem 2.1rem; border: 1px solid var(--border); border-radius: 8px;
+  font-family: var(--font-body); font-size: 0.875rem; color: var(--ink); background: var(--white);
+  transition: border-color var(--t), box-shadow var(--t);
+}
+.search-input:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232,99,10,0.15); }
+.chip-row { display: flex; gap: 0.4rem; flex-wrap: wrap; }
+.chip-filter {
+  font-size: 0.8125rem; font-weight: 600; padding: 0.45rem 0.85rem; border-radius: 999px; border: 1px solid var(--border);
+  background: var(--white); color: var(--ink-light); text-decoration: none; white-space: nowrap; transition: background var(--t), color var(--t);
+}
+.chip-filter:hover { background: var(--surface); }
+.chip-filter.is-active { background: var(--ink); color: var(--white); border-color: var(--ink); }
+
+.view-toggle { display: flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden; flex: 0 0 auto; }
+.view-toggle-btn {
+  display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 34px; border: none;
+  cursor: pointer; color: var(--neutral); background: var(--white); transition: background var(--t), color var(--t);
+}
+.view-toggle-btn:first-child { border-right: 1px solid var(--border); }
+.view-toggle-btn svg { width: 15px; height: 15px; }
+.view-toggle-btn.is-active { background: var(--ink); color: var(--white); }
+
+.muted-link { font-size: 0.8125rem; color: var(--neutral); text-decoration: none; }
+.muted-link:hover { color: var(--ink); text-decoration: underline; }
+
+// Reusable comfortable-density directory-style table — shared by
+// People Directory's list view and Roles & Access' roster.
+.dirtable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 720px; }
+.dirtable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.dirtable td { padding: 0 0.75rem; height: 46px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+.dirtable tbody tr:nth-child(even) { background: var(--surface); }
+.dirtable tr:last-child td { border-bottom: none; }
+.dirtable .who { display: flex; align-items: center; gap: 0.6rem; text-decoration: none; color: inherit; }
+.dirtable .who h4 { font-size: 0.875rem; font-weight: 700; }
+.dirtable .muted { color: var(--neutral); }
+
+// ---------- People Directory (photo-forward card grid + list toggle) ----------
+// See kos/decisions/ui/people-directory-card-grid-with-list-toggle.md.
+
+.people-directory-page .people-subhead { margin-bottom: 0.75rem; }
+.people-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem; }
+.person-card {
+  border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; display: flex; flex-direction: column;
+  gap: 0.6rem; text-decoration: none; color: inherit; transition: border-color var(--t), box-shadow var(--t);
+}
+.person-card:hover { border-color: var(--accent); box-shadow: var(--shadow-card); }
+.person-card .avatar { width: 44px; height: 44px; font-size: 0.9375rem; }
+.person-card h4 { font-size: 0.9375rem; font-weight: 700; }
+.person-card .role { font-size: 0.8125rem; color: var(--neutral); margin: 0; }
+.person-card .foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin-top: 0.2rem; }
+.person-card .dept-tag { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--ink-light); background: var(--surface); padding: 0.2rem 0.5rem; border-radius: 999px; }
+.person-card .year { font-size: 0.75rem; color: var(--neutral); }
+.dept-tag { font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.03em; text-transform: uppercase; color: var(--ink-light); background: var(--surface); padding: 0.2rem 0.5rem; border-radius: 999px; display: inline-block; }
+
+// ---------- shared form-with-sections chrome (Add Employee, Employee
+// Detail's inline-edit sections) ----------
+
+.back-link { display: inline-flex; align-items: center; gap: 0.3rem; font-size: 0.8125rem; color: var(--neutral); text-decoration: none; margin-bottom: 1rem; }
+.back-link:hover { color: var(--ink); }
+.back-link svg { width: 14px; height: 14px; }
+
+.form-head { padding-bottom: 0; margin-bottom: 1rem; }
+.form-head h2 { font-size: 1.25rem; font-weight: 700; }
+.form-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.3rem; }
+
+.form-section { background: var(--white); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+.form-section h3 { font-size: 0.9375rem; font-weight: 700; margin-bottom: 1rem; }
+.opt { font-weight: 500; color: var(--neutral); text-transform: none; }
+
+.field-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 1.1rem; }
+.field-grid .field { margin-bottom: 0; }
+
+select.plain-input {
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23697488' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 0.6rem center; background-size: 16px; padding-right: 2.2rem;
+}
+
+// ---------- Add Employee (split, form + live preview) ----------
+// See kos/decisions/ui/add-employee-split-live-preview.md.
+
+.add-employee-page .op3-cols { display: grid; grid-template-columns: 1fr 300px; gap: 1.5rem; align-items: start; }
+@media (max-width: 820px) { .add-employee-page .op3-cols { grid-template-columns: 1fr; } }
+.add-employee-page .op3-preview-col {
+  background: var(--white); border-radius: var(--radius); padding: 1.5rem; display: flex; flex-direction: column;
+  align-items: center; text-align: center; gap: 0.6rem; position: sticky; top: 1.5rem;
+}
+.add-employee-page .preview-label { align-self: flex-start; }
+.add-employee-page .preview-card { width: 100%; border: 1px solid var(--border); border-radius: var(--radius); padding: 1.1rem; display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.5rem; }
+.add-employee-page .avatar-lg { width: 44px; height: 44px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.9375rem; }
+.add-employee-page .preview-card h4 { font-size: 0.9375rem; font-weight: 700; }
+.add-employee-page .preview-card .role { font-size: 0.8125rem; color: var(--neutral); margin: 0; }
+.add-employee-page .preview-card .foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.add-employee-page .preview-facts { width: 100%; text-align: left; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.25rem; }
+.add-employee-page .preview-facts .row { display: flex; justify-content: space-between; font-size: 0.75rem; gap: 0.5rem; }
+.add-employee-page .preview-facts .row span:first-child { color: var(--neutral); }
+.add-employee-page .preview-facts .row span:last-child { font-family: var(--font-mono); color: var(--ink); text-align: right; }
+.add-employee-page .preview-note { font-size: 0.75rem; color: var(--neutral); margin-top: 0.4rem; }
+
+// ---------- shared empty-state (Loan Ledger, Benefits — guided shape) ----------
+// See kos/decisions/ui/empty-states-guided.md.
+
+.empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 0.5rem; padding: 3rem 1.5rem; color: var(--neutral); }
+.empty-state .icon { width: 32px; height: 32px; color: var(--neutral); opacity: 0.6; }
+.empty-state h3 { font-size: 0.9375rem; font-weight: 700; color: var(--ink); }
+.empty-state p { font-size: 0.8125rem; max-width: 40ch; }
+.empty-state .btn-primary { margin-top: 0.4rem; }
+
+// ---------- Employee Detail (inline edit + reserved tabs) ----------
+// See kos/decisions/ui/employee-detail-inline-edit-with-reserved-tabs.md.
+
+.employee-detail-page .identity-strip {
+  display: flex; align-items: center; gap: 1rem; padding: 1.5rem; background: var(--white); border-radius: var(--radius) var(--radius) 0 0;
+  flex-wrap: wrap; margin-top: 1rem;
+}
+.employee-detail-page .avatar-lg { width: 56px; height: 56px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 1.1rem; flex: 0 0 auto; }
+.employee-detail-page .identity-who h2 { font-size: 1.15rem; font-weight: 700; }
+.employee-detail-page .identity-who p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+.employee-detail-page .identity-meta { margin-left: auto; display: flex; align-items: center; gap: 0.85rem; flex-wrap: wrap; }
+.employee-detail-page .identity-meta .id { font-size: 0.8125rem; color: var(--neutral); }
+.employee-detail-page .status-active { font-size: 0.8125rem; color: var(--positive-text); font-weight: 600; }
+.employee-detail-page .identity-meta-divider { width: 1px; height: 20px; background: var(--border); flex: 0 0 auto; }
+
+.employee-detail-page .subtab-bar { display: flex; gap: 0.3rem; background: var(--white); border-radius: 0 0 var(--radius) var(--radius); padding: 0 1.5rem; border-bottom: 1px solid var(--border); margin-bottom: 1.5rem; overflow-x: auto; }
+.employee-detail-page .subtab-bar button {
+  flex: 0 0 auto; padding: 0.8rem 0.2rem; margin-right: 1.5rem; font: inherit; font-size: 0.8125rem; font-weight: 600;
+  color: var(--neutral); cursor: pointer; background: none; border: none; border-bottom: 2px solid transparent;
+  transition: color var(--t), border-color var(--t);
+}
+.employee-detail-page .subtab-bar button.is-active { color: var(--ink); border-color: var(--accent); }
+
+.employee-detail-page .section { background: var(--white); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+.employee-detail-page .section-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.1rem; gap: 0.75rem; }
+.employee-detail-page .section-head h3 { font-size: 1rem; font-weight: 700; }
+.employee-detail-page .section-head .hint { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+
+.field-view { display: flex; flex-direction: column; gap: 0.25rem; }
+.field-view label { display: block; font-size: 0.75rem; color: var(--neutral); font-weight: 500; }
+.field-view .val { font-size: 0.9375rem; color: var(--ink); margin: 0; }
+.field-view .val.mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+.employee-detail-page .checklist-row, .employee-detail-page .doc-row { display: flex; align-items: center; gap: 0.75rem; padding: 0.7rem 0; border-bottom: 1px solid var(--border); }
+.employee-detail-page .checklist-row:last-child, .employee-detail-page .doc-row:last-child { border-bottom: none; }
+.employee-detail-page .checklist-row svg.check { width: 18px; height: 18px; color: var(--positive-text); flex: 0 0 auto; }
+.employee-detail-page .checklist-row svg.pending-icon { width: 18px; height: 18px; color: var(--border); flex: 0 0 auto; }
+.employee-detail-page .checklist-row .txt { flex: 1; font-size: 0.875rem; }
+.employee-detail-page .doc-row svg.file { width: 18px; height: 18px; color: var(--neutral); flex: 0 0 auto; }
+.employee-detail-page .doc-row .txt { flex: 1; }
+.employee-detail-page .doc-row .txt .name { font-size: 0.875rem; font-weight: 500; margin: 0; }
+.employee-detail-page .doc-row .txt .meta { font-size: 0.75rem; color: var(--neutral); margin: 0.1rem 0 0; }
+.employee-detail-page .doc-row .actions { display: flex; gap: 0.4rem; }
+
+.check-inline { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--ink-light); }
+.check-inline input { accent-color: var(--accent); width: 15px; height: 15px; }
+
+// ---------- Offboarding Flow (schedule + persistent clearance tracker) ----------
+// See kos/decisions/ui/offboarding-flow-schedule-clearance-tracker.md.
+
+.separation-panel .sub { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; }
+.sep-summary { display: flex; align-items: center; gap: 0.7rem; padding: 0.85rem 1rem; border-radius: 8px; background: var(--caution-bg); margin-bottom: 1rem; }
+.sep-summary svg { width: 20px; height: 20px; color: var(--caution-text); flex: 0 0 auto; }
+.sep-summary p { font-size: 0.8125rem; color: var(--caution-text); line-height: 1.5; margin: 0; }
+.sep-summary p b { font-weight: 700; }
+.sep-summary.is-done { background: var(--neutral-bg); }
+.sep-summary.is-done svg, .sep-summary.is-done p { color: var(--neutral-text); }
+.sep-actions { display: flex; justify-content: flex-end; margin-top: 0.5rem; }
+.sep-done-tag { display: flex; align-items: center; gap: 0.5rem; font-size: 0.8125rem; color: var(--neutral); }
+.sep-done-tag svg { width: 16px; height: 16px; color: var(--positive-text); flex: 0 0 auto; }
+
+// ---------- Employee Loan Ledger (flat table + edit drawer) ----------
+// See kos/decisions/ui/loan-ledger-flat-table-edit-drawer.md.
+
+.runtable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 640px; }
+.runtable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.runtable td { padding: 0.7rem 0.75rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.runtable tbody tr:nth-child(even) { background: var(--surface); }
+.runtable tr:last-child td { border-bottom: none; }
+.runtable tr.is-paidoff { opacity: 0.72; }
+.loan-progress { width: 90px; height: 6px; border-radius: 999px; background: var(--surface); overflow: hidden; }
+.loan-progress-fill { height: 100%; background: var(--accent); border-radius: 999px; }
+.loan-progress-fill.is-paidoff { background: var(--positive-text); }
+
+// ---------- Employee Benefits (repeatable plan cards) ----------
+// See kos/decisions/ui/employee-benefits-repeatable-plan-cards.md.
+
+.benefit-card { border: 1px solid var(--border); border-radius: var(--radius); padding: 1.25rem 1.4rem 1.75rem; display: flex; flex-direction: column; gap: 0.25rem; }
+.benefit-card + .benefit-card { margin-top: 1.1rem; }
+.benefit-card .card-edit { margin-top: 0; }
+.benefit-card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.9rem; }
+.benefit-card-head .plan-name { font-size: 0.9375rem; font-weight: 700; margin: 0; }
+.benefit-card-head .plan-provider { font-size: 0.8125rem; color: var(--neutral); margin: 0; }
+.benefit-card-head .head-actions { display: flex; gap: 0.4rem; flex: 0 0 auto; }
+.dep-label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); margin: 0.6rem 0 0.5rem; }
+.dep-row { display: flex; justify-content: space-between; gap: 0.75rem; font-size: 0.875rem; padding: 0.4rem 0; }
+.dep-row .dep-rel { color: var(--neutral); }
+.dep-empty { font-size: 0.8125rem; color: var(--neutral); font-style: italic; }
+.dep-row-edit { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+.dep-row-edit .plain-input { flex: 1; }
+.dep-remove { display: flex; align-items: center; gap: 0.3rem; font-size: 0.75rem; color: var(--neutral); white-space: nowrap; }
+.dep-remove input { accent-color: var(--danger); }
+
+// ---------- Org Chart (classic top-down tree) ----------
+// See kos/decisions/ui/org-chart-classic-top-down-tree.md.
+
+.org-chart-page .toolbar-hint { font-size: 0.8125rem; color: var(--neutral); margin-bottom: 1rem; }
+.org-chart-page .toolbar-count { font-size: 0.8125rem; color: var(--neutral); white-space: nowrap; }
+
+.chart-canvas { overflow-x: auto; background: var(--white); border-radius: var(--radius); padding: 2rem 1.5rem 2.5rem; }
+.org-tree { display: flex; flex-direction: column; align-items: center; min-width: 720px; width: max-content; margin: 0 auto; }
+
+// .node-card is the bordered container everywhere. For a leaf employee
+// (no reports) and the company root it's the <a>/<div> itself; for a
+// manager it wraps two separate controls — .node-card-link (navigates
+// to Employee Detail) and .node-chevron-btn (collapse/expand only) —
+// since one element can't both link and toggle.
+.node-card {
+  display: flex; align-items: center; gap: 0.4rem; border: 1px solid var(--border); border-radius: var(--radius);
+  background: var(--white); padding: 0.65rem 0.85rem; min-width: 200px; text-align: left; font: inherit;
+  text-decoration: none; color: inherit; transition: border-color var(--t), box-shadow var(--t);
+}
+a.node-card:hover { border-color: var(--accent); box-shadow: var(--shadow-card); }
+.node-card h4 { font-size: 0.875rem; font-weight: 700; margin: 0; }
+.node-card .role { font-size: 0.75rem; color: var(--neutral); margin-top: 0.05rem; }
+.node-card .who-text { display: flex; flex-direction: column; gap: 0.2rem; }
+.node-card .count { font-size: 0.6875rem; color: var(--neutral); }
+.node-root { box-shadow: var(--shadow-card); border-color: var(--ink); background: var(--ink); cursor: default; }
+.node-root h4 { color: var(--white); }
+.node-root .role { color: #C7CEDE; }
+.avatar-co { border-radius: 8px; background: var(--ink-light); }
+
+.node-card-link { display: flex; align-items: center; gap: 0.65rem; flex: 1; min-width: 0; text-decoration: none; color: inherit; }
+.node-card-link:hover h4 { color: var(--accent); }
+.node-chevron-btn {
+  background: none; border: none; padding: 0.2rem; margin-left: 0.4rem; cursor: pointer; flex: 0 0 auto;
+  display: inline-flex; align-items: center; justify-content: center; border-radius: 4px;
+}
+.node-chevron-btn:hover { background: var(--surface); }
+.node-card .chevron { width: 14px; height: 14px; color: var(--neutral); flex: 0 0 auto; transition: transform var(--t); }
+.node-card .chevron.is-collapsed { transform: rotate(-90deg); }
+
+.tree-root { position: relative; }
+.tree-root::after { content: ""; position: absolute; bottom: -2.25rem; left: 50%; width: 1px; height: 2.25rem; background: var(--border); }
+
+.tree-row { display: flex; gap: 2.25rem; padding-top: 2.25rem; position: relative; }
+.tree-row::before { content: ""; position: absolute; top: 0; left: 6%; right: 6%; height: 1px; background: var(--border); }
+
+.tree-branch, .tree-leaf-top { position: relative; }
+.tree-branch::before, .tree-leaf-top::before { content: ""; position: absolute; top: -2.25rem; left: 50%; width: 1px; height: 2.25rem; background: var(--border); }
+
+.tree-children {
+  display: flex; flex-wrap: wrap; gap: 0.6rem; justify-content: center; max-width: 620px;
+  border: 1px dashed var(--border); border-radius: 10px; background: var(--surface);
+  padding: 0.85rem; margin-top: 1.35rem; position: relative;
+}
+.tree-children::before { content: ""; position: absolute; top: -1.35rem; left: 50%; width: 1px; height: 1.35rem; background: var(--border); }
+.tree-children .node-card { min-width: 172px; }
+
+// ---------- Roles & Access (reference + assignment drawer) ----------
+// See kos/decisions/ui/roles-access-reference-plus-assignment-drawer.md.
+
+:root {
+  --role-employee-bg: #E9ECF1; --role-employee-fg: #24344C;
+  --role-manager-bg:  #E4E9F5; --role-manager-fg:  #1B2A4A;
+  --role-admin-bg:    #FCEADA; --role-admin-fg:    #8A3B0A;
+}
+
+.roles-access-page .lede { font-size: 0.875rem; color: var(--neutral); margin-bottom: 1.5rem; max-width: 62ch; }
+.roles-access-page .section { background: var(--white); border-radius: var(--radius); padding: 1.5rem; margin-bottom: 1.5rem; }
+.roles-access-page .section-head { margin-bottom: 1.1rem; }
+.roles-access-page .section-head h3 { font-size: 1rem; font-weight: 700; }
+.roles-access-page .section-head p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.2rem; max-width: 60ch; }
+
+.role-chip { display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.22rem 0.6rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+.role-chip .dot { width: 6px; height: 6px; border-radius: 999px; flex: 0 0 auto; }
+.role-chip.role-employee { background: var(--role-employee-bg); color: var(--role-employee-fg); }
+.role-chip.role-employee .dot { background: var(--role-employee-fg); }
+.role-chip.role-manager  { background: var(--role-manager-bg);  color: var(--role-manager-fg); }
+.role-chip.role-manager .dot { background: var(--role-manager-fg); }
+.role-chip.role-admin    { background: var(--role-admin-bg);    color: var(--role-admin-fg); }
+.role-chip.role-admin .dot { background: var(--role-admin-fg); }
+
+.role-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+@media (max-width: 760px) { .role-cards { grid-template-columns: 1fr; } }
+.role-card { background: var(--white); padding: 1.15rem 1.25rem; display: flex; flex-direction: column; gap: 0.5rem; }
+.role-card-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.role-card .cnt { font-size: 0.75rem; color: var(--neutral); }
+.role-card .desc { font-size: 0.8125rem; color: var(--ink-light); line-height: 1.5; margin: 0; }
+
+.cap-table { width: 100%; border-collapse: collapse; font-size: 0.8125rem; min-width: 560px; margin-top: 1.1rem; }
+.cap-table th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.55rem 0.65rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+.cap-table th.center, .cap-table td.center { text-align: center; }
+.cap-table td { padding: 0.65rem; border-bottom: 1px solid var(--border); vertical-align: middle; color: var(--ink-light); }
+.cap-table tr:last-child td { border-bottom: none; }
+.cap-table .note { display: block; font-size: 0.75rem; color: var(--neutral); margin-top: 0.15rem; }
+.cap-check { width: 16px; height: 16px; accent-color: var(--accent); pointer-events: none; }
+.fixed-note { display: flex; align-items: flex-start; gap: 0.5rem; margin-top: 1rem; padding: 0.75rem 0.9rem; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; font-size: 0.8125rem; line-height: 1.5; color: var(--ink-light); }
+.fixed-note svg { width: 15px; height: 15px; color: var(--neutral); flex: 0 0 auto; margin-top: 0.1rem; }
+.fixed-note b { color: var(--ink); font-weight: 600; }
+
+.roles-access-page .row-locked td { opacity: 0.7; }
+
+.role-pick-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.role-pick { border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 0.95rem; display: flex; flex-direction: column; gap: 0.45rem; cursor: pointer; transition: border-color var(--t), background var(--t); }
+.role-pick:has(input:checked) { border-color: var(--accent); background: rgba(232,99,10,0.05); }
+.role-pick.is-disabled { cursor: not-allowed; opacity: 0.55; }
+.role-pick-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.role-pick-head .lbl { display: flex; align-items: center; gap: 0.55rem; font-size: 0.875rem; font-weight: 600; color: var(--ink); }
+.role-pick-head input[type="radio"] { width: 15px; height: 15px; accent-color: var(--accent); }
+.role-pick p.d { font-size: 0.78125rem; color: var(--neutral); line-height: 1.45; margin: 0; }
+
+.caution-note { display: flex; align-items: flex-start; gap: 0.5rem; padding: 0.75rem 0.9rem; background: var(--caution-bg); border-radius: 8px; font-size: 0.8125rem; line-height: 1.5; color: var(--caution-text); }
+.caution-note svg { width: 15px; height: 15px; flex: 0 0 auto; margin-top: 0.1rem; }
+.caution-note p { margin: 0; }
+.caution-note b { font-weight: 700; }
+
+.save-row { display: flex; gap: 0.6rem; justify-content: flex-end; padding-top: 0.25rem; }

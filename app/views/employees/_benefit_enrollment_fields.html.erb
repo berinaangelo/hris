@@ -1,0 +1,22 @@
+<div class="benefit-card-head">
+  <p class="plan-name"><%= enrollment.persisted? ? "Edit plan" : "Add benefit plan" %></p>
+</div>
+<div class="field-grid">
+  <div class="field-view"><%= f.label :plan_name, "Plan name" %><%= f.text_field :plan_name, class: "plain-input", required: true %></div>
+  <div class="field-view"><%= f.label :provider %><%= f.text_field :provider, class: "plain-input", required: true %></div>
+  <div class="field-view"><%= f.label :effectivity_date, "Effectivity date" %><%= f.date_field :effectivity_date, class: "plain-input", required: true %></div>
+</div>
+<p class="dep-label">Dependents</p>
+<%= f.fields_for :benefit_dependents do |df| %>
+  <div class="dep-row-edit">
+    <%= df.text_field :name, class: "plain-input", placeholder: "Name" %>
+    <%= df.select :relationship, BenefitDependent.relationships.keys.map { |r| [ r.humanize, r ] }, { include_blank: true }, class: "plain-select" %>
+    <% if df.object.persisted? %>
+      <label class="dep-remove"><%= df.check_box :_destroy %> Remove</label>
+    <% end %>
+  </div>
+<% end %>
+<div class="save-bar">
+  <button type="button" class="btn-ghost" data-action="inline-edit#cancel">Cancel</button>
+  <%= f.submit(enrollment.persisted? ? "Save changes" : "Add plan", class: "btn-primary") %>
+</div>

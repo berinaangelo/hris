@@ -70,7 +70,7 @@ Rails.application.routes.draw do
     patch :clock_out
   end
 
-  resources :roles_access, only: [ :index, :edit, :update ]
+  resources :roles_access, only: [ :index, :update ]
   resources :rate_tables, only: [ :index, :edit, :update ]
   resource :payroll_settings, only: [ :show, :update ]
   resources :payroll_runs, only: [ :index, :new, :create, :show ] do

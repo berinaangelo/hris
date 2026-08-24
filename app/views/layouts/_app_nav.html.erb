@@ -1,0 +1,22 @@
+<nav class="app-nav">
+  <span class="wordmark">
+    <span class="mark"><%= lucide_icon :building %></span>
+    HRIS
+  </span>
+
+  <div class="nav-tabs">
+    <% nav.tabs.each do |tab| %>
+      <%= link_to send(tab.path_helper), class: ("active" if tab.active) do %>
+        <%= tab.label %>
+        <% if tab.count.positive? %>
+          <span class="badge badge-caution"><%= tab.count %></span>
+        <% end %>
+      <% end %>
+    <% end %>
+  </div>
+
+  <span class="nav-spacer"></span>
+  <%= link_to "Account Settings", account_settings_path %>
+  <span class="nav-avatar"><%= current_employee.first_name.first %><%= current_employee.last_name.first %></span>
+  <%= button_to "Sign out", session_path, method: :delete, class: "link-button" %>
+</nav>

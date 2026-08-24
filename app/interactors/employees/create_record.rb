@@ -7,9 +7,13 @@ module Employees
       employee.company = context.company
       employee.employee_number = next_employee_number(context.company)
 
-      if employee.save
-        context.employee = employee
-      else
+      # Set on context even on failure — the controller re-renders :new
+      # with this exact (unsaved, validated) instance so per-field
+      # errors show inline, same fix as Leave::SubmitRequest's own
+      # failure path (see hris-batch2-ux-pass-me-tab memory).
+      context.employee = employee
+
+      unless employee.save
         context.fail!(message: employee.errors.full_messages.to_sentence)
       end
     end

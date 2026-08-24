@@ -2,13 +2,13 @@ class RolesAccessController < ApplicationController
   def index
     authorize Employee, :index?
     @employees = policy_scope(Employee).order(:last_name)
+    @employees = @employees.where(role: params[:role]) if params[:role].present?
+    @employees = @employees.where("first_name LIKE :q OR last_name LIKE :q", q: "%#{params[:q]}%") if params[:q].present?
   end
 
-  def edit
-    @employee = policy_scope(Employee).find(params[:id])
-    authorize @employee, :assign_role?
-  end
-
+  # No separate #edit — "Change" opens a right-side drawer on #index
+  # instead (10th reuse of the drawer mechanic), see
+  # kos/decisions/ui/roles-access-reference-plus-assignment-drawer.md.
   def update
     @employee = policy_scope(Employee).find(params[:id])
     authorize @employee, :assign_role?
@@ -19,7 +19,9 @@ class RolesAccessController < ApplicationController
       redirect_to roles_access_index_path, notice: "#{@employee.full_name}'s access level updated."
     else
       flash.now[:alert] = result.message
-      render :edit, status: :unprocessable_entity
+      @employees = policy_scope(Employee).order(:last_name)
+      @reopen_employee_id = @employee.id
+      render :index, status: :unprocessable_entity
     end
   end
 end

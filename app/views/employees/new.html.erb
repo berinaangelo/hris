@@ -1,48 +1,110 @@
-<h1>Add Employee</h1>
+<% content_for :title, "Add Employee" %>
 
-<div class="card">
-  <%= form_with model: @employee, url: employees_path, local: true do |f| %>
-    <div class="field">
-      <%= f.label :first_name %>
-      <%= f.text_field :first_name, required: true %>
+<%# Split, form + live preview (Option 3, chosen) — see
+    kos/decisions/ui/add-employee-split-live-preview.md and
+    kos/decisions/ux-pages/add-employee.html. The preview mirrors the
+    exact .person-card shape from People Directory, updating live via
+    live_preview_controller.js; nothing is saved until submit. %>
+<div class="add-employee-page">
+  <%= link_to employees_path, class: "back-link" do %><%= lucide_icon(:"chevron-left") %>People Directory<% end %>
+
+  <%= form_with model: @employee, url: employees_path, local: true,
+        html: { class: "op3-cols", data: { controller: "live-preview", action: "input->live-preview#update change->live-preview#update" } } do |f| %>
+
+    <div class="op3-form">
+      <div class="form-head">
+        <h2>Add employee</h2>
+        <p>The card on the right shows exactly how this record will look in the People Directory.</p>
+      </div>
+
+      <div class="form-section">
+        <h3>Identity &amp; contact</h3>
+        <div class="field-grid">
+          <div class="field">
+            <%= f.label :first_name, "First name" %>
+            <%= f.text_field :first_name, class: "plain-input #{"has-error" if @employee.errors[:first_name].any?}", required: true, data: { "live-preview-target": "firstName" } %>
+            <% if @employee.errors[:first_name].any? %><p class="field-error"><%= @employee.errors[:first_name].first %></p><% end %>
+          </div>
+          <div class="field">
+            <%= f.label :last_name, "Last name" %>
+            <%= f.text_field :last_name, class: "plain-input #{"has-error" if @employee.errors[:last_name].any?}", required: true, data: { "live-preview-target": "lastName" } %>
+            <% if @employee.errors[:last_name].any? %><p class="field-error"><%= @employee.errors[:last_name].first %></p><% end %>
+          </div>
+          <div class="field">
+            <%= f.label :personal_email do %>Personal email <span class="opt">— for the account-setup invite</span><% end %>
+            <%= f.email_field :personal_email, class: "plain-input" %>
+          </div>
+          <div class="field">
+            <%= f.label :work_email, "Work email" %>
+            <%= f.email_field :work_email, class: "plain-input #{"has-error" if @employee.errors[:work_email].any?}", required: true %>
+            <% if @employee.errors[:work_email].any? %><p class="field-error"><%= @employee.errors[:work_email].first %></p><% end %>
+          </div>
+          <div class="field">
+            <%= f.label :password, "Temporary password" %>
+            <%= f.text_field :password, class: "plain-input", value: SecureRandom.alphanumeric(10), required: true %>
+            <p class="hint">The employee changes this from Account Settings after first login.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Org position</h3>
+        <div class="field-grid">
+          <div class="field">
+            <%= f.label :job_title, "Job title" %>
+            <%= f.text_field :job_title, class: "plain-input #{"has-error" if @employee.errors[:job_title].any?}", required: true, data: { "live-preview-target": "jobTitle" } %>
+            <% if @employee.errors[:job_title].any? %><p class="field-error"><%= @employee.errors[:job_title].first %></p><% end %>
+          </div>
+          <div class="field">
+            <%= f.label :department %>
+            <%= f.text_field :department, class: "plain-input #{"has-error" if @employee.errors[:department].any?}", required: true, data: { "live-preview-target": "department" } %>
+            <% if @employee.errors[:department].any? %><p class="field-error"><%= @employee.errors[:department].first %></p><% end %>
+          </div>
+          <div class="field">
+            <%= f.label :manager_id do %>Manager <span class="opt">— optional</span><% end %>
+            <%= f.select :manager_id, @managers.map { |m| [ "#{m.full_name} — #{m.job_title}", m.id ] }, { include_blank: "No manager (reports to leadership)" },
+                  class: "plain-input", data: { "live-preview-target": "manager" } %>
+          </div>
+          <div class="field">
+            <%= f.label :start_date, "Start date" %>
+            <%= f.date_field :start_date, class: "plain-input", value: Date.current, required: true, data: { "live-preview-target": "startDate" } %>
+          </div>
+          <div class="field">
+            <%= f.label :employment_type, "Employment type" %>
+            <%= f.select :employment_type, Employee.employment_types.keys.map { |t| [ t.humanize, t ] },
+                  {}, class: "plain-input", data: { "live-preview-target": "employmentType" } %>
+          </div>
+        </div>
+      </div>
+
+      <div class="form-section">
+        <h3>Starting documents <span class="opt">— optional, can add later</span></h3>
+        <p class="hint">Add contracts, IDs, or other files from this employee's own record once it's created.</p>
+      </div>
+
+      <div class="save-bar">
+        <%= link_to "Cancel", employees_path, class: "btn-ghost" %>
+        <%= f.button class: "btn-primary" do %><%= lucide_icon(:plus) %>Add employee<% end %>
+      </div>
     </div>
-    <div class="field">
-      <%= f.label :last_name %>
-      <%= f.text_field :last_name, required: true %>
+
+    <div class="op3-preview-col">
+      <p class="card-label preview-label">Directory preview</p>
+      <div class="preview-card">
+        <span class="avatar-lg" data-live-preview-target="previewAvatar">—</span>
+        <h4 data-live-preview-target="previewName">New employee</h4>
+        <p class="role" data-live-preview-target="previewRole">—</p>
+        <div class="foot">
+          <span class="dept-tag" data-live-preview-target="previewDept">—</span>
+          <span class="mono year" data-live-preview-target="previewYear">—</span>
+        </div>
+      </div>
+      <div class="preview-facts">
+        <div class="row"><span>Manager</span><span data-live-preview-target="previewManager">No manager</span></div>
+        <div class="row"><span>Start date</span><span data-live-preview-target="previewStartDate">—</span></div>
+        <div class="row"><span>Type</span><span data-live-preview-target="previewType">—</span></div>
+      </div>
+      <p class="preview-note">Updates as you fill in the form — nothing is saved until "Add employee."</p>
     </div>
-    <div class="field">
-      <%= f.label :personal_email, "Personal email (account-setup invite)" %>
-      <%= f.email_field :personal_email %>
-    </div>
-    <div class="field">
-      <%= f.label :work_email %>
-      <%= f.email_field :work_email, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :password, "Temporary password" %>
-      <%= f.text_field :password, value: SecureRandom.alphanumeric(10), required: true %>
-      <small>The employee changes this from Account Settings after first login.</small>
-    </div>
-    <div class="field">
-      <%= f.label :job_title %>
-      <%= f.text_field :job_title, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :department %>
-      <%= f.text_field :department, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :manager_id, "Manager" %>
-      <%= f.select :manager_id, @managers.map { |m| [m.full_name, m.id] }, include_blank: "No manager" %>
-    </div>
-    <div class="field">
-      <%= f.label :start_date %>
-      <%= f.date_field :start_date, value: Date.current, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :employment_type %>
-      <%= f.select :employment_type, Employee.employment_types.keys.map { |t| [t.humanize, t] } %>
-    </div>
-    <%= f.submit "Add employee", class: "btn btn-primary" %>
   <% end %>
 </div>

@@ -1,38 +1,48 @@
-<%# Independently editable card per enrollment — see
-    kos/decisions/ui/employee-benefits-repeatable-plan-cards.md. Also
-    reused for the blank "+ Add plan" form (an unpersisted enrollment). %>
-<div class="card">
-  <%= form_with model: [ employee, enrollment ], local: true do |f| %>
-    <div class="field">
-      <%= f.label :plan_name %>
-      <%= f.text_field :plan_name, required: true %>
+<%# Repeatable plan card, independently pencil-editable — see
+    kos/decisions/ui/employee-benefits-repeatable-plan-cards.md.
+    standalone: true — a persisted card, owns its own inline-edit
+    controller (view/edit toggle scoped to just this card) and wraps
+    view+form in one bordered .benefit-card shell.
+    standalone: false — the blank "+ Add plan" slot; participates in
+    the ancestor .section's inline-edit controller instead (its own
+    section-head "+ Add plan" button is the trigger), see
+    employees/show.html.erb's Benefits panel. The form itself carries
+    the .benefit-card shell here — no separate wrapper div — so the
+    bordered card only exists while the form is actually shown, not as
+    an empty shell sitting under the section when collapsed. %>
+<% enrollment.benefit_dependents.build %>
+<% if standalone %>
+<div class="benefit-card" data-controller="inline-edit" data-inline-edit-open-value="<%= enrollment.errors.any? %>">
+  <div class="card-view" data-inline-edit-target="display">
+    <div class="benefit-card-head">
+      <div><p class="plan-name"><%= enrollment.plan_name %></p><p class="plan-provider"><%= enrollment.provider %></p></div>
+      <div class="head-actions">
+        <button type="button" class="icon-btn" data-action="inline-edit#edit" title="Edit"><%= lucide_icon(:pencil) %></button>
+        <%= button_to [ employee, enrollment ], method: :delete, class: "icon-btn", data: { turbo_confirm: "Remove this plan?" }, title: "Remove plan" do %><%= lucide_icon(:"shield-off") %><% end %>
+      </div>
     </div>
-    <div class="field">
-      <%= f.label :provider %>
-      <%= f.text_field :provider, required: true %>
+    <div class="field-grid">
+      <div class="field-view"><label>Effectivity date</label><p class="val mono"><%= enrollment.effectivity_date&.strftime("%b %-d, %Y") %></p></div>
     </div>
-    <div class="field">
-      <%= f.label :effectivity_date %>
-      <%= f.date_field :effectivity_date, required: true %>
-    </div>
-
-    <% if enrollment.persisted? %>
-      <h4>Dependents</h4>
-      <% enrollment.benefit_dependents.build %>
-      <%= f.fields_for :benefit_dependents do |df| %>
-        <div class="field kpi-entry-row">
-          <%= df.text_field :name, placeholder: "Name" %>
-          <%= df.select :relationship, BenefitDependent.relationships.keys.map { |r| [ r.humanize, r ] }, include_blank: true %>
-          <% if df.object.persisted? %>
-            <label><%= df.check_box :_destroy %> Remove</label>
-          <% end %>
-        </div>
+    <p class="dep-label">Dependents</p>
+    <% named_dependents = enrollment.benefit_dependents.reject { |d| d.name.blank? || d.marked_for_destruction? } %>
+    <% if named_dependents.any? %>
+      <% named_dependents.each do |dependent| %>
+        <div class="dep-row"><span class="dep-name"><%= dependent.name %></span><span class="dep-rel"><%= dependent.relationship&.humanize %></span></div>
       <% end %>
+    <% else %>
+      <p class="dep-empty">None on record</p>
     <% end %>
+  </div>
 
-    <%= f.submit(enrollment.persisted? ? "Save" : "Add plan", class: "btn btn-ghost") %>
-  <% end %>
-  <% if enrollment.persisted? %>
-    <%= button_to "Remove plan", [ employee, enrollment ], method: :delete, class: "btn btn-danger-outline" %>
+  <%= form_with model: [ employee, enrollment ], local: true,
+        html: { class: "card-edit", hidden: !enrollment.errors.any?, data: { "inline-edit-target": "form" } } do |f| %>
+    <%= render "employees/benefit_enrollment_fields", f: f, enrollment: enrollment %>
   <% end %>
 </div>
+<% else %>
+  <%= form_with model: [ employee, enrollment ], local: true,
+        html: { class: "benefit-card card-edit", hidden: !enrollment.errors.any?, data: { "inline-edit-target": "form" } } do |f| %>
+    <%= render "employees/benefit_enrollment_fields", f: f, enrollment: enrollment %>
+  <% end %>
+<% end %>

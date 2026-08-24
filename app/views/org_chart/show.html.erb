@@ -1,8 +1,36 @@
-<h1>Org Chart</h1>
+<% content_for :title, "Org Chart" %>
 
-<div class="card">
-  <p><strong><%= current_employee.company.name %></strong></p>
-  <% @roots.each do |root| %>
-    <%= render partial: "branch", locals: { employee: root, reports_by_manager_id: @reports_by_manager_id, depth: 0 } %>
-  <% end %>
+<%# Classic top-down tree (chosen) — see
+    kos/decisions/ui/org-chart-classic-top-down-tree.md and
+    kos/decisions/ux-pages/org-chart.html. Root is the company itself
+    (square avatar, "reads as not a person"), each manager card is its
+    own collapse/expand control via tree_node_controller.js. Search is
+    illustrative, not wired — same as the decided mockup. %>
+<div class="org-chart-page">
+  <div class="toolbar">
+    <div class="search-wrap">
+      <%= lucide_icon(:search) %>
+      <input class="search-input" type="text" placeholder="Search by name or role...">
+    </div>
+    <div class="toolbar-spacer"></div>
+    <span class="toolbar-count mono"><%= @headcount %> people · <%= @department_count %> departments</span>
+  </div>
+  <p class="toolbar-hint">Click a manager card to collapse or expand their branch.</p>
+
+  <div class="chart-canvas">
+    <div class="org-tree">
+      <div class="tree-root">
+        <div class="node-card node-root">
+          <span class="avatar avatar-co"><%= current_employee.company.name.split.map(&:first).join.first(2).upcase %></span>
+          <div class="who-text"><h4><%= current_employee.company.name %></h4><p class="role">Company</p></div>
+        </div>
+      </div>
+
+      <div class="tree-row">
+        <% @roots.each do |root| %>
+          <%= render partial: "branch", locals: { employee: root, reports_by_manager_id: @reports_by_manager_id, top_level: true } %>
+        <% end %>
+      </div>
+    </div>
+  </div>
 </div>

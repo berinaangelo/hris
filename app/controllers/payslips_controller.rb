@@ -15,7 +15,15 @@ class PayslipsController < ApplicationController
                  .find(params[:id])
     authorize @payslip
 
-    mark_viewed if @payslip.employee == current_employee
+    if @payslip.employee == current_employee
+      mark_viewed
+    else
+      # An admin drilling into someone else's payslip (from Payroll) is
+      # still on the PayslipsController#show action, which the nav
+      # would otherwise resolve to "Me" — see navigation_presenter.rb's
+      # section_override.
+      @nav_section_override = :company
+    end
   end
 
   def void_and_reissue

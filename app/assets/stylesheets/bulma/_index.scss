@@ -1,0 +1,21 @@
+// Vendored from the bulma npm package (sass/), v1.0.4 — see
+// kos/decisions/ui/bulma-vendored-prefixed.md.
+//
+// Deliberately deviates from upstream: does NOT forward "base" /
+// "base/skeleton". Every class-based Bulma rule is safely namespaced
+// via $class-prefix (configured where this is @use'd), but base/
+// resets bare elements directly (html, body, table, h1-h6, ul, li,
+// hr, ...) with no class involved for $class-prefix to touch — the
+// one thing that actually could collide with this app's own existing
+// element-level styles. Bulma's other layers (elements, form,
+// components, grid, layout, helpers) don't depend on base, so
+// dropping it is safe to compile. Re-add both lines if a future
+// version bump needs re-vendoring and this file gets overwritten.
+@forward "utilities";
+@forward "themes";
+@forward "elements";
+@forward "form";
+@forward "components";
+@forward "grid";
+@forward "layout";
+@forward "helpers";

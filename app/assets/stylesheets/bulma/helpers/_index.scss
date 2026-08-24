@@ -1,0 +1,20 @@
+/* Bulma Helpers */
+@charset "utf-8";
+
+// "spacing" is NOT forwarded here — per kos/decisions/ui/bulma-vendored-prefixed.md,
+// the m-/p-/mt-/my-/etc. spacing helpers are generated unprefixed
+// separately in application.scss (Sass can't configure $class-prefix
+// two different ways for the same loaded module within one
+// compilation, so it can't just be re-@use'd here with a different
+// prefix). Re-forward it if that ever needs to change.
+@forward "aspect-ratio";
+@forward "border";
+@forward "color";
+@forward "flexbox";
+@forward "float";
+@forward "gap";
+@forward "overflow";
+@forward "position";
+@forward "typography";
+@forward "visibility";
+@forward "other";

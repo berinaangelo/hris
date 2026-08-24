@@ -1,0 +1,7 @@
+<%= link_to send(item.path_helper), class: ("active" if item.active) do %>
+  <%= lucide_icon item.icon %>
+  <%= item.label %>
+  <% if item.count.positive? %>
+    <span class="badge badge-caution"><%= item.count %></span>
+  <% end %>
+<% end %>

@@ -153,6 +153,11 @@ structure below. Read this first; open only the files you actually need.
 - [spacing-bulma-default](decisions/ui/spacing-bulma-default.md) —
   reuses Bulma's built-in `$spacing-values` helper classes as-is, no
   custom scale
+- [bulma-vendored-prefixed](decisions/ui/bulma-vendored-prefixed.md) —
+  Bulma actually pulled in 2026-08-24, vendored + `$class-prefix:
+  "bulma-"` so it can't collide with the app's own `.card`/`.field`/
+  `.hero`; spacing helpers are the one deliberate exception, kept
+  unprefixed per this same doc
 - [iconography-lucide](decisions/ui/iconography-lucide.md) — thin
   single-weight icon set, chosen over Heroicons and Phosphor for the
   same "no stylistic opinion" reasoning as the type system

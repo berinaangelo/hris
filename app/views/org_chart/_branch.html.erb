@@ -1,6 +1,31 @@
-<div style="margin-left: <%= depth * 2 %>rem; padding: 0.5rem 0;">
-  <%= link_to "#{employee.full_name} · #{employee.job_title}", employee_path(employee), class: "badge badge-neutral" %>
-</div>
-<% (reports_by_manager_id[employee.id] || []).each do |report| %>
-  <%= render partial: "branch", locals: { employee: report, reports_by_manager_id: reports_by_manager_id, depth: depth + 1 } %>
+<% reports = reports_by_manager_id[employee.id] || [] %>
+<% initials = "#{employee.first_name.first}#{employee.last_name.first}" %>
+<% if reports.any? %>
+  <div class="tree-branch" data-controller="tree-node">
+    <div class="node-card">
+      <%= link_to employee_path(employee), class: "node-card-link" do %>
+        <span class="avatar"><%= initials %></span>
+        <div class="who-text">
+          <h4><%= employee.full_name %></h4>
+          <p class="role"><%= employee.job_title %></p>
+          <span class="count mono"><%= reports.size %> <%= "report".pluralize(reports.size) %></span>
+        </div>
+      <% end %>
+      <button type="button" class="node-chevron-btn" data-action="tree-node#toggle" title="Collapse/expand">
+        <%= lucide_icon(:"chevron-down", class: "chevron", data: { "tree-node-target": "chevron" }) %>
+      </button>
+    </div>
+    <div class="tree-children" data-tree-node-target="children">
+      <% reports.each do |report| %>
+        <%= render partial: "branch", locals: { employee: report, reports_by_manager_id: reports_by_manager_id, top_level: false } %>
+      <% end %>
+    </div>
+  </div>
+<% else %>
+  <div class="<%= top_level ? "tree-leaf-top" : "" %>">
+    <%= link_to employee_path(employee), class: "node-card" do %>
+      <span class="avatar"><%= initials %></span>
+      <div class="who-text"><h4><%= employee.full_name %></h4><p class="role"><%= employee.job_title %></p></div>
+    <% end %>
+  </div>
 <% end %>

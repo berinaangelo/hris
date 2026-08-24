@@ -1,73 +1,177 @@
-<h1>Roles &amp; Access</h1>
+<% content_for :title, "Roles & Access" %>
 
-<div class="card">
-  <h2>The three access levels</h2>
-  <p>Roles are fixed — not a configurable permission matrix. This is what each one can already do.</p>
-  <table>
-    <thead>
-      <tr>
-        <th>Capability</th>
-        <th>Employee</th>
-        <th>Manager</th>
-        <th>Admin</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>View own profile, request time off, see own payslips &amp; reviews</td>
-        <td><input type="checkbox" checked disabled></td>
-        <td><input type="checkbox" checked disabled></td>
-        <td><input type="checkbox" checked disabled></td>
-      </tr>
-      <tr>
-        <td>Approve direct reports' time off <small>(own reports only, not company-wide)</small></td>
-        <td><input type="checkbox" disabled></td>
-        <td><input type="checkbox" checked disabled></td>
-        <td><input type="checkbox" checked disabled></td>
-      </tr>
-      <tr>
-        <td>View team calendar &amp; team performance reviews</td>
-        <td><input type="checkbox" disabled></td>
-        <td><input type="checkbox" checked disabled></td>
-        <td><input type="checkbox" checked disabled></td>
-      </tr>
-      <tr>
-        <td>Manage People Directory, Payroll, Recruitment, Compliance, Reports</td>
-        <td><input type="checkbox" disabled></td>
-        <td><input type="checkbox" disabled></td>
-        <td><input type="checkbox" checked disabled></td>
-      </tr>
-      <tr>
-        <td>Assign access levels to employees</td>
-        <td><input type="checkbox" disabled></td>
-        <td><input type="checkbox" disabled></td>
-        <td><input type="checkbox" checked disabled></td>
-      </tr>
-    </tbody>
-  </table>
-  <p><small>Read-only — these checkboxes describe what each role can already do. A role that can't access a tab doesn't see it exist at all.</small></p>
-</div>
+<%# Reference + assignment drawer (chosen) — see
+    kos/decisions/ui/roles-access-reference-plus-assignment-drawer.md
+    and kos/decisions/ux-pages/roles-access.html. The capability table
+    is read-only; the roster below is the only editable part, via a
+    right-side drawer per row (10th reuse of the drawer mechanic). %>
+<% all_employees = policy_scope(Employee)
+   admin_count = all_employees.admin.count %>
+<div class="roles-access-page">
+  <p class="lede">Every employee holds exactly one of three fixed access levels. See what each one can do, and change who holds which.</p>
 
-<div class="card">
-  <h2>Assign access</h2>
-  <table>
-    <thead><tr><th>Employee</th><th>Title</th><th>Department</th><th>Access level</th><th></th></tr></thead>
-    <tbody>
-      <% @employees.each do |employee| %>
-        <tr>
-          <td><%= employee.full_name %></td>
-          <td><%= employee.job_title %></td>
-          <td><%= employee.department %></td>
-          <td><%= employee.role.humanize %></td>
-          <td>
-            <% if employee.active? %>
-              <%= link_to "Change", edit_roles_access_path(employee), class: "btn btn-ghost" %>
-            <% else %>
-              <span title="<%= employee.offboarding? ? "Offboarding in progress" : "Offboarded — access already revoked" %>">Change</span>
-            <% end %>
-          </td>
-        </tr>
+  <div class="section">
+    <div class="section-head">
+      <h3>The three access levels</h3>
+      <p>Fixed for now — adding custom roles or a configurable permission matrix isn't in scope.</p>
+    </div>
+
+    <div class="role-cards">
+      <div class="role-card">
+        <div class="role-card-head">
+          <span class="role-chip role-employee"><span class="dot"></span>Employee</span>
+          <span class="cnt"><%= pluralize(all_employees.employee.count, "person") %></span>
+        </div>
+        <p class="desc">Everyone's default. Self-service only — own profile, own leave requests, own payslips and reviews.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-card-head">
+          <span class="role-chip role-manager"><span class="dot"></span>Manager</span>
+          <span class="cnt"><%= pluralize(all_employees.manager.count, "person") %></span>
+        </div>
+        <p class="desc">Everything Employee has, plus the Team tab — approving their own direct reports and reviewing their team.</p>
+      </div>
+      <div class="role-card">
+        <div class="role-card-head">
+          <span class="role-chip role-admin"><span class="dot"></span>Admin</span>
+          <span class="cnt"><%= pluralize(admin_count, "person") %></span>
+        </div>
+        <p class="desc">Full access, including the Company tab — People Directory, Payroll, Recruitment, Compliance, Reports, and this screen.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="cap-table">
+        <thead>
+          <tr>
+            <th>Capability</th>
+            <th class="center">Employee</th>
+            <th class="center">Manager</th>
+            <th class="center">Admin</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>View own profile, request time off, see own payslips &amp; reviews<span class="note">The Me tab — every role's home</span></td>
+            <td class="center"><input class="cap-check" type="checkbox" checked disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" checked disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" checked disabled></td>
+          </tr>
+          <tr>
+            <td>Approve direct reports' time off<span class="note">Own reports only — not company-wide</span></td>
+            <td class="center"><input class="cap-check" type="checkbox" disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" checked disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" checked disabled></td>
+          </tr>
+          <tr>
+            <td>View team calendar &amp; team performance reviews<span class="note">The Team tab</span></td>
+            <td class="center"><input class="cap-check" type="checkbox" disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" checked disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" checked disabled></td>
+          </tr>
+          <tr>
+            <td>Manage People Directory, Payroll, Recruitment, Compliance, Reports<span class="note">The Company tab</span></td>
+            <td class="center"><input class="cap-check" type="checkbox" disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" checked disabled></td>
+          </tr>
+          <tr>
+            <td>Assign access levels to employees<span class="note">This screen</span></td>
+            <td class="center"><input class="cap-check" type="checkbox" disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" disabled></td>
+            <td class="center"><input class="cap-check" type="checkbox" checked disabled></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="fixed-note">
+      <%= lucide_icon(:circle) %>
+      <p><b>Read-only.</b> These checkboxes describe what each role can already do — checking or unchecking them here doesn't change anything. A role that can't access a tab doesn't see it exist at all.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-head">
+      <h3>Assign access</h3>
+      <p><%= all_employees.count %> people. Change who holds which role — everything else about the role is fixed above.</p>
+    </div>
+
+    <div class="toolbar">
+      <%= form_with url: roles_access_index_path, method: :get, local: true, html: { class: "search-wrap" } do %>
+        <%= lucide_icon(:search) %>
+        <input class="search-input" type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name...">
+        <% if params[:role].present? %><input type="hidden" name="role" value="<%= params[:role] %>"><% end %>
       <% end %>
-    </tbody>
-  </table>
+      <div class="chip-row">
+        <%= link_to "All", roles_access_index_path(q: params[:q]), class: "chip-filter #{"is-active" unless params[:role].present?}" %>
+        <% Employee.roles.each_key do |role| %>
+          <%= link_to role.humanize, roles_access_index_path(role: role, q: params[:q]), class: "chip-filter #{"is-active" if params[:role] == role}" %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="dirtable">
+        <thead><tr><th>Employee</th><th>Job Title</th><th>Department</th><th>Access Level</th><th></th></tr></thead>
+        <tbody>
+          <% @employees.each do |employee| %>
+            <tr class="<%= "row-locked" unless employee.active? %>">
+              <td><div class="who"><span class="avatar"><%= employee.first_name.first %><%= employee.last_name.first %></span><h4><%= employee.full_name %></h4></div></td>
+              <td><%= employee.job_title %></td>
+              <td><%= employee.department %></td>
+              <td><span class="role-chip role-<%= employee.role %>"><span class="dot"></span><%= employee.role.humanize %></span></td>
+              <td>
+                <% if employee.active? %>
+                  <span data-controller="modal" data-modal-open-value="<%= @reopen_employee_id == employee.id %>">
+                    <button type="button" class="btn-ghost" data-action="modal#open"><%= lucide_icon(:pencil) %>Change</button>
+                    <% sole_admin = employee.admin? && admin_count == 1 %>
+                    <%= render "shared/drawer", title: employee.full_name do %>
+                      <p class="tt-drawer-note"><%= employee.job_title %> · <%= employee.department %></p>
+                      <% if sole_admin %>
+                        <div class="caution-note">
+                          <%= lucide_icon(:"alert-triangle") %>
+                          <p><b><%= employee.first_name %> is the only Admin.</b> HRIS needs at least one — assign another employee as Admin first, then <%= employee.first_name %>'s access level can be changed.</p>
+                        </div>
+                      <% end %>
+                      <%= form_with model: employee, url: roles_access_path(employee), method: :patch, local: true do |f| %>
+                        <div class="tt-drawer-section">
+                          <h5>Change access level to</h5>
+                          <div class="role-pick-list">
+                            <% Employee.roles.each_key do |role| %>
+                              <% disabled = sole_admin && role != "admin" %>
+                              <label class="role-pick <%= "is-disabled" if disabled %>">
+                                <div class="role-pick-head">
+                                  <span class="lbl"><%= f.radio_button :role, role, checked: employee.role == role, disabled: disabled %><%= role.humanize %></span>
+                                  <span class="role-chip role-<%= role %>"><span class="dot"></span></span>
+                                </div>
+                                <p class="d">
+                                  <% case role
+                                     when "employee" %>Self-service only — own profile, own leave, own payslips and reviews.
+                                  <% when "manager" %>Adds the Team tab — approving direct reports, team calendar and reviews.
+                                  <% when "admin" %>Full access, including the Company tab and this screen.
+                                  <% end %>
+                                  <%= "Current." if employee.role == role %>
+                                </p>
+                              </label>
+                            <% end %>
+                          </div>
+                        </div>
+                        <div class="save-row">
+                          <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+                          <%= f.submit "Save access level", class: "btn-primary", disabled: sole_admin %>
+                        </div>
+                      <% end %>
+                    <% end %>
+                  </span>
+                <% else %>
+                  <button type="button" class="btn-ghost" disabled title="<%= employee.offboarding? ? "Offboarding in progress" : "Offboarded — access already revoked" %>"><%= lucide_icon(:pencil) %>Change</button>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
 </div>

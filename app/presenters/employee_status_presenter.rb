@@ -4,11 +4,16 @@
 # domain (loans) — employee "Active" reads as :positive per
 # kos/decisions/ux-pages/{account-settings,my-profile}.html and
 # kos/decisions/ui/badge-system-four-categories.md.
+#
+# "offboarded" => :neutral (not :negative) — Offboarding is the Caution
+# state, Offboarded is a calm terminal state, matching BadgePresenter's
+# own "offboarded" => :neutral mapping and
+# kos/decisions/ui/offboarding-flow-schedule-clearance-tracker.md.
 class EmployeeStatusPresenter
   CATEGORY_BY_STATUS = {
     "active" => :positive,
     "offboarding" => :caution,
-    "offboarded" => :negative
+    "offboarded" => :neutral
   }.freeze
 
   def initialize(status)

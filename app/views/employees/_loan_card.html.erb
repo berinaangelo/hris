@@ -1,38 +1,35 @@
-<%# Independently editable card per loan, mirroring
-    employees/_benefit_enrollment_card.html.erb's shape. The flat-table
-    + edit-drawer UI from
-    kos/decisions/ui/loan-ledger-flat-table-edit-drawer.md is a later
-    UX pass — no drawer component exists in the Rails app yet, so this
-    ships the same working card pattern already used for Benefits. %>
-<div class="card">
-  <%= form_with model: [ employee, loan ], local: true do |f| %>
-    <div class="field">
-      <%= f.label :loan_type %>
-      <%= f.select :loan_type, Loan.loan_types.keys.map { |t| [ t.humanize, t ] } %>
-    </div>
-    <div class="field">
-      <%= f.label :total_amount %>
-      <%= f.number_field :total_amount, step: 0.01, min: 0.01, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :monthly_amortization %>
-      <%= f.number_field :monthly_amortization, step: 0.01, min: 0.01, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :remaining_installments %>
-      <%= f.number_field :remaining_installments, min: 0, required: true %>
-    </div>
-
-    <% if loan.persisted? %>
-      <p>
-        <% badge = BadgePresenter.new(loan.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
-        <%= loan.total_installments - loan.remaining_installments %> of <%= loan.total_installments %> installments paid (<%= loan.progress_percent %>%)
-      </p>
-    <% end %>
-
-    <%= f.submit(loan.persisted? ? "Save" : "Add loan", class: "btn btn-ghost") %>
-  <% end %>
-  <% if loan.persisted? && loan.deletable? %>
-    <%= button_to "Remove loan", [ employee, loan ], method: :delete, class: "btn btn-danger-outline" %>
-  <% end %>
-</div>
+<%# One master-table row per loan, editing opens a right-side drawer —
+    see kos/decisions/ui/loan-ledger-flat-table-edit-drawer.md. Reuses
+    the same shared/_drawer.html.erb + modal_controller.js mechanic
+    already shipped for Team Attendance's row actions. %>
+<tr class="<%= "is-paidoff" if loan.paid_off? %>">
+  <td><%= loan.loan_type.humanize %></td>
+  <td class="mono"><%= number_to_currency(loan.total_amount, unit: "₱") %></td>
+  <td class="mono"><%= number_to_currency(loan.monthly_amortization, unit: "₱") %></td>
+  <td class="mono"><%= loan.remaining_installments %> of <%= loan.total_installments %></td>
+  <td><div class="loan-progress"><div class="loan-progress-fill <%= "is-paidoff" if loan.paid_off? %>" style="width:<%= loan.progress_percent %>%;"></div></div></td>
+  <td><% badge = BadgePresenter.new(loan.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+  <td>
+    <span data-controller="modal" data-modal-open-value="<%= loan.errors.any? %>">
+      <button type="button" class="icon-btn" data-action="modal#open" title="Edit"><%= lucide_icon(:pencil) %></button>
+      <%= render "shared/drawer", title: loan.loan_type.humanize do %>
+        <p class="tt-drawer-note"><%= loan.total_installments - loan.remaining_installments %> of <%= loan.total_installments %> installments paid so far (<%= loan.progress_percent %>%).<%= " Marked paid off automatically once remaining installments reached zero — editing here is for correcting the record only." if loan.paid_off? %></p>
+        <%= form_with model: [ employee, loan ], local: true do |f| %>
+          <div class="tt-drawer-field"><%= f.label :loan_type, "Loan type" %><%= f.select :loan_type, Loan.loan_types.keys.map { |t| [ t.humanize, t ] }, {}, class: "plain-select" %></div>
+          <div class="tt-drawer-field"><%= f.label :total_amount, "Total amount" %><%= f.number_field :total_amount, step: 0.01, min: 0.01, required: true, class: "plain-input" %></div>
+          <div class="tt-drawer-field"><%= f.label :monthly_amortization, "Monthly amortization" %><%= f.number_field :monthly_amortization, step: 0.01, min: 0.01, required: true, class: "plain-input" %></div>
+          <div class="tt-drawer-field"><%= f.label :remaining_installments, "Remaining installments" %><%= f.number_field :remaining_installments, min: 0, required: true, class: "plain-input" %></div>
+          <div class="tt-drawer-foot">
+            <%= f.submit "Save changes", class: "btn-primary" %>
+            <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+          </div>
+        <% end %>
+        <% if loan.deletable? %>
+          <%= button_to "Remove loan", [ employee, loan ], method: :delete, class: "btn-ghost danger", data: { turbo_confirm: "Remove this loan?" } %>
+        <% else %>
+          <p class="tt-drawer-note">Can't remove — already deducted in a payslip.</p>
+        <% end %>
+      <% end %>
+    </span>
+  </td>
+</tr>

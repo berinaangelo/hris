@@ -4,13 +4,17 @@ class EmployeesController < ApplicationController
     @employees = policy_scope(Employee).includes(:manager).order(:last_name)
     @employees = @employees.where(department: params[:department]) if params[:department].present?
     @employees = @employees.where("first_name LIKE :q OR last_name LIKE :q", q: "%#{params[:q]}%") if params[:q].present?
+    # "Offboarding" (still working) always shows; only the terminal
+    # "Offboarded" state is hidden by default — see
+    # kos/decisions/ui/people-directory-card-grid-with-list-toggle.md.
+    @employees = @employees.where.not(status: :offboarded) unless params[:show_offboarded].present?
     @departments = policy_scope(Employee).distinct.pluck(:department).compact.sort
   end
 
   def new
     authorize Employee
     @employee = Employee.new
-    @managers = policy_scope(Employee).where(role: [:manager, :admin])
+    @managers = policy_scope(Employee).where(role: [ :manager, :admin ])
   end
 
   def create
@@ -22,8 +26,8 @@ class EmployeesController < ApplicationController
       redirect_to employee_path(result.employee), notice: "#{result.employee.full_name} added."
     else
       flash.now[:alert] = result.message
-      @employee = Employee.new(employee_params)
-      @managers = policy_scope(Employee).where(role: [:manager, :admin])
+      @employee = result.employee || Employee.new(employee_params)
+      @managers = policy_scope(Employee).where(role: [ :manager, :admin ])
       render :new, status: :unprocessable_entity
     end
   end
@@ -36,13 +40,17 @@ class EmployeesController < ApplicationController
   end
 
   def update
-    @employee = policy_scope(Employee).find(params[:id])
+    @employee = policy_scope(Employee).includes(:loans, benefit_enrollments: :benefit_dependents).find(params[:id])
     authorize @employee
 
     if @employee.update(employee_update_params)
       redirect_to employee_path(@employee), notice: "Saved."
     else
       flash.now[:alert] = @employee.errors.full_messages.to_sentence
+      # Which inline-edit section to reopen — "personal" or "org", set
+      # by a hidden field on each of Profile's two separate forms. See
+      # kos/decisions/ui/employee-detail-inline-edit-with-reserved-tabs.md.
+      @reopen_section = params[:section]
       @onboarding_items = @employee.checklist_items.onboarding.order(:position)
       @offboarding_items = @employee.checklist_items.offboarding.order(:position)
       render :show, status: :unprocessable_entity

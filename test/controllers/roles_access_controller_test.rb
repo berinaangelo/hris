@@ -15,9 +15,6 @@ class RolesAccessControllerTest < ActionDispatch::IntegrationTest
     get roles_access_index_path
     assert_redirected_to root_path
 
-    get edit_roles_access_path(employees(:worker_bob))
-    assert_redirected_to root_path
-
     patch roles_access_path(employees(:worker_bob)), params: { employee: { role: "manager" } }
     assert_redirected_to root_path
   end
@@ -53,7 +50,7 @@ class RolesAccessControllerTest < ActionDispatch::IntegrationTest
     assert amy.reload.manager?
   end
 
-  test "sole admin cannot be reassigned away from Admin" do
+  test "sole admin cannot be reassigned away from Admin, and the drawer reopens on the roster" do
     sign_in employees(:admin_amy)
     amy = employees(:admin_amy)
 
@@ -61,14 +58,17 @@ class RolesAccessControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
     assert amy.reload.admin?
+    # Re-renders the roster (index), not a standalone edit page — the
+    # drawer for this employee comes back forced open via
+    # data-modal-open-value, same reopen-on-error trick as the other
+    # drawers in this batch.
+    assert_select "table.dirtable"
+    assert_select "[data-modal-open-value=true]"
   end
 
   test "role change is forbidden for an offboarding employee" do
     sign_in employees(:admin_amy)
     departing = employees(:worker_offboarding)
-
-    get edit_roles_access_path(departing)
-    assert_redirected_to root_path
 
     patch roles_access_path(departing), params: { employee: { role: "manager" } }
     assert_redirected_to root_path

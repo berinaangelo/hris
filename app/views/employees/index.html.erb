@@ -1,43 +1,91 @@
-<h1>People</h1>
+<% content_for :title, "People Directory" %>
 
-<div class="card">
-  <%= form_with url: employees_path, method: :get, local: true do %>
-    <div class="field">
-      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name">
-    </div>
-    <div class="field">
-      <select name="department" onchange="this.form.submit()">
-        <option value="">All departments</option>
-        <% @departments.each do |department| %>
-          <option value="<%= department %>" <%= "selected" if params[:department] == department %>><%= department %></option>
-        <% end %>
-      </select>
-    </div>
-    <button type="submit" class="btn btn-ghost">Filter</button>
-  <% end %>
-</div>
+<%# Photo-forward card grid (Option 3, chosen) with a card/list toggle —
+    see kos/decisions/ui/people-directory-card-grid-with-list-toggle.md
+    and kos/decisions/ux-pages/people-directory.html. List view reuses
+    Option 1's table exactly. Offboarded employees are filtered
+    server-side (EmployeesController#index) rather than hidden with CSS,
+    since the mockup's toggle was illustrative. %>
+<div class="people-directory-page" data-controller="view-toggle">
+  <div class="toolbar">
+    <%= form_with url: employees_path, method: :get, local: true, html: { class: "search-wrap" } do %>
+      <%= lucide_icon(:search) %>
+      <input class="search-input" type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name...">
+      <% if params[:department].present? %><input type="hidden" name="department" value="<%= params[:department] %>"><% end %>
+      <% if params[:show_offboarded].present? %><input type="hidden" name="show_offboarded" value="1"><% end %>
+    <% end %>
 
-<div class="card">
-  <table>
-    <thead><tr><th>Name</th><th>Title</th><th>Department</th><th>Manager</th><th>Status</th></tr></thead>
-    <tbody>
-      <% @employees.each do |employee| %>
-        <tr>
-          <td><%= link_to employee.full_name, employee_path(employee) %></td>
-          <td><%= employee.job_title %></td>
-          <td><%= employee.department %></td>
-          <td><%= employee.manager&.full_name || "—" %></td>
-          <td>
-            <% if employee.active? %>
-              —
-            <% else %>
-              <% badge = BadgePresenter.new(employee.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
-            <% end %>
-          </td>
-        </tr>
+    <div class="chip-row">
+      <%= link_to "All", employees_path(q: params[:q], show_offboarded: params[:show_offboarded]),
+            class: "chip-filter #{"is-active" unless params[:department].present?}" %>
+      <% @departments.each do |department| %>
+        <%= link_to department, employees_path(department: department, q: params[:q], show_offboarded: params[:show_offboarded]),
+              class: "chip-filter #{"is-active" if params[:department] == department}" %>
       <% end %>
-    </tbody>
-  </table>
-</div>
+    </div>
 
-<%= link_to "Add Employee", new_employee_path, class: "btn btn-primary" %>
+    <div class="toolbar-spacer"></div>
+
+    <div class="view-toggle">
+      <button type="button" class="view-toggle-btn is-active" data-action="view-toggle#showCards" data-view-toggle-target="cardsBtn" title="Card view"><%= lucide_icon(:grid) %></button>
+      <button type="button" class="view-toggle-btn" data-action="view-toggle#showList" data-view-toggle-target="listBtn" title="List view"><%= lucide_icon(:list) %></button>
+    </div>
+
+    <%= link_to new_employee_path, class: "btn-primary" do %>
+      <%= lucide_icon(:plus) %>Add Employee
+    <% end %>
+  </div>
+
+  <div class="list-head people-subhead">
+    <%= link_to (params[:show_offboarded].present? ? "Hide offboarded" : "Show offboarded"),
+          employees_path(q: params[:q], department: params[:department], show_offboarded: params[:show_offboarded].present? ? nil : 1),
+          class: "muted-link" %>
+  </div>
+
+  <div data-view-toggle-target="cards">
+    <div class="people-grid">
+      <% @employees.each do |employee| %>
+        <%= link_to employee_path(employee), class: "person-card" do %>
+          <span class="avatar"><%= employee.first_name.first %><%= employee.last_name.first %></span>
+          <h4><%= employee.full_name %></h4>
+          <p class="role"><%= employee.job_title %></p>
+          <div class="foot">
+            <% if employee.active? %>
+              <span class="dept-tag"><%= employee.department %></span>
+              <span class="mono year"><%= employee.start_date.year %></span>
+            <% else %>
+              <span class="dept-tag"><%= employee.department %></span>
+              <% badge = EmployeeStatusPresenter.new(employee.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
+            <% end %>
+          </div>
+        <% end %>
+      <% end %>
+    </div>
+  </div>
+
+  <div data-view-toggle-target="list" hidden>
+    <div class="table-wrap">
+      <table class="dirtable">
+        <thead><tr><th>Employee</th><th>Role</th><th>Department</th><th>Manager</th><th>Start Date</th><th>Status</th></tr></thead>
+        <tbody>
+          <% @employees.each do |employee| %>
+            <tr>
+              <td><%= link_to employee_path(employee), class: "who" do %><span class="avatar"><%= employee.first_name.first %><%= employee.last_name.first %></span><h4><%= employee.full_name %></h4><% end %></td>
+              <td><%= employee.job_title %></td>
+              <td><%= employee.department %></td>
+              <td class="muted"><%= employee.manager&.full_name || "—" %></td>
+              <td class="mono"><%= employee.start_date.strftime("%b %-d, %Y") %></td>
+              <td>
+                <% if employee.active? %>
+                  <span class="muted">—</span>
+                <% else %>
+                  <% badge = EmployeeStatusPresenter.new(employee.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

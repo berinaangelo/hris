@@ -1,174 +1,328 @@
-<h1><%= @employee.full_name %></h1>
-<p>
-  <%= @employee.employee_number %> · <%= @employee.job_title %> · <%= @employee.department %>
-  <% unless @employee.active? %>
-    <% badge = BadgePresenter.new(@employee.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
-  <% end %>
-</p>
+<% content_for :title, @employee.full_name %>
 
-<div class="card">
-  <h2>Personal & Contact / Org Position</h2>
-  <%= form_with model: @employee, url: employee_path(@employee), method: :patch, local: true do |f| %>
-    <div class="field">
-      <%= f.label :first_name %>
-      <%= f.text_field :first_name, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :last_name %>
-      <%= f.text_field :last_name, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :personal_email %>
-      <%= f.email_field :personal_email %>
-    </div>
-    <div class="field">
-      <%= f.label :work_email %>
-      <%= f.email_field :work_email, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :mobile_number %>
-      <%= f.text_field :mobile_number %>
-    </div>
-    <div class="field">
-      <%= f.label :home_address %>
-      <%= f.text_field :home_address %>
-    </div>
-    <div class="field">
-      <%= f.label :birthdate %>
-      <%= f.date_field :birthdate %>
-    </div>
-    <div class="field">
-      <%= f.label :emergency_contact_name %>
-      <%= f.text_field :emergency_contact_name %>
-    </div>
-    <div class="field">
-      <%= f.label :emergency_contact_phone %>
-      <%= f.text_field :emergency_contact_phone %>
-    </div>
-    <div class="field">
-      <%= f.label :job_title %>
-      <%= f.text_field :job_title, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :department %>
-      <%= f.text_field :department, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :manager_id, "Manager" %>
-      <%= f.collection_select :manager_id, @employee.company.employees.where.not(id: @employee.id), :id, :full_name, include_blank: "No manager" %>
-    </div>
-    <div class="field">
-      <%= f.label :start_date %>
-      <%= f.date_field :start_date, required: true %>
-    </div>
-    <div class="field">
-      <%= f.label :employment_type %>
-      <%= f.select :employment_type, Employee.employment_types.keys.map { |t| [t.humanize, t] } %>
-    </div>
-    <div class="field">
-      <%= f.label :basic_salary, "Monthly basic salary" %>
-      <%= f.number_field :basic_salary, step: 0.01, min: 0 %>
-      <p><small>Required before this employee can be included in a payroll run — prorated per semi-monthly cutoff.</small></p>
-    </div>
-    <%= f.submit "Save", class: "btn btn-primary" %>
-  <% end %>
-</div>
+<%# Inline edit + reserved tabs (Option 3, chosen) — see
+    kos/decisions/ui/employee-detail-inline-edit-with-reserved-tabs.md
+    and kos/decisions/ux-pages/employee-detail.html. Loan Ledger and
+    Benefits are no longer placeholders (both real features now) — see
+    kos/decisions/ui/loan-ledger-flat-table-edit-drawer.md and
+    kos/decisions/ui/employee-benefits-repeatable-plan-cards.md. %>
+<% new_loan = @employee.loans.detect { |l| !l.persisted? } || @employee.loans.build
+   persisted_loans = @employee.loans.select(&:persisted?)
+   new_enrollment = @employee.benefit_enrollments.detect { |e| !e.persisted? } || @employee.benefit_enrollments.build
+   persisted_enrollments = @employee.benefit_enrollments.select(&:persisted?)
+   initial_tab = if persisted_loans.any? { |l| l.errors.any? } || new_loan.errors.any?
+                   "loan"
+                 elsif persisted_enrollments.any? { |e| e.errors.any? } || new_enrollment.errors.any?
+                   "benefits"
+                 else
+                   "profile"
+                 end %>
 
-<div class="card">
-  <h2>Onboarding Checklist</h2>
-  <% @onboarding_items.each do |item| %>
-    <p>
-      <%= item.item_key.humanize %> —
-      <% if item.completed? %>
-        <span class="badge badge-positive">Done</span>
+<div class="employee-detail-page" data-controller="tabs">
+  <%= link_to employees_path, class: "back-link" do %><%= lucide_icon(:"chevron-left") %>People Directory<% end %>
+
+  <div class="identity-strip">
+    <span class="avatar-lg"><%= @employee.first_name.first %><%= @employee.last_name.first %></span>
+    <div class="identity-who">
+      <h2><%= @employee.full_name %></h2>
+      <p><%= @employee.job_title %> · <%= @employee.department %></p>
+    </div>
+    <div class="identity-meta">
+      <span class="id mono"><%= @employee.employee_number %></span>
+      <% if @employee.active? %>
+        <span class="status-active">Active</span>
       <% else %>
-        <span class="badge badge-caution">Pending</span>
-        <%= button_to "Mark done", complete_employee_checklist_item_path(@employee, item), method: :patch, class: "btn btn-ghost" %>
+        <% badge = EmployeeStatusPresenter.new(@employee.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
       <% end %>
-    </p>
-  <% end %>
-</div>
-
-<div class="card">
-  <h2>Documents</h2>
-  <% @employee.documents.each do |document| %>
-    <p><%= link_to document.title, url_for(document.file) %> (<%= document.category.humanize %>)</p>
-  <% end %>
-  <%= form_with url: employee_documents_path(@employee), local: true, multipart: true do %>
-    <div class="field">
-      <label>Title</label>
-      <%= text_field_tag "document[title]" %>
+      <% if @employee.active? && policy(@employee).schedule_offboarding? %>
+        <span class="identity-meta-divider"></span>
+        <span data-controller="modal">
+          <button type="button" class="btn-danger-ghost" data-action="modal#open"><%= lucide_icon(:"log-out") %>Offboard</button>
+          <%= render "shared/drawer", title: "Schedule offboarding" do %>
+            <%= form_with url: schedule_offboarding_employee_path(@employee), method: :patch, local: true do %>
+              <p class="tt-drawer-note">Records <%= @employee.first_name %>'s separation and opens a Separation panel on this page to track clearance. Status becomes "Offboarding" now — not "Offboarded" yet.</p>
+              <div class="tt-drawer-field">
+                <label for="ob-lastday">Last working day</label>
+                <input class="plain-input" id="ob-lastday" type="date" name="last_working_day" required>
+              </div>
+              <div class="tt-drawer-field">
+                <label for="ob-reason">Reason for separation</label>
+                <input class="plain-input" id="ob-reason" type="text" name="offboarding_reason" placeholder="Resignation, end of contract, ...">
+              </div>
+              <label class="check-inline"><input type="checkbox" name="rehire_eligible" value="1" checked> Eligible for rehire</label>
+              <div class="tt-drawer-field">
+                <label for="ob-notes">Notes</label>
+                <textarea class="plain-input" id="ob-notes" name="offboarding_notes" rows="3"></textarea>
+              </div>
+              <div class="tt-drawer-foot">
+                <%= submit_tag "Schedule offboarding", class: "btn-primary" %>
+                <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+              </div>
+            <% end %>
+          <% end %>
+        </span>
+      <% end %>
     </div>
-    <div class="field">
-      <label>Category</label>
-      <%= select_tag "document[category]", options_for_select(Document.categories.keys.map { |c| [c.humanize, c] }) %>
+  </div>
+
+  <nav class="subtab-bar">
+    <button type="button" class="<%= "is-active" if initial_tab == "profile" %>" data-tabs-target="tab" data-action="tabs#select" data-tabs-name-param="profile">Profile</button>
+    <button type="button" class="<%= "is-active" if initial_tab == "loan" %>" data-tabs-target="tab" data-action="tabs#select" data-tabs-name-param="loan">Loan Ledger</button>
+    <button type="button" class="<%= "is-active" if initial_tab == "benefits" %>" data-tabs-target="tab" data-action="tabs#select" data-tabs-name-param="benefits">Benefits</button>
+  </nav>
+
+  <div data-tabs-target="panel" data-tabs-panel="profile" <%= "hidden" unless initial_tab == "profile" %>>
+
+    <div class="section" data-controller="inline-edit" data-inline-edit-open-value="<%= @reopen_section == "personal" %>">
+      <div class="section-head">
+        <h3>Personal &amp; contact</h3>
+        <button type="button" class="btn-ghost" data-action="inline-edit#edit" data-inline-edit-target="display"><%= lucide_icon(:pencil) %>Edit</button>
+      </div>
+      <div class="field-grid" data-inline-edit-target="display">
+        <div class="field-view"><label>Full legal name</label><p class="val"><%= @employee.full_name %></p></div>
+        <div class="field-view"><label>Birthdate</label><p class="val mono"><%= @employee.birthdate&.strftime("%b %-d, %Y") || "—" %></p></div>
+        <div class="field-view"><label>Personal email</label><p class="val"><%= @employee.personal_email.presence || "—" %></p></div>
+        <div class="field-view"><label>Mobile number</label><p class="val mono"><%= @employee.mobile_number.presence || "—" %></p></div>
+        <div class="field-view" style="grid-column:1/-1;"><label>Home address</label><p class="val"><%= @employee.home_address.presence || "—" %></p></div>
+        <div class="field-view"><label>Emergency contact</label><p class="val"><%= @employee.emergency_contact_name.presence || "—" %></p></div>
+        <div class="field-view"><label>Emergency phone</label><p class="val mono"><%= @employee.emergency_contact_phone.presence || "—" %></p></div>
+      </div>
+      <%= form_with model: @employee, url: employee_path(@employee), method: :patch, local: true, html: { id: "personal-contact-form", hidden: @reopen_section != "personal", data: { "inline-edit-target": "form" } } do |f| %>
+        <input type="hidden" name="section" value="personal">
+        <div class="field-grid">
+          <div class="field-view"><%= f.label :first_name, "First name" %><%= f.text_field :first_name, class: "plain-input", required: true %></div>
+          <div class="field-view"><%= f.label :last_name, "Last name" %><%= f.text_field :last_name, class: "plain-input", required: true %></div>
+          <div class="field-view"><%= f.label :birthdate %><%= f.date_field :birthdate, class: "plain-input" %></div>
+          <div class="field-view"><%= f.label :personal_email %><%= f.email_field :personal_email, class: "plain-input" %></div>
+          <div class="field-view"><%= f.label :mobile_number %><%= f.text_field :mobile_number, class: "plain-input" %></div>
+          <div class="field-view" style="grid-column:1/-1;"><%= f.label :home_address %><%= f.text_field :home_address, class: "plain-input" %></div>
+          <div class="field-view"><%= f.label :emergency_contact_name, "Emergency contact" %><%= f.text_field :emergency_contact_name, class: "plain-input" %></div>
+          <div class="field-view"><%= f.label :emergency_contact_phone, "Emergency phone" %><%= f.text_field :emergency_contact_phone, class: "plain-input" %></div>
+        </div>
+        <div class="save-bar">
+          <button type="button" class="btn-ghost" data-action="inline-edit#cancel">Cancel</button>
+          <%= f.submit "Save changes", class: "btn-primary" %>
+        </div>
+      <% end %>
     </div>
-    <div class="field">
-      <label>File</label>
-      <%= file_field_tag "document[file]" %>
+
+    <div class="section" data-controller="inline-edit" data-inline-edit-open-value="<%= @reopen_section == "org" %>">
+      <div class="section-head">
+        <h3>Org position</h3>
+        <button type="button" class="btn-ghost" data-action="inline-edit#edit" data-inline-edit-target="display"><%= lucide_icon(:pencil) %>Edit</button>
+      </div>
+      <div class="field-grid" data-inline-edit-target="display">
+        <div class="field-view"><label>Job title</label><p class="val"><%= @employee.job_title %></p></div>
+        <div class="field-view"><label>Department</label><p class="val"><%= @employee.department %></p></div>
+        <div class="field-view"><label>Manager</label><p class="val"><%= @employee.manager&.full_name || "—" %></p></div>
+        <div class="field-view"><label>Start date</label><p class="val mono"><%= @employee.start_date.strftime("%b %-d, %Y") %></p></div>
+        <div class="field-view"><label>Employment type</label><p class="val"><%= @employee.employment_type.humanize %></p></div>
+        <div class="field-view">
+          <label>Monthly basic salary</label>
+          <p class="val mono"><%= @employee.basic_salary.present? ? number_to_currency(@employee.basic_salary, unit: "₱") : "Not set" %></p>
+        </div>
+      </div>
+      <%= form_with model: @employee, url: employee_path(@employee), method: :patch, local: true, html: { id: "org-position-form", hidden: @reopen_section != "org", data: { "inline-edit-target": "form" } } do |f| %>
+        <input type="hidden" name="section" value="org">
+        <div class="field-grid">
+          <div class="field-view"><%= f.label :job_title %><%= f.text_field :job_title, class: "plain-input", required: true %></div>
+          <div class="field-view"><%= f.label :department %><%= f.text_field :department, class: "plain-input", required: true %></div>
+          <div class="field-view">
+            <%= f.label :manager_id, "Manager" %>
+            <%= f.collection_select :manager_id, @employee.company.employees.where.not(id: @employee.id), :id, :full_name, { include_blank: "No manager" }, class: "plain-input" %>
+          </div>
+          <div class="field-view"><%= f.label :start_date %><%= f.date_field :start_date, class: "plain-input", required: true %></div>
+          <div class="field-view">
+            <%= f.label :employment_type %>
+            <%= f.select :employment_type, Employee.employment_types.keys.map { |t| [ t.humanize, t ] }, {}, class: "plain-input" %>
+          </div>
+          <div class="field-view">
+            <%= f.label :basic_salary, "Monthly basic salary" %>
+            <%= f.number_field :basic_salary, step: 0.01, min: 0, class: "plain-input" %>
+            <p class="hint">Required before this employee can be included in a payroll run.</p>
+          </div>
+        </div>
+        <div class="save-bar">
+          <button type="button" class="btn-ghost" data-action="inline-edit#cancel">Cancel</button>
+          <%= f.submit "Save changes", class: "btn-primary" %>
+        </div>
+      <% end %>
     </div>
-    <%= submit_tag "Upload", class: "btn btn-ghost" %>
-  <% end %>
-</div>
 
-<div class="card">
-  <h2>Loan Ledger</h2>
-  <% @employee.loans.each do |loan| %>
-    <%= render "employees/loan_card", employee: @employee, loan: loan %>
-  <% end %>
-  <% unless @employee.loans.any?(&:new_record?) %>
-    <h3>Add a loan</h3>
-    <%= render "employees/loan_card", employee: @employee, loan: @employee.loans.build %>
-  <% end %>
-</div>
+    <% if @employee.offboarding? || @employee.offboarded? %>
+      <div class="section separation-panel">
+        <div class="section-head">
+          <div>
+            <h3>Separation</h3>
+            <p class="sub">Reason: <%= @employee.offboarding_reason.presence || "—" %> · Rehire eligible: <%= @employee.rehire_eligible? ? "Yes" : "No" %></p>
+          </div>
+        </div>
 
-<div class="card">
-  <h2>Benefits</h2>
-  <% @employee.benefit_enrollments.each do |enrollment| %>
-    <%= render "employees/benefit_enrollment_card", employee: @employee, enrollment: enrollment %>
-  <% end %>
-  <% unless @employee.benefit_enrollments.any?(&:new_record?) %>
-    <h3>Add a plan</h3>
-    <%= render "employees/benefit_enrollment_card", employee: @employee, enrollment: @employee.benefit_enrollments.build %>
-  <% end %>
-</div>
-
-<div class="card">
-  <h2>Offboarding</h2>
-  <% if @employee.active? %>
-    <%= form_with url: schedule_offboarding_employee_path(@employee), method: :patch, local: true do %>
-      <div class="field">
-        <label>Last working day</label>
-        <input type="date" name="last_working_day" required>
-      </div>
-      <div class="field">
-        <label>Reason for separation</label>
-        <input type="text" name="offboarding_reason">
-      </div>
-      <div class="field">
-        <label><input type="checkbox" name="rehire_eligible" value="1"> Rehire eligible</label>
-      </div>
-      <div class="field">
-        <label>Notes</label>
-        <textarea name="offboarding_notes"></textarea>
-      </div>
-      <button type="submit" class="btn btn-danger-outline">Offboard employee</button>
-    <% end %>
-  <% elsif @employee.offboarding? %>
-    <p>Last working day: <%= @employee.last_working_day %></p>
-    <% @offboarding_items.each do |item| %>
-      <p>
-        <%= item.item_key.humanize %> —
-        <% if item.completed? %>
-          <span class="badge badge-positive">Done</span>
+        <% if @employee.offboarding? %>
+          <% days_out = (@employee.last_working_day - Date.current).to_i %>
+          <div class="sep-summary">
+            <%= lucide_icon(:clock) %>
+            <p>Last working day <b class="mono"><%= @employee.last_working_day.strftime("%b %-d, %Y") %></b>
+              — <%= days_out.positive? ? "#{days_out} #{"day".pluralize(days_out)} out" : "day has passed" %>.
+              Clearance can be checked off as it happens; "Mark offboarded" unlocks once the day passes and everything below is done.</p>
+          </div>
+          <% @offboarding_items.each do |item| %>
+            <div class="checklist-row">
+              <% if item.completed? %>
+                <%= lucide_icon(:"check-circle", class: "check") %>
+              <% else %>
+                <%= lucide_icon(:circle, class: "pending-icon") %>
+              <% end %>
+              <span class="txt"><%= item.item_key.humanize %></span>
+              <% if item.completed? %>
+                <span class="badge badge-positive">Done</span>
+              <% else %>
+                <span class="badge badge-caution">Pending</span>
+                <%= button_to "Mark done", complete_employee_checklist_item_path(@employee, item), method: :patch, class: "btn-text" %>
+              <% end %>
+            </div>
+          <% end %>
+          <div class="sep-actions">
+            <% ready = @employee.last_working_day.past? && @offboarding_items.all?(&:completed?) %>
+            <%= button_to "Mark offboarded", mark_offboarded_employee_path(@employee), method: :patch, class: "btn-primary", disabled: !ready,
+                  data: { turbo_confirm: "Mark #{@employee.first_name} offboarded? This locks the record for edits." } %>
+          </div>
         <% else %>
-          <span class="badge badge-caution">Pending</span>
-          <%= button_to "Mark done", complete_employee_checklist_item_path(@employee, item), method: :patch, class: "btn btn-ghost" %>
+          <div class="sep-summary is-done">
+            <%= lucide_icon(:"check-circle") %>
+            <p>Offboarded effective <b class="mono"><%= @employee.last_working_day&.strftime("%b %-d, %Y") %></b>. Clearance closed out, record locked for edits.</p>
+          </div>
+          <div class="sep-done-tag"><%= lucide_icon(:"check-circle") %><%= @offboarding_items.map { |i| i.item_key.humanize }.to_sentence %>.</div>
         <% end %>
-      </p>
+      </div>
     <% end %>
-    <%= button_to "Mark offboarded", mark_offboarded_employee_path(@employee), method: :patch, class: "btn btn-danger-outline" %>
-  <% else %>
-    <p>Offboarded — last working day was <%= @employee.last_working_day %>.</p>
-  <% end %>
+
+    <div class="section">
+      <div class="section-head"><h3>Onboarding checklist</h3></div>
+      <% @onboarding_items.each do |item| %>
+        <div class="checklist-row">
+          <% if item.completed? %>
+            <%= lucide_icon(:"check-circle", class: "check") %>
+            <span class="txt"><%= item.item_key.humanize %></span>
+            <span class="badge badge-positive">Done</span>
+          <% else %>
+            <span class="txt" style="margin-left:1.85rem;"><%= item.item_key.humanize %></span>
+            <span class="badge badge-caution">Pending</span>
+            <%= button_to "Mark done", complete_employee_checklist_item_path(@employee, item), method: :patch, class: "btn-text" %>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+
+    <div class="section">
+      <div class="section-head">
+        <h3>Documents</h3>
+        <span data-controller="modal">
+          <button type="button" class="btn-ghost" data-action="modal#open"><%= lucide_icon(:download) %>Upload</button>
+          <%= render "shared/drawer", title: "Upload document" do %>
+            <%= form_with url: employee_documents_path(@employee), local: true, multipart: true do %>
+              <div class="tt-drawer-field"><label>Title</label><%= text_field_tag "document[title]", nil, class: "plain-input" %></div>
+              <div class="tt-drawer-field">
+                <label>Category</label>
+                <%= select_tag "document[category]", options_for_select(Document.categories.keys.map { |c| [ c.humanize, c ] }), class: "plain-select" %>
+              </div>
+              <div class="tt-drawer-field"><label>File</label><%= file_field_tag "document[file]" %></div>
+              <div class="tt-drawer-foot">
+                <%= submit_tag "Upload", class: "btn-primary" %>
+                <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+              </div>
+            <% end %>
+          <% end %>
+        </span>
+      </div>
+      <% if @employee.documents.any? %>
+        <% @employee.documents.each do |document| %>
+          <div class="doc-row">
+            <%= lucide_icon(:file, class: "file") %>
+            <div class="txt">
+              <p class="name"><%= document.title %></p>
+              <p class="meta">Uploaded by <%= document.uploaded_by&.full_name || "—" %> · <%= document.category.humanize %> · <%= document.created_at.strftime("%b %-d, %Y") %></p>
+            </div>
+            <div class="actions">
+              <%= link_to url_for(document.file), class: "icon-btn", title: "Download" do %><%= lucide_icon(:download) %><% end %>
+            </div>
+          </div>
+        <% end %>
+      <% else %>
+        <p class="hint">No documents on file yet.</p>
+      <% end %>
+    </div>
+
+  </div>
+
+  <div data-tabs-target="panel" data-tabs-panel="loan" <%= "hidden" unless initial_tab == "loan" %>>
+    <div class="section">
+      <div class="section-head" data-controller="modal" data-modal-open-value="<%= new_loan.errors.any? %>">
+        <div>
+          <h3>Loan Ledger</h3>
+          <p class="hint">Auto-deducts from each payroll run until paid off.</p>
+        </div>
+        <button type="button" class="btn-ghost" data-action="modal#open"><%= lucide_icon(:plus) %>Add loan</button>
+        <%= render "shared/drawer", title: "Add loan" do %>
+          <%= form_with model: [ @employee, new_loan ], local: true do |f| %>
+            <p class="tt-drawer-note">Type in the figures from the loan statement.</p>
+            <div class="tt-drawer-field"><%= f.label :loan_type, "Loan type" %><%= f.select :loan_type, Loan.loan_types.keys.map { |t| [ t.humanize, t ] }, {}, class: "plain-select" %></div>
+            <div class="tt-drawer-field"><%= f.label :total_amount, "Total amount" %><%= f.number_field :total_amount, step: 0.01, min: 0.01, required: true, class: "plain-input" %></div>
+            <div class="tt-drawer-field"><%= f.label :monthly_amortization, "Monthly amortization" %><%= f.number_field :monthly_amortization, step: 0.01, min: 0.01, required: true, class: "plain-input" %></div>
+            <div class="tt-drawer-field"><%= f.label :remaining_installments, "Remaining installments" %><%= f.number_field :remaining_installments, min: 0, required: true, class: "plain-input" %></div>
+            <div class="tt-drawer-foot">
+              <%= f.submit "Save loan", class: "btn-primary" %>
+              <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+
+      <% if persisted_loans.any? %>
+        <div class="table-wrap">
+          <table class="runtable">
+            <thead><tr><th>Loan type</th><th>Total amount</th><th>Monthly amort.</th><th>Remaining</th><th>Progress</th><th>Status</th><th></th></tr></thead>
+            <tbody>
+              <% persisted_loans.each do |loan| %>
+                <%= render "employees/loan_card", employee: @employee, loan: loan %>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <div class="empty-state">
+          <%= lucide_icon(:briefcase, class: "icon") %>
+          <h3>No loans on record</h3>
+          <p>Once <%= @employee.first_name %> takes out an SSS, Pag-IBIG, or company loan, record it here to start auto-deducting.</p>
+        </div>
+      <% end %>
+    </div>
+  </div>
+
+  <div data-tabs-target="panel" data-tabs-panel="benefits" <%= "hidden" unless initial_tab == "benefits" %>>
+    <div class="section" data-controller="inline-edit" data-inline-edit-open-value="<%= new_enrollment.errors.any? %>">
+      <div class="section-head">
+        <div>
+          <h3>Benefits</h3>
+          <p class="hint">Recorded after enrollment with the carrier — HR does not manage enrollment here.</p>
+        </div>
+        <button type="button" class="btn-ghost" data-action="inline-edit#edit" data-inline-edit-target="display"><%= lucide_icon(:plus) %>Add plan</button>
+      </div>
+
+      <% if persisted_enrollments.any? %>
+        <% persisted_enrollments.each do |enrollment| %>
+          <%= render "employees/benefit_enrollment_card", employee: @employee, enrollment: enrollment, standalone: true %>
+        <% end %>
+      <% else %>
+        <div class="empty-state" data-inline-edit-target="display">
+          <%= lucide_icon(:"shield-check", class: "icon") %>
+          <h3>No benefits on record yet</h3>
+          <p>Once <%= @employee.first_name %> is enrolled with a carrier, record the plan here.</p>
+        </div>
+      <% end %>
+
+      <%= render "employees/benefit_enrollment_card", employee: @employee, enrollment: new_enrollment, standalone: false %>
+    </div>
+  </div>
+
 </div>
