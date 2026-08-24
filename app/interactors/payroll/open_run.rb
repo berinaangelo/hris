@@ -15,7 +15,7 @@ module Payroll
         return
       end
 
-      employees = payable_employees(company)
+      employees = Payroll::PayableEmployees.call(company)
       missing_salary = employees.select { |employee| employee.basic_salary.blank? || employee.basic_salary <= 0 }
 
       if missing_salary.any?
@@ -27,12 +27,6 @@ module Payroll
     end
 
     private
-
-    # Still-owed pay includes employees mid-offboarding, not just
-    # fully active ones.
-    def payable_employees(company)
-      company.employees.where.not(status: :offboarded)
-    end
 
     # .call! inside the transaction per
     # kos/decisions/rails-db-transactions-locking-idempotency.md — plain

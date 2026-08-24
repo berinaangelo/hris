@@ -66,6 +66,7 @@ Rails.application.routes.draw do
 
   resources :roles_access, only: [ :index, :edit, :update ]
   resources :rate_tables, only: [ :index, :edit, :update ]
+  resource :payroll_settings, only: [ :show, :update ]
   resources :payroll_runs, only: [ :index, :new, :create, :show ] do
     member do
       patch :finalize

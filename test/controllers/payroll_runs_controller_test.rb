@@ -62,6 +62,33 @@ class PayrollRunsControllerTest < ActionDispatch::IntegrationTest
     assert payroll_run.reload.finalized?
   end
 
+  test "admin can open a 13th month run" do
+    sign_in employees(:admin_amy)
+
+    assert_difference "PayrollRun.count", 1 do
+      post payroll_runs_path, params: {
+        run_type: "thirteenth_month", period_start: Date.current.beginning_of_year,
+        period_end: Date.current.end_of_year, pay_date: Date.current
+      }
+    end
+
+    assert_equal "thirteenth_month", PayrollRun.last.run_type
+  end
+
+  test "opening a 13th month run fails cleanly when the company toggle is off" do
+    sign_in employees(:admin_amy)
+    companies(:acme).update!(thirteenth_month_pay_enabled: false)
+
+    assert_no_difference "PayrollRun.count" do
+      post payroll_runs_path, params: {
+        run_type: "thirteenth_month", period_start: Date.current.beginning_of_year,
+        period_end: Date.current.end_of_year, pay_date: Date.current
+      }
+    end
+
+    assert_response :unprocessable_entity
+  end
+
   test "admin cannot reach another company's payroll run" do
     sign_in employees(:admin_gary)
     payroll_run = Payroll::OpenRun.call(company: companies(:acme), period_start: Date.current.beginning_of_month,

@@ -4,6 +4,12 @@
 <div class="card">
   <%= form_with url: payroll_runs_path, local: true do %>
     <div class="field">
+      <label><input type="radio" name="run_type" value="regular" checked> Regular</label>
+      <% if current_employee.company.thirteenth_month_pay_enabled? %>
+        <label><input type="radio" name="run_type" value="thirteenth_month"> 13th Month Pay</label>
+      <% end %>
+    </div>
+    <div class="field">
       <label for="period_start">Period start</label>
       <input type="date" name="period_start" id="period_start" required>
     </div>

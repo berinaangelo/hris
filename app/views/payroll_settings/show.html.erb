@@ -1,0 +1,25 @@
+<h1>Payroll Settings</h1>
+
+<div class="card">
+  <h2>13th Month Pay</h2>
+  <p>Mandated for rank-and-file employees under PD 851, with narrow exemptions only.</p>
+  <%= form_with model: @company, url: payroll_settings_path, method: :patch, local: true do |f| %>
+    <div class="field">
+      <label>
+        <%= f.check_box :thirteenth_month_pay_enabled %>
+        Enable 13th month pay for this company
+      </label>
+    </div>
+    <%= f.submit "Save", class: "btn btn-primary" %>
+  <% end %>
+</div>
+
+<div class="card">
+  <h2>Pay Schedule</h2>
+  <p>Semi-monthly (fixed).</p>
+</div>
+
+<div class="card">
+  <h2>Statutory Rate Tables</h2>
+  <p><%= link_to "Manage Rate Tables", rate_tables_path %></p>
+</div>

@@ -12,7 +12,8 @@ class PayrollRunsController < ApplicationController
   def create
     authorize PayrollRun
 
-    result = Payroll::OpenRun.call(
+    interactor = params[:run_type] == "thirteenth_month" ? Payroll::OpenThirteenthMonthRun : Payroll::OpenRun
+    result = interactor.call(
       company: current_employee.company,
       period_start: params[:period_start],
       period_end: params[:period_end],
