@@ -6,8 +6,45 @@
 # scopes here) so it doesn't re-query per payslip when the caller
 # preloaded them — e.g. Payroll Run Detail's master table.
 class PayslipPresenter
+  # Friendly labels for line items with no free-text description — see
+  # kos/decisions/ux-pages/my-payslips.html's breakdown rows.
+  LINE_TYPE_LABELS = {
+    "base_salary" => "Basic pay",
+    "overtime" => "Overtime",
+    "bonus" => "Bonus",
+    "cash_advance" => "Cash advance repayment",
+    "other_deduction" => "Other deduction",
+    "loan_repayment" => "Loan amortization",
+    "statutory_sss" => "SSS",
+    "statutory_philhealth" => "PhilHealth",
+    "statutory_pagibig" => "Pag-IBIG",
+    "statutory_bir" => "BIR withholding tax",
+    "thirteenth_month_pay" => "13th month pay"
+  }.freeze
+
   def initialize(payslip)
     @payslip = payslip
+  end
+
+  # "Aug 1–15, 2026" — collapses the month when both dates share one.
+  def period_label
+    run = @payslip.payroll_run
+    return "13th Month Pay" if run.thirteenth_month?
+
+    start_date, end_date = run.period_start, run.period_end
+    if start_date.month == end_date.month && start_date.year == end_date.year
+      "#{start_date.strftime("%b %-d")}–#{end_date.strftime("%-d, %Y")}"
+    else
+      "#{start_date.strftime("%b %-d")} – #{end_date.strftime("%b %-d, %Y")}"
+    end
+  end
+
+  def thirteenth_month?
+    @payslip.payroll_run.thirteenth_month?
+  end
+
+  def line_item_label(item)
+    item.description.presence || LINE_TYPE_LABELS.fetch(item.line_type, item.line_type.humanize)
   end
 
   def base_salary

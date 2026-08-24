@@ -4,7 +4,9 @@ class PayslipsController < ApplicationController
     # Always "mine," regardless of role — an admin's broadened
     # policy_scope (any company payslip, for #show's drill-in) would
     # otherwise leak into this self-service list.
-    @payslips = current_employee.payslips.finalized.includes(:payroll_run).order(created_at: :desc)
+    @payslips = current_employee.payslips.finalized.includes(:payroll_run, :payslip_line_items).order(created_at: :desc)
+    @pinned_payslip = @payslips.find { |p| p.id == params[:pinned_id].to_i } if params[:pinned_id].present?
+    @pinned_payslip ||= @payslips.first
   end
 
   def show

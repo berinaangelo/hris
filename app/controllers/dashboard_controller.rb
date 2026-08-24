@@ -1,21 +1,14 @@
 class DashboardController < ApplicationController
+  include LoadsPrimaryLeaveBalance
+
   def show
     @leave_balance = current_leave_balance
     @leave_requests = current_employee.leave_requests.includes(:leave_type).order(created_at: :desc).limit(5)
+    @pending_my_requests_count = current_employee.leave_requests.pending.count
+    @ytd_approved_count = current_employee.leave_requests.approved.where(created_at: Date.current.beginning_of_year..).count
+    @ytd_rejected_count = current_employee.leave_requests.rejected.where(created_at: Date.current.beginning_of_year..).count
     @pending_approvals_count = LeaveRequests::PendingForApprover.call(current_employee).count
     @pending_correction_requests_count = AttendanceCorrectionRequests::PendingForApprover.call(current_employee).count
     @todays_attendance_record = current_employee.attendance_records.find_by(date: current_employee.company.today)
-  end
-
-  private
-
-  # v1's Home dashboard shows one balance figure (the hero), per
-  # kos/decisions/ui/home-dashboard-balance-led-hero.md — the
-  # company's primary leave type (e.g. "Vacation"), not a per-type list.
-  def current_leave_balance
-    primary_leave_type = LeaveType.where(company: current_employee.company).first
-    return unless primary_leave_type
-
-    current_employee.leave_balances.find_by(leave_type: primary_leave_type, year: Date.current.year)
   end
 end

@@ -1,30 +1,49 @@
 <%# Shared read-only KPI table — used by My Reviews, Team Reviews'
     published/in-progress detail partials, and the Company Reviews
     per-employee detail page. Pass scores_hidden: true for a cycle
-    that hasn't been scored yet (targets only). %>
-<table>
-  <thead>
-    <tr>
-      <th>KPI</th>
-      <th>Target</th>
-      <% unless local_assigns[:scores_hidden] %>
-        <th>Actual</th>
-        <th>Score</th>
-        <th>Comment</th>
-      <% end %>
-    </tr>
-  </thead>
-  <tbody>
-    <% kpi_entries.each do |kpi_entry| %>
+    that hasn't been scored yet (targets only). Pass compact: true for
+    My Reviews' restyle (kos/decisions/ux-pages/my-reviews.html) — drops
+    the Comment column and renders Score as a figure + fill bar instead
+    of a bare number. Team/Company Reviews don't pass compact: true and
+    keep their existing column output unchanged. %>
+<div class="table-wrap">
+  <table class="kpitable">
+    <thead>
       <tr>
-        <td><%= kpi_entry.kpi_name %></td>
-        <td><%= kpi_entry.target %></td>
+        <th>KPI</th>
+        <th>Target</th>
         <% unless local_assigns[:scores_hidden] %>
-          <td><%= kpi_entry.actual.presence || "—" %></td>
-          <td><%= kpi_entry.score || "—" %></td>
-          <td><%= kpi_entry.comment.presence || "—" %></td>
+          <th>Actual</th>
+          <th>Score</th>
+          <% unless local_assigns[:compact] %>
+            <th>Comment</th>
+          <% end %>
         <% end %>
       </tr>
-    <% end %>
-  </tbody>
-</table>
+    </thead>
+    <tbody>
+      <% kpi_entries.each do |kpi_entry| %>
+        <tr>
+          <td><p class="name"><%= kpi_entry.kpi_name %></p></td>
+          <td class="muted"><%= kpi_entry.target %></td>
+          <% unless local_assigns[:scores_hidden] %>
+            <td class="muted"><%= kpi_entry.actual.presence || "—" %></td>
+            <td>
+              <% if local_assigns[:compact] && kpi_entry.score %>
+                <div class="score-cell">
+                  <span class="fig"><%= kpi_entry.score %>/5</span>
+                  <div class="score-track"><div class="score-fill" style="width:<%= kpi_entry.score * 20 %>%"></div></div>
+                </div>
+              <% else %>
+                <%= kpi_entry.score || "—" %>
+              <% end %>
+            </td>
+            <% unless local_assigns[:compact] %>
+              <td><%= kpi_entry.comment.presence || "—" %></td>
+            <% end %>
+          <% end %>
+        </tr>
+      <% end %>
+    </tbody>
+  </table>
+</div>

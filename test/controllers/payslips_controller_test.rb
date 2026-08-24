@@ -55,8 +55,26 @@ class PayslipsControllerTest < ActionDispatch::IntegrationTest
     get payslips_path
 
     assert_response :success
-    assert_select "a[href=?]", payslip_path(admin_payslip)
-    assert_select "a[href=?]", payslip_path(@payslip), count: 0
+    assert_select "a[href=?]", payslips_path(pinned_id: admin_payslip.id)
+    assert_select "a[href=?]", payslips_path(pinned_id: @payslip.id), count: 0
+  end
+
+  test "index pins the most recent finalized payslip by default" do
+    sign_in employees(:worker_bob)
+
+    get payslips_path
+
+    assert_response :success
+    assert_select "turbo-frame#payslip_breakdown"
+  end
+
+  test "index pins a specific payslip via pinned_id" do
+    sign_in employees(:worker_bob)
+
+    get payslips_path(pinned_id: @payslip.id)
+
+    assert_response :success
+    assert_select "turbo-frame#payslip_breakdown"
   end
 
   test "viewing own payslip marks it viewed" do

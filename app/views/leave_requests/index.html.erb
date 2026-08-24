@@ -1,24 +1,70 @@
-<h1>Time Off</h1>
+<% content_for :title, "Time off" %>
 
-<div class="card">
-  <% if @leave_requests.any? %>
-    <table>
-      <thead><tr><th>Submitted</th><th>Type</th><th>Dates</th><th>Days</th><th>Status</th></tr></thead>
-      <tbody>
-        <% @leave_requests.each do |request| %>
-          <tr>
-            <td><%= request.created_at.to_date %></td>
-            <td><%= request.leave_type.name %></td>
-            <td><%= request.start_date %> – <%= request.end_date %></td>
-            <td><%= request.days_requested %></td>
-            <td><% badge = BadgePresenter.new(request.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
-          </tr>
+<div class="time-off-page" data-controller="modal" data-modal-open-value="<%= @open_request_modal ? "true" : "false" %>">
+  <div class="greet-block">
+    <h2>Time off</h2>
+    <p>
+      <%= pluralize(@leave_requests.count { |r| r.pending? }, "request") %> pending
+      <% if @leave_balance %>
+        · <%= number_with_precision(@leave_balance.remaining_days, precision: 1) %> days remaining of <%= number_with_precision(@leave_balance.entitled_days, precision: 1) %>
+      <% end %>
+    </p>
+  </div>
+
+  <div class="op1-cols">
+    <div class="balance-mini card">
+      <div>
+        <p class="card-label" style="color:#A9B4CB;">Leave balance</p>
+        <% if @leave_balance %>
+          <p class="num"><%= number_with_precision(@leave_balance.remaining_days, precision: 1) %> <span class="unit">days remaining</span></p>
+          <% used_ratio = @leave_balance.entitled_days.zero? ? 0 : (@leave_balance.used_days / @leave_balance.entitled_days * 100).round(1) %>
+          <div class="meter-track"><div class="meter-fill" style="width: <%= used_ratio %>%"></div></div>
+          <p class="sub"><%= number_with_precision(@leave_balance.used_days, precision: 1) %> of <%= number_with_precision(@leave_balance.entitled_days, precision: 1) %> used this year</p>
+        <% else %>
+          <p class="num">No leave balance on file yet</p>
         <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p>No requests yet.</p>
-  <% end %>
-</div>
+      </div>
+      <button type="button" class="btn btn-primary" data-action="modal#open">
+        <%= lucide_icon(:plus, stroke_width: 2) %>
+        Request time off
+      </button>
+    </div>
 
-<%= link_to "Request time off", new_leave_request_path, class: "btn btn-primary" %>
+    <div>
+      <div class="list-head"><h3>Request history</h3></div>
+      <% if @leave_requests.any? %>
+        <div class="table-wrap">
+          <table class="reqtable">
+            <thead><tr><th>Submitted</th><th>Dates</th><th>Type</th><th>Days</th><th>Status</th></tr></thead>
+            <tbody>
+              <% @leave_requests.each do |request| %>
+                <% badge = BadgePresenter.new(request.status) %>
+                <tr>
+                  <td class="mono"><%= request.created_at.strftime("%b %-d") %></td>
+                  <td class="mono"><%= request.start_date == request.end_date ? request.start_date.strftime("%b %-d") : "#{request.start_date.strftime("%b %-d")}–#{request.end_date.strftime("%-d")}" %></td>
+                  <td class="type"><%= request.leave_type.name %></td>
+                  <td class="mono"><%= request.days_requested %></td>
+                  <td><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
+      <% else %>
+        <p class="muted">No requests yet.</p>
+      <% end %>
+    </div>
+  </div>
+
+  <dialog class="app-modal" data-modal-target="dialog" data-action="click->modal#closeOnBackdrop">
+    <div class="app-modal-content">
+      <div class="modal-box-head">
+        <h3>Request time off</h3>
+        <button type="button" class="modal-close" data-action="modal#close" aria-label="Close">
+          <%= lucide_icon(:x, stroke_width: 2) %>
+        </button>
+      </div>
+      <%= render "form" %>
+    </div>
+  </dialog>
+</div>

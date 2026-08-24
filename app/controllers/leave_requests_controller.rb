@@ -1,13 +1,18 @@
 class LeaveRequestsController < ApplicationController
+  include LoadsPrimaryLeaveBalance
+
   def index
     authorize LeaveRequest
-    @leave_requests = policy_scope(LeaveRequest).includes(:leave_type).order(created_at: :desc)
-    @leave_types = LeaveType.where(company: current_employee.company)
+    load_form_and_history_data
+    @leave_request ||= LeaveRequest.new
   end
 
   def new
     authorize LeaveRequest
-    @leave_types = LeaveType.where(company: current_employee.company)
+    load_form_and_history_data
+    @leave_request = LeaveRequest.new
+    @open_request_modal = true
+    render :index
   end
 
   def create
@@ -25,13 +30,20 @@ class LeaveRequestsController < ApplicationController
     if result.success?
       redirect_to leave_requests_path, notice: "Time off requested."
     else
-      flash.now[:alert] = result.message
-      @leave_types = LeaveType.where(company: current_employee.company)
-      render :new, status: :unprocessable_entity
+      load_form_and_history_data
+      @leave_request = result.leave_request || LeaveRequest.new(leave_request_params)
+      @open_request_modal = true
+      render :index, status: :unprocessable_entity
     end
   end
 
   private
+
+  def load_form_and_history_data
+    @leave_requests = policy_scope(LeaveRequest).includes(:leave_type).order(created_at: :desc)
+    @leave_types = LeaveType.where(company: current_employee.company)
+    @leave_balance = current_leave_balance
+  end
 
   def leave_request_params
     params.require(:leave_request).permit(:leave_type_id, :start_date, :end_date, :days_requested, :reason)

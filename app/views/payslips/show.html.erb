@@ -56,34 +56,8 @@
     <% end %>
   </div>
 <% else %>
-  <div class="card">
-    <h2>Earnings</h2>
-    <table>
-      <thead><tr><th>Description</th><th>Amount</th></tr></thead>
-      <tbody>
-        <% @payslip.payslip_line_items.select(&:earning?).each do |item| %>
-          <tr>
-            <td><%= item.description.presence || item.line_type.humanize %></td>
-            <td>₱<%= item.amount %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="card">
-    <h2>Deductions</h2>
-    <table>
-      <thead><tr><th>Description</th><th>Amount</th></tr></thead>
-      <tbody>
-        <% @payslip.payslip_line_items.select(&:deduction?).each do |item| %>
-          <tr>
-            <td><%= item.description.presence || item.line_type.humanize %></td>
-            <td>₱<%= item.amount %></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
+  <div class="card payslips-page">
+    <%= render "breakdown", payslip: @payslip %>
   </div>
 <% end %>
 

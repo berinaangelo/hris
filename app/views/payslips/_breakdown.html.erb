@@ -1,0 +1,41 @@
+<%# Pay hero + earnings/deductions breakdown — shared by My Payslips'
+    pinned panel (payslips#index) and the employee-facing branch of
+    payslips#show. See kos/decisions/ux-pages/my-payslips.html
+    ("Pinned hero + swappable table"). Download is a styled placeholder
+    — no PDF export yet. %>
+<% presenter = PayslipPresenter.new(payslip) %>
+
+<div class="pay-hero">
+  <div>
+    <p class="card-label" style="color:#A9B4CB;"><%= presenter.period_label %> · Net pay</p>
+    <p class="num"><%= number_to_currency(payslip.net_pay, unit: "₱") %></p>
+    <p class="sub">
+      Pay date <%= payslip.payroll_run.pay_date.strftime("%b %-d, %Y") %> ·
+      Gross <%= number_to_currency(payslip.gross_pay, unit: "₱") %> −
+      deductions <%= number_to_currency(payslip.total_deductions, unit: "₱") %>
+    </p>
+  </div>
+  <button type="button" class="btn btn-primary" disabled title="Coming soon">
+    <%= lucide_icon(:download, stroke_width: 2) %>
+    Download
+  </button>
+</div>
+
+<% if presenter.thirteenth_month? %>
+  <p class="breakdown-note">No statutory deductions applied — 13th month pay is non-taxable up to the BIR-set threshold. Company-wide toggle, on by default.</p>
+<% else %>
+  <div class="breakdown-cols">
+    <div class="breakdown-list">
+      <h4>Earnings</h4>
+      <% payslip.payslip_line_items.select(&:earning?).each do |item| %>
+        <div class="breakdown-row"><span><%= presenter.line_item_label(item) %></span><span><%= number_to_currency(item.amount, unit: "₱") %></span></div>
+      <% end %>
+    </div>
+    <div class="breakdown-list">
+      <h4>Deductions</h4>
+      <% payslip.payslip_line_items.select(&:deduction?).each do |item| %>
+        <div class="breakdown-row"><span><%= presenter.line_item_label(item) %></span><span><%= number_to_currency(item.amount, unit: "₱") %></span></div>
+      <% end %>
+    </div>
+  </div>
+<% end %>
