@@ -23,7 +23,11 @@ class BadgePresenter
     "open" => :positive,
     "closed" => :neutral,
     "active" => :neutral,
-    "paid_off" => :positive
+    "paid_off" => :positive,
+    "submitted" => :neutral,
+    "interviewing" => :caution,
+    "offer" => :caution,
+    "hired" => :positive
   }.freeze
 
   def initialize(status)

@@ -1,0 +1,16 @@
+<table class="cptable">
+  <thead>
+    <tr><th>Department</th><th class="num-col">Days Taken</th></tr>
+  </thead>
+  <tbody>
+    <% rows.each do |row| %>
+      <tr>
+        <td><%= row[:department] %></td>
+        <td class="num-col mono"><%= row[:days_taken] %></td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <tr><td>Total</td><td class="num-col mono"><%= rows.sum { |row| row[:days_taken] } %></td></tr>
+  </tfoot>
+</table>

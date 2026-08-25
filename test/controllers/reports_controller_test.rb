@@ -42,6 +42,16 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_match "Engineering", response.body
   end
 
+  test "headcount snapshot can be filtered by department" do
+    sign_in employees(:admin_amy)
+
+    get report_path("headcount-snapshot"), params: { as_of: Date.current, department: "People" }
+
+    assert_response :success
+    assert_match "<td>People</td>", response.body
+    assert_no_match "<td>Engineering</td>", response.body
+  end
+
   test "new hires vs departures over a wide range counts hires and no departures" do
     sign_in employees(:admin_amy)
 
@@ -69,6 +79,18 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_match "Bob Worker", response.body
   end
 
+  test "leave balances can be filtered by department" do
+    sign_in employees(:admin_amy)
+
+    get report_path("leave-balances"), params: { year: 2026, department: "Engineering" }
+    assert_response :success
+    assert_match "Bob Worker", response.body
+
+    get report_path("leave-balances"), params: { year: 2026, department: "People" }
+    assert_response :success
+    assert_match "No data for this filter.", response.body
+  end
+
   test "leave taken summary sums approved days by department over a range" do
     sign_in employees(:admin_amy)
 
@@ -76,6 +98,18 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :success
     assert_match "Engineering", response.body
+  end
+
+  test "leave taken summary can be filtered by department" do
+    sign_in employees(:admin_amy)
+
+    get report_path("leave-taken-summary"), params: { start_date: "2026-09-01", end_date: "2026-09-03", department: "Engineering" }
+    assert_response :success
+    assert_match "Engineering", response.body
+
+    get report_path("leave-taken-summary"), params: { start_date: "2026-09-01", end_date: "2026-09-03", department: "People" }
+    assert_response :success
+    assert_match "No data for this filter.", response.body
   end
 
   test "payroll register lists payslips for the selected cutoff" do
@@ -86,6 +120,18 @@ class ReportsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
     assert_match "Bob Worker", response.body
     assert_match "Carol Reports", response.body
+  end
+
+  test "payroll register can be filtered by department" do
+    sign_in employees(:admin_amy)
+
+    get report_path("payroll-register"), params: { payroll_run_id: payroll_runs(:acme_september_2026).id, department: "Engineering" }
+    assert_response :success
+    assert_match "Bob Worker", response.body
+
+    get report_path("payroll-register"), params: { payroll_run_id: payroll_runs(:acme_september_2026).id, department: "People" }
+    assert_response :success
+    assert_match "No data for this filter.", response.body
   end
 
   test "statutory contributions summary aggregates by contribution type" do

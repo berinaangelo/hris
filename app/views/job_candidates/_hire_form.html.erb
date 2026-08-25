@@ -1,0 +1,82 @@
+<%# The "Mark Hired" drawer — folded into job_openings/show.html.erb,
+    one instance per Offer-stage candidate card. See
+    kos/decisions/ui/hired-handoff-review-and-edit-drawer.md.
+    Locals: candidate, job_opening, managers. %>
+<p class="tt-drawer-note">Confirm the record below before it's created.</p>
+
+<div class="tt-drawer-field">
+  <h5>Identity &amp; contact <span class="badge badge-neutral">From application</span></h5>
+  <div class="field-grid">
+    <div class="field">
+      <label>Full legal name</label>
+      <input class="plain-input" type="text" value="<%= candidate.full_name %>" disabled>
+    </div>
+    <div class="field">
+      <label>Personal email</label>
+      <input class="plain-input" type="text" value="<%= candidate.email %>" disabled>
+    </div>
+  </div>
+</div>
+
+<%= form_with url: hire_job_candidate_path(candidate), method: :post, local: true do %>
+  <div class="tt-drawer-field">
+    <h5>Org position</h5>
+    <div class="field-grid">
+      <div class="field">
+        <label for="hire-<%= candidate.id %>-title">Job title</label>
+        <input class="plain-input" id="hire-<%= candidate.id %>-title" type="text" name="employee[job_title]" value="<%= job_opening.title %>" required>
+      </div>
+      <div class="field">
+        <label for="hire-<%= candidate.id %>-dept">Department</label>
+        <input class="plain-input" id="hire-<%= candidate.id %>-dept" type="text" name="employee[department]" placeholder="e.g. Engineering" required>
+      </div>
+      <div class="field">
+        <label for="hire-<%= candidate.id %>-mgr">Manager</label>
+        <select class="plain-select" id="hire-<%= candidate.id %>-mgr" name="employee[manager_id]">
+          <option value="">No manager</option>
+          <% managers.each do |manager| %>
+            <option value="<%= manager.id %>"><%= manager.full_name %> — <%= manager.job_title %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="field">
+        <label for="hire-<%= candidate.id %>-start">Start date</label>
+        <input class="plain-input" id="hire-<%= candidate.id %>-start" type="date" name="employee[start_date]" value="<%= Date.current %>" required>
+      </div>
+      <div class="field">
+        <label for="hire-<%= candidate.id %>-type">Employment type</label>
+        <select class="plain-select" id="hire-<%= candidate.id %>-type" name="employee[employment_type]">
+          <% Employee.employment_types.each_key do |type| %>
+            <option value="<%= type %>" <%= "selected" if type == "full_time" %>><%= type.humanize %></option>
+          <% end %>
+        </select>
+      </div>
+      <div class="field">
+        <label for="hire-<%= candidate.id %>-password">Temporary password</label>
+        <input class="plain-input" id="hire-<%= candidate.id %>-password" type="text" name="employee[password]" value="<%= SecureRandom.alphanumeric(10) %>" required>
+        <p class="tt-drawer-note">The employee changes this from Account Settings after first login.</p>
+      </div>
+    </div>
+  </div>
+
+  <% if candidate.resume.attached? %>
+    <div class="tt-drawer-field">
+      <h5>Résumé</h5>
+      <div class="doc-row">
+        <%= lucide_icon(:file, class: "file") %>
+        <div class="txt">
+          <p class="name"><%= candidate.resume.filename %></p>
+          <p class="meta"><span class="badge badge-neutral">From application</span></p>
+        </div>
+        <div class="actions">
+          <%= link_to url_for(candidate.resume), class: "icon-btn", title: "Download" do %><%= lucide_icon(:download) %><% end %>
+        </div>
+      </div>
+    </div>
+  <% end %>
+
+  <div class="save-row">
+    <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+    <button type="submit" class="btn-primary">Create employee record</button>
+  </div>
+<% end %>

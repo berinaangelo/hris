@@ -28,6 +28,37 @@ class JobOpeningsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to job_opening_path(JobOpening.last)
   end
 
+  test "creating a job opening fails validation with a blank title" do
+    sign_in employees(:admin_amy)
+
+    assert_no_difference "JobOpening.count" do
+      post job_openings_path, params: { job_opening: { title: "", description: "Design things.", status: "open" } }
+    end
+
+    assert_response :unprocessable_entity
+  end
+
+  test "admin can update a job opening" do
+    sign_in employees(:admin_amy)
+    job_opening = job_openings(:acme_engineer_opening)
+
+    patch job_opening_path(job_opening), params: { job_opening: { title: "Staff Engineer", description: job_opening.description, status: "closed" } }
+
+    assert_redirected_to job_opening_path(job_opening)
+    job_opening.reload
+    assert_equal "Staff Engineer", job_opening.title
+    assert job_opening.closed?
+  end
+
+  test "updating a job opening fails validation with a blank title" do
+    sign_in employees(:admin_amy)
+    job_opening = job_openings(:acme_engineer_opening)
+
+    patch job_opening_path(job_opening), params: { job_opening: { title: "", description: job_opening.description, status: "open" } }
+
+    assert_response :unprocessable_entity
+  end
+
   test "admin can view the kanban detail with candidates grouped by stage" do
     sign_in employees(:admin_amy)
 

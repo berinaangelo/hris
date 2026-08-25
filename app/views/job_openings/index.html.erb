@@ -1,22 +1,99 @@
-<h1>Job Openings</h1>
+<% content_for :title, "Job Openings" %>
 
-<div class="card">
-  <table>
-    <thead><tr><th>Title</th><th>Status</th><th>Candidates</th><th></th></tr></thead>
-    <tbody>
+<%# Card grid + list toggle (chosen) — see
+    kos/decisions/ui/job-openings-card-grid-with-list-toggle.md and
+    kos/decisions/ux-pages/job-openings.html (Option 2). Reuses People
+    Directory's exact view_toggle_controller.js. "New job opening"
+    folds in as a drawer (no standalone new page) — see
+    kos/decisions/ui/job-opening-form-right-side-drawer.md. %>
+<% open_count = @job_openings.count(&:open?)
+   closed_count = @job_openings.size - open_count
+   applicant_count = @job_openings.sum { |job_opening| job_opening.job_candidates.size } %>
+<div class="job-openings-page" data-controller="view-toggle">
+  <div class="greet-block">
+    <div>
+      <h2>Job Openings</h2>
+      <p><%= pluralize(open_count, "open posting") %> · <%= pluralize(applicant_count, "applicant") %> across all stages · <%= closed_count %> closed</p>
+    </div>
+    <div class="greet-block-actions">
+      <div class="view-toggle">
+        <button type="button" class="view-toggle-btn is-active" data-action="view-toggle#showCards" data-view-toggle-target="cardsBtn" title="Card view"><%= lucide_icon(:grid) %></button>
+        <button type="button" class="view-toggle-btn" data-action="view-toggle#showList" data-view-toggle-target="listBtn" title="List view"><%= lucide_icon(:list) %></button>
+      </div>
+      <span data-controller="modal" data-modal-open-value="<%= @job_opening.new_record? && @job_opening.errors.any? %>">
+        <button type="button" class="btn-primary" data-action="modal#open"><%= lucide_icon(:plus) %>New job opening</button>
+        <%= render "shared/drawer", title: "New job opening" do %>
+          <%= render "form", job_opening: @job_opening %>
+        <% end %>
+      </span>
+    </div>
+  </div>
+
+  <div data-view-toggle-target="cards">
+    <div class="opening-grid">
       <% @job_openings.each do |job_opening| %>
-        <tr>
-          <td><%= link_to job_opening.title, job_opening_path(job_opening) %></td>
-          <td>
+        <% counts = job_opening.job_candidates.group_by(&:stage) %>
+        <div class="opening-card <%= "is-closed" if job_opening.closed? %>">
+          <div class="oc-head">
+            <div>
+              <h4><%= job_opening.title %></h4>
+              <p class="posted">Posted <%= job_opening.created_at.strftime("%b %-d, %Y") %></p>
+            </div>
             <% badge = BadgePresenter.new(job_opening.status) %>
             <span class="<%= badge.css_class %>"><%= badge.label %></span>
-          </td>
-          <td><%= job_opening.job_candidates.count %></td>
-          <td><%= link_to "Edit", edit_job_opening_path(job_opening), class: "btn btn-ghost" %></td>
-        </tr>
+          </div>
+          <% if counts.any? %>
+            <div class="pipeline-mini"><%= counts.map { |stage, candidates| "<b>#{candidates.size}</b>&nbsp;#{stage == "submitted" ? "New" : stage.humanize}" }.join(" &middot; ").html_safe %></div>
+          <% else %>
+            <div class="pipeline-mini muted">No applicants yet</div>
+          <% end %>
+          <div class="card-foot">
+            <%= link_to "View pipeline", job_opening_path(job_opening), class: "btn-#{job_opening.open? ? "primary" : "ghost"} btn-sm" %>
+            <% if job_opening.open? %>
+              <span class="link-chip" data-controller="clipboard" data-clipboard-text-value="<%= careers_url(job_opening.slug) %>">
+                <%= lucide_icon(:copy) %>
+                <button type="button" data-action="clipboard#copy" title="Copy apply link">Copy apply link</button>
+              </span>
+            <% end %>
+          </div>
+        </div>
       <% end %>
-    </tbody>
-  </table>
-</div>
+    </div>
+  </div>
 
-<%= link_to "New job opening", new_job_opening_path, class: "btn btn-primary" %>
+  <div data-view-toggle-target="list" hidden>
+    <div class="table-wrap">
+      <table class="jotable">
+        <thead><tr><th>Title</th><th>Status</th><th>Pipeline</th><th>Posted</th><th>Application link</th><th></th></tr></thead>
+        <tbody>
+          <% @job_openings.each do |job_opening| %>
+            <% counts = job_opening.job_candidates.group_by(&:stage) %>
+            <tr class="<%= "is-closed" if job_opening.closed? %>">
+              <td class="title-cell"><%= job_opening.title %></td>
+              <td>
+                <% badge = BadgePresenter.new(job_opening.status) %>
+                <span class="<%= badge.css_class %>"><%= badge.label %></span>
+              </td>
+              <td class="pipeline-mini">
+                <% if counts.any? %>
+                  <%= counts.map { |stage, candidates| "<b>#{candidates.size}</b>&nbsp;#{stage == "submitted" ? "New" : stage.humanize}" }.join(" &middot; ").html_safe %>
+                <% else %>
+                  <span class="muted">No applicants yet</span>
+                <% end %>
+              </td>
+              <td class="muted"><%= job_opening.created_at.strftime("%b %-d, %Y") %></td>
+              <td>
+                <% if job_opening.open? %>
+                  <span class="link-chip"><%= lucide_icon(:link) %><span class="url"><%= careers_url(job_opening.slug) %></span></span>
+                <% else %>
+                  <span class="muted">—</span>
+                <% end %>
+              </td>
+              <td class="actions-cell"><%= link_to "View pipeline", job_opening_path(job_opening), class: "btn-ghost btn-sm" %></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>

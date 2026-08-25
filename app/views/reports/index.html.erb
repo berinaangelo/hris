@@ -1,12 +1,21 @@
-<h1>Reports</h1>
-
-<% @report_groups.each do |group_name, reports| %>
-  <h2><%= group_name %></h2>
-  <div class="report-card-grid">
-    <% reports.each do |key, definition| %>
-      <%= link_to report_path(key), class: "card" do %>
-        <strong><%= definition[:title] %></strong>
-      <% end %>
-    <% end %>
+<div class="reports-page">
+  <div class="greet-block">
+    <div>
+      <h2>Reports</h2>
+      <p>7 fixed views against data the system already has · CSV export on every view</p>
+    </div>
   </div>
-<% end %>
+
+  <% @report_groups.each do |group_name, reports| %>
+    <p class="report-group-label"><%= group_name %></p>
+    <div class="report-card-grid">
+      <% reports.each do |key, definition| %>
+        <%= link_to report_path(key), class: "report-card" do %>
+          <span class="icon-badge"><%= lucide_icon(definition[:icon]) %></span>
+          <h4><%= definition[:title] %></h4>
+          <p><%= definition[:description] %></p>
+        <% end %>
+      <% end %>
+    </div>
+  <% end %>
+</div>

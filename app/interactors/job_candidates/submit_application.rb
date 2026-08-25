@@ -11,9 +11,12 @@ module JobCandidates
       candidate = context.job_opening.job_candidates.new(context.candidate_params)
       candidate.applied_at = Time.current
       candidate.consent_given_at = Time.current
+      # Set before save (not only on success) so a failed submission still
+      # hands the controller back the validated, error-carrying instance
+      # to re-render with — same fix as Employees::CreateRecord.
+      context.candidate = candidate
 
       if candidate.save
-        context.candidate = candidate
         notify_admins(candidate)
       else
         context.fail!(message: candidate.errors.full_messages.to_sentence)

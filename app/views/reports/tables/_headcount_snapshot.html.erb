@@ -1,0 +1,26 @@
+<%
+  total_headcount = rows.sum { |row| row[:headcount] }
+%>
+<table class="cptable">
+  <thead>
+    <tr><th>Department</th><th class="num-col">Active Employees</th><th>Share of headcount</th></tr>
+  </thead>
+  <tbody>
+    <% rows.each do |row| %>
+      <% pct = total_headcount.zero? ? 0 : (row[:headcount].to_f / total_headcount * 100).round %>
+      <tr>
+        <td><%= row[:department] %></td>
+        <td class="num-col mono"><%= row[:headcount] %></td>
+        <td>
+          <div class="hc-bar-cell">
+            <div class="track"><div class="fill" style="width: <%= pct %>%"></div></div>
+            <span class="pct"><%= pct %>%</span>
+          </div>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <tr><td>Total</td><td class="num-col mono"><%= total_headcount %></td><td class="mono">100%</td></tr>
+  </tfoot>
+</table>

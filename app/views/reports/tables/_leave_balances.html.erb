@@ -1,0 +1,20 @@
+<table class="cptable zebra">
+  <thead>
+    <tr>
+      <th>Employee</th><th>Department</th><th>Leave Type</th>
+      <th class="num-col">Entitled</th><th class="num-col">Used</th><th class="num-col">Remaining</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% rows.each do |row| %>
+      <tr>
+        <td><%= row[:employee] %></td>
+        <td><span class="dept-tag"><%= row[:department] %></span></td>
+        <td><%= row[:leave_type] %></td>
+        <td class="num-col mono"><%= row[:entitled_days] %></td>
+        <td class="num-col mono"><%= row[:used_days] %></td>
+        <td class="num-col mono"><%= row[:remaining_days] %></td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>

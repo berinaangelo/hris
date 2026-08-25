@@ -1,12 +1,66 @@
-<div class="field">
-  <%= f.label :title %>
-  <%= f.text_field :title, required: true %>
-</div>
-<div class="field">
-  <%= f.label :description %>
-  <%= f.text_area :description %>
-</div>
-<div class="field">
-  <%= f.label :status %>
-  <%= f.select :status, JobOpening.statuses.keys.map { |s| [ s.humanize, s ] } %>
+<%# Shared by both drawer entry points — "New job opening" on
+    job_openings#index and "Edit opening" on job_openings#show. See
+    kos/decisions/ui/job-opening-form-right-side-drawer.md.
+    Local: job_opening (new or persisted @job_opening). %>
+<div data-controller="job-opening-preview">
+  <%= form_with model: job_opening, local: true do |f| %>
+    <div class="tt-drawer-field">
+      <%= f.label :title, "Job title" %>
+      <%= f.text_field :title, required: true, class: "plain-input", data: { "job-opening-preview-target": "title", action: "input->job-opening-preview#update" } %>
+    </div>
+    <div class="tt-drawer-field">
+      <%= f.label :description %>
+      <%= f.text_area :description, rows: 5, class: "plain-input" %>
+    </div>
+
+    <div class="tt-drawer-field">
+      <h5>Status</h5>
+      <div class="status-toggle-row">
+        <% JobOpening.statuses.keys.each do |status| %>
+          <label>
+            <%= f.radio_button :status, status, checked: job_opening.status == status, data: { "job-opening-preview-target": "status", action: "change->job-opening-preview#update" } %>
+            <%= status.humanize %>
+          </label>
+        <% end %>
+      </div>
+    </div>
+
+    <% if job_opening.persisted? %>
+      <div class="tt-drawer-field">
+        <h5>Application link</h5>
+        <p class="tt-drawer-note">Generated automatically from the title — candidates apply here, not on a public job-ad page.</p>
+        <span class="link-chip" data-controller="clipboard" data-clipboard-text-value="<%= careers_url(job_opening.slug) %>">
+          <%= lucide_icon(:link) %><span class="url"><%= careers_url(job_opening.slug) %></span>
+          <button type="button" class="icon-btn" data-action="clipboard#copy" title="Copy link"><%= lucide_icon(:copy) %></button>
+        </span>
+      </div>
+    <% end %>
+
+    <div class="tt-drawer-field">
+      <h5>Preview</h5>
+      <p class="tt-drawer-note">The card HR will see on Job Openings.</p>
+      <div class="mini-preview-card">
+        <div class="oc-head">
+          <div>
+            <h4 data-job-opening-preview-target="previewName"><%= job_opening.title.presence || "Untitled opening" %></h4>
+            <p class="posted"><%= job_opening.persisted? ? "Posted #{job_opening.created_at.strftime('%b %-d, %Y')}" : "Not yet posted" %></p>
+          </div>
+          <span class="badge <%= job_opening.status == "open" ? "badge-positive" : "badge-neutral" %>" data-job-opening-preview-target="previewBadge"><%= job_opening.status.humanize %></span>
+        </div>
+        <% if job_opening.persisted? %>
+          <% pipeline_counts = job_opening.job_candidates.group(:stage).count %>
+          <% if pipeline_counts.any? %>
+            <div class="pipeline-mini"><%= pipeline_counts.map { |stage, count| "<b>#{count}</b>&nbsp;#{stage == "submitted" ? "New" : stage.humanize}" }.join(" &middot; ").html_safe %></div>
+          <% else %>
+            <div class="pipeline-mini muted">No applicants yet</div>
+          <% end %>
+        <% end %>
+      </div>
+    </div>
+
+    <div class="save-row">
+      <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+      <%= f.submit(job_opening.persisted? ? "Save changes" : "Create job opening", class: "btn-primary") %>
+    </div>
+  <% end %>
 </div>

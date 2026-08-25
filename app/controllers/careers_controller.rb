@@ -24,7 +24,9 @@ class CareersController < ApplicationController
     if result.success?
       redirect_to careers_path(@job_opening.slug), notice: "Thanks — we've received your application."
     else
-      @candidate = JobCandidate.new(candidate_params)
+      # result.candidate is only nil on the consent-missing path (fails
+      # before a candidate is ever built) — see SubmitApplication.
+      @candidate = result.candidate || @job_opening.job_candidates.new(candidate_params)
       flash.now[:alert] = result.message
       render :show, status: :unprocessable_entity
     end

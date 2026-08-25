@@ -39,4 +39,15 @@ class CareersControllerTest < ActionDispatch::IntegrationTest
 
     assert_response :unprocessable_entity
   end
+
+  test "submitting an invalid email fails validation and re-renders with the inline field error" do
+    assert_no_difference "JobCandidate.count" do
+      post careers_path(job_openings(:acme_engineer_opening).slug), params: {
+        job_candidate: { full_name: "New Applicant", email: "not-an-email", consent: "1" }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_select ".field-error", text: "Email is invalid"
+  end
 end

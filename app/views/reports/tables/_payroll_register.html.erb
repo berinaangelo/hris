@@ -1,0 +1,27 @@
+<table class="cptable zebra">
+  <thead>
+    <tr>
+      <th>Employee</th><th>Department</th>
+      <th class="num-col">Gross Pay</th><th class="num-col">Deductions</th><th class="num-col">Net Pay</th>
+    </tr>
+  </thead>
+  <tbody>
+    <% rows.each do |row| %>
+      <tr>
+        <td><%= row[:employee] %></td>
+        <td><span class="dept-tag"><%= row[:department] %></span></td>
+        <td class="num-col mono"><%= number_to_currency(row[:gross_pay], unit: "₱") %></td>
+        <td class="num-col mono"><%= number_to_currency(row[:total_deductions], unit: "₱") %></td>
+        <td class="num-col mono"><%= number_to_currency(row[:net_pay], unit: "₱") %></td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <tr>
+      <td>Total</td><td></td>
+      <td class="num-col mono"><%= number_to_currency(rows.sum { |row| row[:gross_pay] }, unit: "₱") %></td>
+      <td class="num-col mono"><%= number_to_currency(rows.sum { |row| row[:total_deductions] }, unit: "₱") %></td>
+      <td class="num-col mono"><%= number_to_currency(rows.sum { |row| row[:net_pay] }, unit: "₱") %></td>
+    </tr>
+  </tfoot>
+</table>

@@ -30,6 +30,23 @@ class JobCandidatesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to job_opening_path(candidate.job_opening)
   end
 
+  test "hiring fails validation and redirects back reopening that candidate's drawer" do
+    sign_in employees(:admin_amy)
+    candidate = job_candidates(:maria_offer)
+
+    assert_no_difference "Employee.count" do
+      post hire_job_candidate_path(candidate), params: {
+        employee: { job_title: "", department: "", start_date: "", employment_type: "full_time", password: "" }
+      }
+    end
+
+    assert_redirected_to job_opening_path(candidate.job_opening, reopen_hire: candidate.id)
+    assert_not candidate.reload.stage_hired?
+
+    follow_redirect!
+    assert_response :success
+  end
+
   test "manager is forbidden from hiring" do
     sign_in employees(:manager_jane)
     candidate = job_candidates(:maria_offer)

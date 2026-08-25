@@ -1,0 +1,33 @@
+<%
+  total_hires = rows.sum { |row| row[:new_hires] }
+  total_departures = rows.sum { |row| row[:departures] }
+%>
+<table class="cptable">
+  <thead>
+    <tr><th>Department</th><th class="num-col">New Hires</th><th class="num-col">Departures</th><th class="num-col">Net Change</th></tr>
+  </thead>
+  <tbody>
+    <% rows.each do |row| %>
+      <% net_change = row[:new_hires] - row[:departures] %>
+      <tr>
+        <td><%= row[:department] %></td>
+        <td class="num-col mono"><%= row[:new_hires] %></td>
+        <td class="num-col mono"><%= row[:departures] %></td>
+        <td class="num-col mono <%= net_change.positive? ? "up" : "down" if net_change.nonzero? %>">
+          <%= net_change.positive? ? "+#{net_change}" : net_change %>
+        </td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <% net_total = total_hires - total_departures %>
+    <tr>
+      <td>Total</td>
+      <td class="num-col mono"><%= total_hires %></td>
+      <td class="num-col mono"><%= total_departures %></td>
+      <td class="num-col mono <%= net_total.positive? ? "up" : "down" if net_total.nonzero? %>">
+        <%= net_total.positive? ? "+#{net_total}" : net_total %>
+      </td>
+    </tr>
+  </tfoot>
+</table>

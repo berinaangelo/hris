@@ -1,0 +1,16 @@
+<table class="cptable">
+  <thead>
+    <tr><th>Contribution Type</th><th class="num-col">Total Withheld</th></tr>
+  </thead>
+  <tbody>
+    <% rows.each do |row| %>
+      <tr>
+        <td><%= row[:contribution] %></td>
+        <td class="num-col mono"><%= number_to_currency(row[:amount], unit: "₱") %></td>
+      </tr>
+    <% end %>
+  </tbody>
+  <tfoot>
+    <tr><td>Total</td><td class="num-col mono"><%= number_to_currency(rows.sum { |row| row[:amount] }, unit: "₱") %></td></tr>
+  </tfoot>
+</table>

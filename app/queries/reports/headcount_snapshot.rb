@@ -4,12 +4,14 @@ module Reports
   # live Employee#status column, since status is current-state only
   # and this needs a point-in-time view.
   class HeadcountSnapshot
-    def self.call(viewer:, as_of: Date.current)
-      Employee.where(company: viewer.company)
-              .where("start_date <= ?", as_of)
-              .where("last_working_day IS NULL OR last_working_day > ?", as_of)
-              .group(:department).order(:department).count
-              .map { |department, headcount| { department: department, headcount: headcount } }
+    def self.call(viewer:, as_of: Date.current, department: nil)
+      scope = Employee.where(company: viewer.company)
+                       .where("start_date <= ?", as_of)
+                       .where("last_working_day IS NULL OR last_working_day > ?", as_of)
+      scope = scope.where(department: department) if department.present?
+
+      scope.group(:department).order(:department).count
+           .map { |department, headcount| { department: department, headcount: headcount } }
     end
   end
 end

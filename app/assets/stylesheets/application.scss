@@ -467,6 +467,10 @@ dialog.app-modal {
 
     .wordmark { color: var(--white); }
     .headline { font-size: clamp(1.3rem, 1.05rem + 1vw, 1.8rem); font-weight: 700; line-height: 1.3; max-width: 22ch; }
+    // Job Application Form's job-posting content — see
+    // kos/decisions/ui/job-application-form-split-panel.md.
+    .job-meta { font-size: 0.8125rem; color: #C7CEDE; margin-top: 0.5rem; }
+    .desc { font-size: 0.875rem; color: #C7CEDE; line-height: 1.6; margin-top: 1rem; }
     .moments { display: flex; flex-direction: column; gap: 0.85rem; }
     .moment {
       display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.97rem; color: #CBD3E5; line-height: 1.4;
@@ -491,6 +495,28 @@ dialog.app-modal {
     svg { width: 17px; height: 17px; }
   }
   .confirm-panel { padding: 1rem 0; }
+}
+
+// Job Application Form's résumé dropzone and consent checkbox row — see
+// kos/decisions/ui/job-application-form-split-panel.md. Résumé stays a
+// real upload (a <label for> wrapping the actual hidden file input, no
+// JS needed to trigger the native picker).
+.file-drop {
+  border: 1.5px dashed var(--border); border-radius: 10px; padding: 1.35rem 1rem; display: flex; flex-direction: column;
+  align-items: center; gap: 0.4rem; text-align: center; color: var(--neutral); font-size: 0.8125rem;
+  background: var(--surface); cursor: pointer; transition: border-color var(--t), background var(--t);
+
+  &:hover { border-color: var(--accent); background: #FDF3EC; }
+  svg { width: 22px; height: 22px; color: var(--neutral); }
+  b { color: var(--ink); font-weight: 600; }
+  .hint { color: var(--neutral); font-size: 0.75rem; }
+}
+
+// .checkbox-inline is center-aligned for short text ("Remember me") —
+// this needs top-aligned text for the long, multi-line consent copy.
+.consent-row {
+  display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.8125rem; color: var(--neutral); line-height: 1.45;
+  input { margin-top: 0.2rem; accent-color: var(--accent); width: 15px; height: 15px; flex: 0 0 auto; }
 }
 
 // ---------- summary + modal (Account Settings + My Profile) ----------
@@ -1322,6 +1348,7 @@ dialog.app-modal.app-drawer::backdrop { background: rgba(27, 42, 74, 0.45); }
     font-weight: 600;
     font-size: 0.875rem;
     cursor: pointer;
+    text-decoration: none;
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -1821,4 +1848,223 @@ $role-chip-states: employee, manager, admin;
     &.is-negative .rel { color: var(--negative-text); }
     &.is-caution .rel { color: var(--caution-text); }
   }
+}
+
+// ============================================================
+// Recruitment — Job Openings, Job Opening Detail, Job Opening Form,
+// and Hired Handoff UX pass. See kos/decisions/ux-pages/
+// {job-openings,job-opening-detail,job-opening-form,hired-handoff}.html
+// and their kos/decisions/ui/*.md decision docs. Job Opening Form and
+// Hired Handoff each render their drawer content from two different
+// host pages (index/show), so most classes below are added unscoped
+// rather than nested under one page wrapper — same "genuinely
+// cross-page pieces" reasoning Batch 4's own comment documents for
+// .avatar/.icon-btn/.mono.
+// ============================================================
+
+.btn-sm { padding: 0.4rem 0.7rem; font-size: 0.75rem; }
+
+.crumb {
+  padding: 0 0 1rem; font-size: 0.75rem; color: var(--neutral);
+  a { color: var(--ink-light); text-decoration: none; &:hover { text-decoration: underline; } }
+  b { color: var(--ink); font-weight: 600; }
+}
+
+.link-chip {
+  display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.35rem 0.6rem; border-radius: 6px;
+  background: var(--surface); border: 1px solid var(--border); font-size: 0.75rem; color: var(--ink-light);
+  font-family: var(--font-mono); max-width: 100%; overflow: hidden;
+  .url { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  svg { width: 12px; height: 12px; flex: 0 0 auto; color: var(--neutral); }
+  button { background: none; border: none; padding: 0; margin-left: 0.2rem; color: inherit; cursor: pointer; display: inline-flex; align-items: center; gap: 0.3rem; font: inherit; }
+}
+
+.pipeline-mini {
+  display: flex; flex-wrap: wrap; gap: 0.5rem 0.85rem; font-size: 0.8125rem; color: var(--ink-light); padding: 0.15rem 0;
+  b { color: var(--ink); font-family: var(--font-mono); font-weight: 500; }
+  &.muted { color: var(--neutral); }
+}
+
+// Stage-colored <select> on the kanban board — colored via
+// BadgePresenter.new(candidate.stage).category, not a second mapping.
+.stage-select {
+  font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase;
+  border: none; border-radius: 999px; padding: 0.28rem 1.7rem 0.28rem 0.6rem; cursor: pointer;
+  appearance: none; -webkit-appearance: none; background-repeat: no-repeat; background-position: right 0.55rem center; background-size: 10px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23697488' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+}
+$stage-select-states: positive, caution, negative, neutral;
+@each $state in $stage-select-states {
+  .stage-select-#{$state} { background-color: var(--#{$state}-bg); color: var(--#{$state}-text); }
+}
+
+// ---------- Job Openings (card grid + list toggle) ----------
+// See kos/decisions/ui/job-openings-card-grid-with-list-toggle.md.
+// .view-toggle/.view-toggle-btn reused verbatim from People Directory.
+
+.job-openings-page {
+  .greet-block { @include greet-block; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .greet-block-actions { display: flex; align-items: center; gap: 0.6rem; }
+}
+
+.opening-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; }
+.opening-card {
+  background: var(--white); padding: 1.15rem 1.2rem; display: flex; flex-direction: column; gap: 0.7rem;
+  &.is-closed { background: var(--surface); }
+  h4 { font-size: 0.9375rem; font-weight: 700; }
+  .posted { font-size: 0.75rem; color: var(--neutral); margin-top: 0.2rem; }
+}
+.oc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+.card-foot { margin-top: auto; padding-top: 0.5rem; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap; }
+
+.jotable {
+  @include data-table($td-padding: 0.75rem, $zebra: false, $hover-highlight: true, $min-width: 760px);
+  .title-cell { font-weight: 600; white-space: nowrap; }
+  .muted { color: var(--neutral); font-size: 0.8125rem; white-space: nowrap; }
+  .actions-cell { white-space: nowrap; }
+  tr.is-closed td { color: var(--neutral); }
+}
+
+// ---------- Job Opening Detail (kanban stage columns) ----------
+// See kos/decisions/ui/job-opening-detail-kanban-stage-columns.md.
+
+.opening-head { padding-bottom: 0.5rem; display: flex; flex-direction: column; gap: 0.65rem; }
+.opening-head-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+.opening-title-row {
+  display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap;
+  h2 { font-size: 1.35rem; font-weight: 700; }
+}
+.opening-desc { font-size: 0.8125rem; color: var(--ink-light); max-width: 68ch; line-height: 1.5; }
+.opening-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+.opening-meta-row { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; font-size: 0.75rem; color: var(--neutral); }
+
+.board-wrap { overflow-x: auto; padding: 1.1rem 0 0.5rem; }
+.pipeline-board { display: flex; gap: 1px; background: var(--border); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; min-width: 1080px; }
+.pipeline-col {
+  background: var(--surface); min-width: 205px; flex: 1 1 205px; display: flex; flex-direction: column;
+  &[data-stage="new"] .pipeline-col-head { border-bottom-color: #9AA3B5; }
+  &[data-stage="interviewing"] .pipeline-col-head, &[data-stage="offer"] .pipeline-col-head { border-bottom-color: var(--caution-text); }
+  &[data-stage="hired"] .pipeline-col-head { border-bottom-color: var(--positive-text); }
+  &[data-stage="rejected"] .pipeline-col-head { border-bottom-color: var(--negative-text); }
+}
+.pipeline-col-head {
+  padding: 0.7rem 0.85rem; background: var(--white); border-bottom: 2px solid var(--border); display: flex; align-items: baseline; justify-content: space-between; gap: 0.4rem;
+  h4 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
+  .count { font-family: var(--font-mono); font-size: 0.75rem; color: var(--neutral); }
+}
+.pipeline-col-body { padding: 0.7rem; display: flex; flex-direction: column; gap: 0.6rem; flex: 1; }
+
+.candidate-card {
+  background: var(--white); border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem; display: flex; flex-direction: column; gap: 0.45rem;
+  .cc-name { font-size: 0.8125rem; font-weight: 700; }
+  .cc-meta { font-size: 0.6875rem; color: var(--neutral); }
+  .cc-note { font-size: 0.75rem; color: var(--ink-light); line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .cc-foot {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.4rem; margin-top: auto; padding-top: 0.35rem; flex-wrap: wrap;
+    &.cc-foot-end { justify-content: flex-end; }
+  }
+  .cc-hired-tag {
+    font-size: 0.6875rem; font-weight: 600; color: var(--positive-text); display: flex; align-items: center; gap: 0.3rem;
+    svg { width: 12px; height: 12px; }
+  }
+}
+
+// ---------- Job Opening Form / Hired Handoff drawers (shared, render on
+// two host pages each — see the class-comment above) ----------
+
+.status-toggle-row {
+  display: inline-flex; border: 1px solid var(--border); border-radius: 8px; overflow: hidden;
+  label {
+    display: inline-flex; align-items: center; gap: 0.35rem; padding: 0.5rem 0.9rem; font-size: 0.8125rem; font-weight: 600;
+    color: var(--ink-light); cursor: pointer; transition: background var(--t), color var(--t);
+    &:first-child { border-right: 1px solid var(--border); }
+    input { margin: 0; }
+    &:has(input:checked) { background: var(--positive-bg); color: var(--positive-text); }
+    &:has(input:checked[value="closed"]) { background: var(--neutral-bg); color: var(--neutral-text); }
+  }
+}
+
+.mini-preview-card {
+  border: 1px solid var(--border); border-radius: 8px; padding: 0.85rem 0.95rem; display: flex; flex-direction: column; gap: 0.55rem; background: var(--surface);
+  .oc-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.6rem; }
+  h4 { font-size: 0.875rem; font-weight: 700; }
+  .posted { font-size: 0.6875rem; color: var(--neutral); margin-top: 0.15rem; }
+}
+
+// ============================================================
+// Reports UX pass (2026-08-25) — landing grid, drill-in. See
+// kos/decisions/ux-pages/reports.html and
+// kos/decisions/ui/reports-landing-grid-drill-in.md. Scoped under
+// .reports-page; reuses .report-card-grid (already unscoped, above),
+// .cptable/.mono/.dept-tag/.back-link/.btn-primary/.btn-ghost/
+// .toolbar-spacer/@include greet-block as-is — nothing here redefines
+// those.
+// ============================================================
+
+.reports-page {
+  .report-group-label {
+    @include uppercase-label;
+    margin: 0 0 0.6rem;
+    &:not(:first-child) { margin-top: 0.5rem; }
+  }
+
+  .report-card {
+    display: block; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius);
+    padding: 1.1rem; text-decoration: none; color: inherit; transition: border-color var(--t), box-shadow var(--t);
+
+    &:hover { border-color: var(--accent); box-shadow: var(--shadow-card); }
+    h4 { font-size: 0.9375rem; font-weight: 700; color: var(--ink); margin: 0.75rem 0 0.3rem; }
+    p { font-size: 0.8125rem; color: var(--neutral); line-height: 1.45; margin: 0; }
+  }
+
+  .icon-badge {
+    display: inline-flex; align-items: center; justify-content: center; width: 38px; height: 38px;
+    border-radius: 9px; background: var(--surface); color: var(--accent);
+    svg { width: 19px; height: 19px; }
+  }
+
+  .report-panel {
+    background: var(--white); border-radius: var(--radius); padding: 1.5rem;
+  }
+
+  .report-panel-head {
+    margin-bottom: 1.25rem;
+    h3 {
+      display: flex; align-items: center; gap: 0.5rem; font-size: 1.1rem; font-weight: 700; color: var(--ink);
+      svg { width: 19px; height: 19px; color: var(--accent); }
+    }
+    p { font-size: 0.8125rem; color: var(--neutral); margin: 0.35rem 0 0; }
+  }
+
+  .report-toolbar {
+    display: flex; align-items: flex-end; gap: 0.9rem; flex-wrap: wrap; padding-bottom: 1.25rem;
+  }
+
+  .field-inline {
+    display: flex; flex-direction: column; gap: 0.3rem;
+    label { font-size: 0.75rem; font-weight: 600; color: var(--neutral); }
+    input, select {
+      font-family: var(--font-body); font-size: 0.8125rem; color: var(--ink);
+      background: var(--white); border: 1px solid var(--border); border-radius: 7px; padding: 0.45rem 0.6rem;
+      &:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(232, 99, 10, 0.15); }
+    }
+  }
+
+  .table-wrap { overflow-x: auto; }
+
+  .cptable {
+    .num-col { text-align: right; }
+    tfoot td { font-weight: 700; border-top: 2px solid var(--border); border-bottom: none; }
+    &.zebra tbody tr:nth-child(even) { background: var(--surface); }
+  }
+
+  .hc-bar-cell {
+    display: flex; align-items: center; gap: 0.6rem; min-width: 140px;
+    .track { flex: 1; height: 6px; border-radius: 999px; background: var(--surface); overflow: hidden; }
+    .fill { height: 100%; background: var(--accent); border-radius: 999px; }
+    .pct { font-family: var(--font-mono); font-size: 0.75rem; color: var(--neutral); width: 3ch; text-align: right; }
+  }
+
+  .up { color: var(--success); }
+  .down { color: var(--danger); }
 }

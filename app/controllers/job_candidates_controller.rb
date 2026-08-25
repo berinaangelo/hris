@@ -1,8 +1,10 @@
 # Stage changes (per-card <select onchange="submit()">, never
 # drag-and-drop) and the Hire handoff — see
 # kos/decisions/ui/job-opening-detail-kanban-stage-columns.md and
-# kos/decisions/ui/hired-handoff-review-and-edit-drawer.md (built here
-# as a plain dedicated page, see JobOpeningsController's own comment).
+# kos/decisions/ui/hired-handoff-review-and-edit-drawer.md. The Hire
+# form is folded into JobOpeningsController#show as a per-candidate
+# drawer (no standalone new_hire page) — see that controller's
+# @reopen_candidate_id.
 class JobCandidatesController < ApplicationController
   def update
     candidate = JobCandidate.find(params[:id])
@@ -13,15 +15,6 @@ class JobCandidatesController < ApplicationController
     else
       redirect_to job_opening_path(candidate.job_opening), alert: candidate.errors.full_messages.to_sentence
     end
-  end
-
-  # Review-and-edit form before creating the employee record — read-only
-  # Identity & Contact (name/email/résumé "From application"), editable
-  # Org Position defaulted from the opening/offer.
-  def new_hire
-    @candidate = JobCandidate.find(params[:id])
-    authorize @candidate, :hire?
-    @managers = policy_scope(Employee).where(role: [ :manager, :admin ])
   end
 
   def hire
@@ -41,7 +34,7 @@ class JobCandidatesController < ApplicationController
     end
     redirect_to job_opening_path(candidate.job_opening), notice: "#{candidate.full_name} hired — employee record created."
   rescue Interactor::Failure => e
-    redirect_to new_hire_job_candidate_path(candidate), alert: e.context.message
+    redirect_to job_opening_path(candidate.job_opening, reopen_hire: candidate.id), alert: e.context.message
   end
 
   private

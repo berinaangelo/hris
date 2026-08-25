@@ -1,43 +1,105 @@
-<h1><%= @job_opening.title %></h1>
-<p>
-  <% badge = BadgePresenter.new(@job_opening.status) %>
-  <span class="<%= badge.css_class %>"><%= badge.label %></span>
-</p>
-<p><%= @job_opening.description %></p>
-<p>Apply link: <code><%= careers_url(@job_opening.slug) %></code></p>
+<% content_for :title, @job_opening.title %>
 
-<%= link_to "Edit", edit_job_opening_path(@job_opening), class: "btn btn-ghost" %>
+<%# Kanban-style stage columns (chosen) — see
+    kos/decisions/ui/job-opening-detail-kanban-stage-columns.md and
+    kos/decisions/ux-pages/job-opening-detail.html. "Edit opening" and
+    "Mark Hired" both fold in as drawers here (no standalone edit/
+    new_hire pages) — see kos/decisions/ui/job-opening-form-right-side-drawer.md
+    and kos/decisions/ui/hired-handoff-review-and-edit-drawer.md. %>
+<% stage_order = JobCandidate.stages.keys
+   total_candidates = @candidates_by_stage.values.sum(&:size) %>
+<div class="job-opening-detail-page">
+  <p class="crumb"><%= link_to "Job Openings", job_openings_path %> → <b><%= @job_opening.title %></b></p>
 
-<div class="job-opening-kanban">
-  <% JobCandidate.stages.keys.each do |stage| %>
-    <div class="card job-opening-column">
-      <h3><%= stage == "submitted" ? "New" : stage.humanize %></h3>
-      <% (@candidates_by_stage[stage] || []).each do |candidate| %>
-        <div class="job-candidate-card">
-          <strong><%= candidate.full_name %></strong>
-          <p><%= candidate.email %></p>
-
-          <% if stage == "hired" %>
-            <span class="badge badge-positive">Employee record created</span>
-            <% if candidate.hired_employee %>
-              <p><%= link_to "View employee", employee_path(candidate.hired_employee), class: "btn btn-ghost" %></p>
-            <% end %>
-          <% else %>
-            <%= form_with url: job_candidate_path(candidate), method: :patch, local: true do %>
-              <select name="job_candidate[stage]" onchange="this.form.submit()">
-                <% JobCandidate.stages.keys.each do |option| %>
-                  <option value="<%= option %>" <%= "selected" if option == stage %>>
-                    <%= option == "submitted" ? "New" : option.humanize %>
-                  </option>
-                <% end %>
-              </select>
-            <% end %>
-            <% if stage == "offer" %>
-              <p><%= link_to "Mark Hired", new_hire_job_candidate_path(candidate), class: "btn btn-primary" %></p>
-            <% end %>
+  <div class="opening-head">
+    <div class="opening-head-top">
+      <div>
+        <div class="opening-title-row">
+          <h2><%= @job_opening.title %></h2>
+          <% badge = BadgePresenter.new(@job_opening.status) %>
+          <span class="<%= badge.css_class %>"><%= badge.label %></span>
+        </div>
+        <% if @job_opening.description.present? %>
+          <p class="opening-desc"><%= @job_opening.description %></p>
+        <% end %>
+      </div>
+      <div class="opening-actions">
+        <span data-controller="modal" data-modal-open-value="<%= @job_opening.persisted? && @job_opening.errors.any? %>">
+          <button type="button" class="btn-ghost btn-sm" data-action="modal#open">Edit opening</button>
+          <%= render "shared/drawer", title: "Edit opening" do %>
+            <%= render "form", job_opening: @job_opening %>
           <% end %>
+        </span>
+        <%= button_to (@job_opening.open? ? "Close posting" : "Reopen posting"), job_opening_path(@job_opening),
+              method: :patch, params: { job_opening: { status: @job_opening.open? ? "closed" : "open" } }, class: "btn-ghost btn-sm" %>
+      </div>
+    </div>
+    <div class="opening-meta-row">
+      <span>Posted <%= @job_opening.created_at.strftime("%b %-d, %Y") %> · <%= time_ago_in_words(@job_opening.created_at) %> ago</span>
+      <% if @job_opening.open? %>
+        <span class="link-chip" data-controller="clipboard" data-clipboard-text-value="<%= careers_url(@job_opening.slug) %>">
+          <%= lucide_icon(:link) %><span class="url"><%= careers_url(@job_opening.slug) %></span>
+          <button type="button" class="icon-btn" data-action="clipboard#copy" title="Copy link"><%= lucide_icon(:copy) %></button>
+        </span>
+      <% end %>
+    </div>
+    <% if total_candidates.positive? %>
+      <div class="pipeline-mini">
+        <%= stage_order.filter_map { |stage| (candidates = @candidates_by_stage[stage]) && "<b>#{candidates.size}</b>&nbsp;#{stage == "submitted" ? "New" : stage.humanize}" }.join(" &middot; ").html_safe %>
+        &middot; <b><%= total_candidates %></b>&nbsp;total
+      </div>
+    <% else %>
+      <div class="pipeline-mini muted">No applicants yet</div>
+    <% end %>
+  </div>
+
+  <div class="board-wrap">
+    <div class="pipeline-board">
+      <% stage_order.each do |stage| %>
+        <% candidates = @candidates_by_stage[stage] || [] %>
+        <div class="pipeline-col" data-stage="<%= stage == "submitted" ? "new" : stage %>">
+          <div class="pipeline-col-head"><h4><%= stage == "submitted" ? "New" : stage.humanize %></h4><span class="count"><%= candidates.size %></span></div>
+          <div class="pipeline-col-body">
+            <% candidates.each do |candidate| %>
+              <div class="candidate-card">
+                <p class="cc-name"><%= candidate.full_name %></p>
+                <p class="cc-meta">Applied <%= time_ago_in_words(candidate.applied_at) %> ago · <%= candidate.email %></p>
+                <% if candidate.note.present? %>
+                  <p class="cc-note"><%= candidate.note %></p>
+                <% end %>
+
+                <% if stage == "hired" %>
+                  <div class="cc-hired-tag"><%= lucide_icon(:"check-circle") %>Employee record created</div>
+                  <% if candidate.hired_employee %>
+                    <div class="cc-foot cc-foot-end">
+                      <%= link_to "View profile", employee_path(candidate.hired_employee), class: "btn-ghost btn-sm" %>
+                    </div>
+                  <% end %>
+                <% else %>
+                  <div class="cc-foot">
+                    <%= form_with url: job_candidate_path(candidate), method: :patch, local: true do %>
+                      <% badge = BadgePresenter.new(candidate.stage) %>
+                      <select name="job_candidate[stage]" class="stage-select stage-select-<%= badge.category %>" onchange="this.form.submit()">
+                        <% stage_order.each do |option| %>
+                          <option value="<%= option %>" <%= "selected" if option == stage %>><%= option == "submitted" ? "New" : option.humanize %></option>
+                        <% end %>
+                      </select>
+                    <% end %>
+                    <% if stage == "offer" %>
+                      <span data-controller="modal" data-modal-open-value="<%= @reopen_candidate_id == candidate.id %>">
+                        <button type="button" class="btn-primary btn-sm" data-action="modal#open">Mark Hired</button>
+                        <%= render "shared/drawer", title: "From #{candidate.full_name}'s application" do %>
+                          <%= render "job_candidates/hire_form", candidate: candidate, job_opening: @job_opening, managers: @managers %>
+                        <% end %>
+                      </span>
+                    <% end %>
+                  </div>
+                <% end %>
+              </div>
+            <% end %>
+          </div>
         </div>
       <% end %>
     </div>
-  <% end %>
+  </div>
 </div>

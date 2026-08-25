@@ -1,49 +1,91 @@
 <% content_for :title, "Apply — #{@job_opening.title}" %>
 
+<%# Split panel — job details + form (chosen), reusing Login's exact
+    .auth-split mechanic — see
+    kos/decisions/ui/job-application-form-split-panel.md and
+    kos/decisions/ux-pages/job-application-form.html. No internal HRIS
+    chrome — this is the one page in the system a non-employee sees. %>
 <div class="auth-split">
   <div class="brand-pane">
-    <h1><%= @job_opening.title %></h1>
-    <p><%= @job_opening.description %></p>
+    <span class="wordmark"><span class="mark"><%= lucide_icon(:building, stroke_width: 2) %></span> <%= @job_opening.company.name %></span>
+
+    <div>
+      <h1 class="headline"><%= @job_opening.title %></h1>
+      <p class="job-meta">Posted <%= @job_opening.created_at.strftime("%b %-d, %Y") %></p>
+      <% if @job_opening.description.present? %>
+        <p class="desc"><%= @job_opening.description %></p>
+      <% end %>
+    </div>
   </div>
+
   <div class="form-pane">
-    <% if notice %><p class="flash flash-notice"><%= notice %></p><% end %>
+    <div class="form-col">
+      <% if notice %>
+        <div class="confirm-panel">
+          <div class="icon-circle"><%= lucide_icon(:"check-circle") %></div>
+          <h3>Application received</h3>
+          <p><%= notice %></p>
+        </div>
+      <% else %>
+        <div>
+          <h2>Apply for this role</h2>
+          <p class="lede">Takes about a minute — we'll email you once we've reviewed it.</p>
+        </div>
 
-    <%= form_with model: @candidate, url: careers_path(@job_opening.slug), local: true, multipart: true do |f| %>
-      <% if @candidate.errors.any? %>
-        <p class="flash flash-alert"><%= @candidate.errors.full_messages.to_sentence %></p>
-      <% end %>
-      <% if flash[:alert] %>
-        <p class="flash flash-alert"><%= flash[:alert] %></p>
-      <% end %>
+        <%= form_with model: @candidate, url: careers_path(@job_opening.slug), local: true, multipart: true do |f| %>
+          <% if flash[:alert] %>
+            <p class="field-error"><%= flash[:alert] %></p>
+          <% end %>
 
-      <div class="field">
-        <%= f.label :full_name, "Full name" %>
-        <%= f.text_field :full_name, required: true %>
-      </div>
-      <div class="field">
-        <%= f.label :email %>
-        <%= f.email_field :email, required: true %>
-      </div>
-      <div class="field">
-        <%= f.label :phone %>
-        <%= f.text_field :phone %>
-      </div>
-      <div class="field">
-        <%= f.label :resume, "Résumé" %>
-        <%= f.file_field :resume %>
-      </div>
-      <div class="field">
-        <%= f.label :note, "Anything else you'd like us to know?" %>
-        <%= f.text_area :note %>
-      </div>
-      <div class="field">
-        <label>
-          <%= check_box_tag "job_candidate[consent]", "1" %>
-          I consent to <%= @job_opening.company.name %> processing my personal data for
-          recruitment purposes, in accordance with the Data Privacy Act of 2012 (RA 10173).
-        </label>
-      </div>
-      <%= f.submit "Submit application", class: "btn btn-primary" %>
-    <% end %>
+          <div class="field">
+            <%= f.label :full_name, "Full name" %>
+            <div class="input-wrap">
+              <%= lucide_icon(:user, class: "icon-left") %>
+              <%= f.text_field :full_name, placeholder: "Juan Dela Cruz", required: true %>
+            </div>
+            <% if @candidate.errors[:full_name].any? %><p class="field-error"><%= @candidate.errors[:full_name].first %></p><% end %>
+          </div>
+
+          <div class="field">
+            <%= f.label :email, "Email address" %>
+            <div class="input-wrap">
+              <%= lucide_icon(:mail, class: "icon-left") %>
+              <%= f.email_field :email, placeholder: "juan@email.com", required: true %>
+            </div>
+            <% if @candidate.errors[:email].any? %><p class="field-error"><%= @candidate.errors[:email].first %></p><% end %>
+          </div>
+
+          <div class="field">
+            <%= f.label :phone, "Phone number" %>
+            <div class="input-wrap">
+              <%= lucide_icon(:phone, class: "icon-left") %>
+              <%= f.text_field :phone, placeholder: "0917 000 0000" %>
+            </div>
+          </div>
+
+          <div class="field">
+            <%= f.label :resume, "Résumé" %>
+            <label class="file-drop" for="job_candidate_resume">
+              <%= lucide_icon(:"upload-cloud") %>
+              <span><b>Click to upload</b> or drag and drop</span>
+              <span class="hint">PDF or DOCX, up to 5MB</span>
+            </label>
+            <%= f.file_field :resume, hidden: true %>
+          </div>
+
+          <div class="field">
+            <%= f.label :note, "Anything else you'd like us to know?" %>
+            <%= f.text_area :note, class: "plain-input", rows: 3 %>
+          </div>
+
+          <label class="consent-row">
+            <%= check_box_tag "job_candidate[consent]", "1" %>
+            I consent to <%= @job_opening.company.name %> collecting and processing my personal data for this job application, per the Data Privacy Act of 2012 (RA 10173).
+          </label>
+
+          <%= f.submit "Submit application", class: "btn-primary" %>
+        <% end %>
+      <% end %>
+    </div>
   </div>
 </div>

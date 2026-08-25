@@ -1,64 +1,62 @@
-<%= link_to "← Back to Reports", reports_path, class: "btn btn-ghost" %>
+<div class="reports-page">
+  <%= link_to reports_path, class: "back-link" do %>
+    <%= lucide_icon(:"chevron-left") %>Back to Reports
+  <% end %>
 
-<h1><%= @definition[:title] %></h1>
+  <div class="report-panel">
+    <div class="report-panel-head">
+      <h3><%= lucide_icon(@definition[:icon]) %><%= @definition[:title] %></h3>
+      <p><%= @definition[:description] %></p>
+    </div>
 
-<div class="card">
-  <%= form_with url: report_path(@key), method: :get, local: true do %>
-    <% case @definition[:filter]
-       when :as_of %>
-      <div class="field">
-        <%= label_tag :as_of, "As of" %>
-        <%= date_field_tag :as_of, params[:as_of].presence || Date.current %>
-      </div>
-    <% when :as_of_year %>
-      <div class="field">
-        <%= label_tag :year, "Year" %>
-        <%= number_field_tag :year, params[:year].presence || Date.current.year %>
-      </div>
-    <% when :date_range %>
-      <div class="field">
-        <%= label_tag :start_date, "From" %>
-        <%= date_field_tag :start_date, params[:start_date].presence || 1.month.ago.to_date %>
-      </div>
-      <div class="field">
-        <%= label_tag :end_date, "To" %>
-        <%= date_field_tag :end_date, params[:end_date].presence || Date.current %>
-      </div>
-    <% when :cutoff %>
-      <div class="field">
-        <%= label_tag :payroll_run_id, "Cutoff" %>
-        <%= select_tag :payroll_run_id,
-                        options_from_collection_for_select(@payroll_runs, :id, ->(run) { "#{run.period_start} – #{run.period_end}" }, params[:payroll_run_id]),
-                        include_blank: "Select a cutoff" %>
-      </div>
+    <%= form_with url: report_path(@key), method: :get, local: true, class: "report-toolbar" do %>
+      <% case @definition[:filter]
+         when :as_of %>
+        <div class="field-inline">
+          <%= label_tag :as_of, "As of" %>
+          <%= date_field_tag :as_of, params[:as_of].presence || Date.current %>
+        </div>
+      <% when :as_of_year %>
+        <div class="field-inline">
+          <%= label_tag :year, "Year" %>
+          <%= number_field_tag :year, params[:year].presence || Date.current.year %>
+        </div>
+      <% when :date_range %>
+        <div class="field-inline">
+          <%= label_tag :start_date, "From" %>
+          <%= date_field_tag :start_date, params[:start_date].presence || 1.month.ago.to_date %>
+        </div>
+        <div class="field-inline">
+          <%= label_tag :end_date, "To" %>
+          <%= date_field_tag :end_date, params[:end_date].presence || Date.current %>
+        </div>
+      <% when :cutoff %>
+        <div class="field-inline">
+          <%= label_tag :payroll_run_id, "Cutoff" %>
+          <%= select_tag :payroll_run_id,
+                          options_from_collection_for_select(@payroll_runs, :id, ->(run) { "#{run.period_start} – #{run.period_end}" }, params[:payroll_run_id]),
+                          include_blank: "Select a cutoff" %>
+        </div>
+      <% end %>
+      <% if @definition[:department_filter] %>
+        <div class="field-inline">
+          <%= label_tag :department, "Department" %>
+          <%= select_tag :department, options_for_select([ [ "All departments", "" ] ] + @departments, params[:department]) %>
+        </div>
+      <% end %>
+      <button type="submit" class="btn-ghost">Apply</button>
+      <div class="toolbar-spacer"></div>
+      <%= link_to report_path(@key, format: :csv, **request.query_parameters), class: "btn-primary" do %>
+        <%= lucide_icon(:download) %>Export CSV
+      <% end %>
     <% end %>
-    <button type="submit" class="btn btn-ghost">Apply</button>
-  <% end %>
-</div>
 
-<div class="card">
-  <% if @rows.empty? %>
-    <p>No data for this filter.</p>
-  <% else %>
-    <table>
-      <thead>
-        <tr>
-          <% @definition[:csv_headers].each do |header| %>
-            <th><%= header %></th>
-          <% end %>
-        </tr>
-      </thead>
-      <tbody>
-        <% @rows.each do |row| %>
-          <tr>
-            <% row.values.each do |value| %>
-              <td><%= value %></td>
-            <% end %>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  <% end %>
+    <div class="table-wrap">
+      <% if @rows.empty? %>
+        <p>No data for this filter.</p>
+      <% else %>
+        <%= render "reports/tables/#{@key.tr('-', '_')}", rows: @rows %>
+      <% end %>
+    </div>
+  </div>
 </div>
-
-<%= link_to "Export CSV", report_path(@key, format: :csv, **request.query_parameters), class: "btn btn-primary" %>

@@ -91,10 +91,9 @@ Rails.application.routes.draw do
   get "reports", to: "reports#index"
   get "reports/:id", to: "reports#show", as: :report
 
-  resources :job_openings, only: [ :index, :new, :create, :show, :edit, :update ]
+  resources :job_openings, only: [ :index, :create, :show, :update ]
   resources :job_candidates, only: [ :update ] do
     member do
-      get :new_hire
       post :hire
     end
   end
