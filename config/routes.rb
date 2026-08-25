@@ -72,7 +72,7 @@ Rails.application.routes.draw do
   end
 
   resources :roles_access, only: [ :index, :update ]
-  resources :rate_tables, only: [ :index, :edit, :update ]
+  resources :rate_tables, only: [ :index, :update ]
   resource :payroll_settings, only: [ :show, :update ]
   resources :payroll_runs, only: [ :index, :new, :create, :show ] do
     member do

@@ -30,29 +30,52 @@ class RateTablesControllerTest < ActionDispatch::IntegrationTest
     patch rate_table_path(rate_table), params: {
       rate_table: {
         effective_date: 1.day.ago.to_date,
-        brackets_json: rate_table.brackets.to_json,
-        fields_json: nil
+        brackets: [
+          { min: "0", max: "4249.99", employee_share: "180.00", employer_share: "380.00" },
+          { min: "4250.00", max: "", employee_share: "202.50", employer_share: "427.50" }
+        ]
       }
     }
 
     assert_redirected_to rate_tables_path
+    rate_table.reload
+    assert_equal 2, rate_table.brackets.size
+    assert_nil rate_table.brackets.last["max"]
   end
 
-  test "invalid JSON re-renders the edit form" do
+  test "blank effective date re-renders the index with the drawer open" do
     sign_in employees(:admin_amy)
     rate_table = rate_tables(:sss_acme)
 
     patch rate_table_path(rate_table), params: {
-      rate_table: { effective_date: Date.current, brackets_json: "not json", fields_json: nil }
+      rate_table: { effective_date: "", brackets: [ { min: "0", max: "", employee_share: "180.00", employer_share: "380.00" } ] }
     }
 
     assert_response :unprocessable_entity
   end
 
+  test "a fully blank extra bracket row is dropped, not saved" do
+    sign_in employees(:admin_amy)
+    rate_table = rate_tables(:sss_acme)
+
+    patch rate_table_path(rate_table), params: {
+      rate_table: {
+        effective_date: Date.current,
+        brackets: [
+          { min: "0", max: "", employee_share: "180.00", employer_share: "380.00" },
+          { min: "", max: "", employee_share: "", employer_share: "" }
+        ]
+      }
+    }
+
+    assert_redirected_to rate_tables_path
+    assert_equal 1, rate_table.reload.brackets.size
+  end
+
   test "admin cannot reach another company's rate table" do
     sign_in employees(:admin_gary)
 
-    get edit_rate_table_path(rate_tables(:sss_acme))
+    patch rate_table_path(rate_tables(:sss_acme)), params: { rate_table: { effective_date: Date.current } }
 
     assert_response :not_found
   end

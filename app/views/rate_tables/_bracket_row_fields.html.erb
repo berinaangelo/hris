@@ -1,0 +1,18 @@
+<%# One bracket row — locals: bracket (a hash, {} for the blank template
+    row) and shape ("shares" for SSS/Pag-IBIG: employee/employer share,
+    or "bir" for BIR: base tax + % over excess). Reuses the same
+    field[][subfield] array-of-hashes param convention and dynamic-rows
+    add/remove mechanic as team/review_cycles/_kpi_row_fields.html.erb —
+    see kos/decisions/ui/rate-tables-landing-cards-edit-drawer.md. %>
+<tr>
+  <td><%= number_field_tag "rate_table[brackets][][min]", bracket["min"], step: 0.01, class: "cell-input" %></td>
+  <td><%= number_field_tag "rate_table[brackets][][max]", bracket["max"], step: 0.01, placeholder: "No upper limit", class: "cell-input" %></td>
+  <% if shape == "bir" %>
+    <td><%= number_field_tag "rate_table[brackets][][base_amount]", bracket["base_amount"], step: 0.01, class: "cell-input" %></td>
+    <td><%= number_field_tag "rate_table[brackets][][percent_over_excess]", bracket["percent_over_excess"], step: 0.01, class: "cell-input" %></td>
+  <% else %>
+    <td><%= number_field_tag "rate_table[brackets][][employee_share]", bracket["employee_share"], step: 0.01, class: "cell-input" %></td>
+    <td><%= number_field_tag "rate_table[brackets][][employer_share]", bracket["employer_share"], step: 0.01, class: "cell-input" %></td>
+  <% end %>
+  <td><button type="button" class="row-del" data-action="dynamic-rows#remove" data-dynamic-rows-target="removeButton" aria-label="Remove bracket"><%= lucide_icon(:x) %></button></td>
+</tr>

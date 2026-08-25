@@ -1,12 +1,16 @@
 <% content_for :title, "My Payslips" %>
 
 <div class="payslips-page">
-  <h1>My Payslips</h1>
+  <h2 class="mb-3">My Payslips</h2>
 
   <% if @payslips.none? %>
-    <div class="card"><p>No finalized payslips yet.</p></div>
+    <div class="empty-state">
+      <%= lucide_icon(:banknote, class: "icon") %>
+      <h3>No payslips yet</h3>
+      <p>Your first payslip will show up here once payroll finalizes a cutoff you're included in.</p>
+    </div>
   <% else %>
-    <div class="card op2-body">
+    <div class="op2-body">
       <%= turbo_frame_tag "payslip_breakdown" do %>
         <%= render "breakdown", payslip: @pinned_payslip %>
       <% end %>

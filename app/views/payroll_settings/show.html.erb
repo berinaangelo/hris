@@ -1,25 +1,100 @@
-<h1>Payroll Settings</h1>
+<% content_for :title, "Payroll Settings" %>
 
-<div class="card">
-  <h2>13th Month Pay</h2>
-  <p>Mandated for rank-and-file employees under PD 851, with narrow exemptions only.</p>
-  <%= form_with model: @company, url: payroll_settings_path, method: :patch, local: true do |f| %>
-    <div class="field">
-      <label>
-        <%= f.check_box :thirteenth_month_pay_enabled %>
-        Enable 13th month pay for this company
-      </label>
+<%# Toggle + inline payout preview — see
+    kos/decisions/ui/thirteenth-month-toggle-inline-payout-preview.md
+    and kos/decisions/ui/payroll-settings-parked-overtime-deduction-defaults.md
+    (kos/decisions/ux-pages/payroll-settings.html, Option 2, chosen).
+    Pay Schedule and Overtime Rules/Deduction Defaults are locked
+    placeholders, not editable in v2 — no params for them. %>
+<div class="payroll-settings-page">
+  <div class="greet-block">
+    <div>
+      <h2>Payroll Settings</h2>
+      <p>Company-wide payroll configuration — pay schedule, statutory tables, 13th month pay</p>
     </div>
-    <%= f.submit "Save", class: "btn btn-primary" %>
-  <% end %>
-</div>
+  </div>
 
-<div class="card">
-  <h2>Pay Schedule</h2>
-  <p>Semi-monthly (fixed).</p>
-</div>
+  <div class="settings-card">
+    <div class="settings-row">
+      <div>
+        <h3>Pay Schedule<span class="lock-ic" title="Not configurable in v2"><%= lucide_icon(:lock) %></span></h3>
+        <p class="settings-desc">Semi-monthly, the PH standard — one schedule per company for v2.</p>
+      </div>
+      <span class="badge badge-neutral">Fixed for v2</span>
+    </div>
+    <div class="settings-fields">
+      <div class="settings-field"><label>Cutoff periods</label><p class="val">1st–15th, 16th–end of month</p></div>
+      <div class="settings-field"><label>Pay dates</label><p class="val">5th &amp; 20th</p></div>
+    </div>
+  </div>
 
-<div class="card">
-  <h2>Statutory Rate Tables</h2>
-  <p><%= link_to "Manage Rate Tables", rate_tables_path %></p>
+  <div class="settings-card">
+    <div class="settings-link-row">
+      <span class="ic"><%= lucide_icon(:building) %></span>
+      <div class="txt">
+        <h3>Statutory Rate Tables</h3>
+        <p>SSS, PhilHealth, Pag-IBIG, BIR withholding<% if @rate_tables_stale_count.positive? %> — <%= @rate_tables_stale_count %> of <%= @rate_tables_total_count %> not reviewed in over a year<% end %></p>
+      </div>
+      <%= link_to rate_tables_path, class: "link-btn" do %>
+        Open Rate Tables <%= lucide_icon(:"arrow-right") %>
+      <% end %>
+    </div>
+  </div>
+
+  <div class="settings-card">
+    <%= form_with model: @company, url: payroll_settings_path, method: :patch, data: { controller: "auto-submit" } do |f| %>
+      <div class="settings-row">
+        <div>
+          <h3>13th Month Pay</h3>
+          <p class="settings-desc">Mandated for rank-and-file employees under PD 851, with narrow exemptions only.</p>
+        </div>
+        <label class="toggle-switch">
+          <%= f.check_box :thirteenth_month_pay_enabled, class: "pref", data: { action: "change->auto-submit#submit" } %>
+          <span class="toggle-track"><span class="thumb"></span></span>
+        </label>
+      </div>
+    <% end %>
+
+    <% if @company.thirteenth_month_pay_enabled? %>
+      <div class="payout-preview">
+        <div class="formula-line">Formula: <b>total basic salary earned in <%= Date.current.year %> ÷ 12</b>, prorated by months worked.</div>
+        <div class="payout-stats">
+          <div class="payout-stat"><span class="num"><%= @employees_covered %></span><span class="lbl">Employees covered</span></div>
+          <div class="payout-stat"><span class="num">₱2,184,600.00</span><span class="lbl">Projected <%= Date.current.year %> payout (run-rate)</span></div>
+          <div class="payout-stat"><span class="num"><%= Date.new(Date.current.year, 12, 24).strftime("%b %-d, %Y") %></span><span class="lbl">Legal payout deadline</span></div>
+        </div>
+      </div>
+    <% else %>
+      <p class="disabled-note">13th month pay is currently <b>disabled</b> for this company — no payout will be computed at year-end.</p>
+    <% end %>
+  </div>
+
+  <div class="settings-card locked-card">
+    <div class="settings-row">
+      <div>
+        <h3>Overtime Rules<span class="lock-ic" title="Not configurable in v2"><%= lucide_icon(:lock) %></span></h3>
+        <p class="settings-desc">OT is entered as a manual line item per payroll run for v2 — automatic multiplier rules aren't wired up. Parked here for when payroll scope is revisited.</p>
+      </div>
+      <span class="badge badge-neutral">Parked for later</span>
+    </div>
+    <div class="settings-fields">
+      <div class="settings-field"><label>Regular OT multiplier</label><input class="disabled-input" type="text" value="1.25×" disabled /></div>
+      <div class="settings-field"><label>Rest day / holiday multiplier</label><input class="disabled-input" type="text" value="1.30×" disabled /></div>
+      <div class="settings-field"><label>Night differential</label><input class="disabled-input" type="text" value="10%" disabled /></div>
+    </div>
+  </div>
+
+  <div class="settings-card locked-card">
+    <div class="settings-row">
+      <div>
+        <h3>Deduction Defaults<span class="lock-ic" title="Not configurable in v2"><%= lucide_icon(:lock) %></span></h3>
+        <p class="settings-desc">Deductions are entered as manual line items per payroll run for v2 — no default rules apply automatically. Parked here for when payroll scope is revisited.</p>
+      </div>
+      <span class="badge badge-neutral">Parked for later</span>
+    </div>
+    <div class="settings-fields">
+      <div class="settings-field"><label>Cash advance repayment cap</label><input class="disabled-input" type="text" value="No cap set" disabled /></div>
+      <div class="settings-field"><label>Default deduction categories</label><input class="disabled-input" type="text" value="Bonus, Deduction, Cash advance, OT" disabled /></div>
+    </div>
+  </div>
 </div>

@@ -16,6 +16,15 @@ class PayslipsControllerTest < ActionDispatch::IntegrationTest
     assert_response :success
   end
 
+  test "an employee with no finalized payslips sees the empty state" do
+    sign_in employees(:worker_diane) # globex — no payroll run opened for that company
+
+    get payslips_path
+
+    assert_response :success
+    assert_match "No payslips yet", response.body
+  end
+
   test "an employee can view their own payslip" do
     sign_in employees(:worker_bob)
 
@@ -99,6 +108,20 @@ class PayslipsControllerTest < ActionDispatch::IntegrationTest
     assert reissue.draft?
     assert_equal @payslip.payslip_line_items.count, reissue.payslip_line_items.count
     assert_redirected_to payslip_path(reissue)
+  end
+
+  test "correction history timeline shows the voided version and the current reissue" do
+    sign_in employees(:admin_amy)
+    patch void_and_reissue_payslip_path(@payslip), params: { void_reason: "Overtime was entered incorrectly" }
+    reissue = @payslip.reload.reissued_version
+    reissue.update!(status: :finalized)
+
+    get payslip_path(reissue)
+
+    assert_response :success
+    assert_match "Voided", response.body
+    assert_match "Current", response.body
+    assert_match "Overtime was entered incorrectly", response.body
   end
 
   test "void and reissue fails on a payslip that isn't finalized" do

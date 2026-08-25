@@ -7,7 +7,7 @@ module ReviewCycles
       # department/company open — KPIs get filled in later from Team
       # Reviews' attach-KPIs flow). Anything submitted for real must be a
       # proper 3-5 set, matching the range shown in the UI's own add/remove
-      # controls (see kpi_rows_controller.js) — no partial 1-2 sets.
+      # controls (see dynamic_rows_controller.js) — no partial 1-2 sets.
       count = context.kpi_entries_params.size
       unless count.zero? || count.between?(3, 5)
         context.fail!(message: "Add between 3 and 5 KPIs, or leave this cycle without KPIs for now.")

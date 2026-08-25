@@ -1,24 +1,22 @@
 module RateTables
   # Edits replace the current table outright — no effective-dated
   # version history, per kos/decisions/schema/payroll-v2-schema.md.
+  #
+  # brackets/fields arrive as structured params (not JSON strings) from
+  # the landing-cards-and-drawer editor — see
+  # kos/decisions/ui/rate-tables-landing-cards-edit-drawer.md. A blank
+  # bracket row (an untouched extra row left over from "+ Add bracket")
+  # is dropped rather than saved.
   class UpdateRates
     include Interactor
 
     def call
       rate_table = context.rate_table
 
-      begin
-        brackets = parse_json(context.brackets_json)
-        fields = parse_json(context.fields_json)
-      rescue JSON::ParserError
-        context.fail!(message: "Brackets and fields must each be valid JSON.")
-        return
-      end
-
       rate_table.assign_attributes(
         effective_date: context.effective_date,
-        brackets: brackets,
-        fields: fields,
+        brackets: normalized_brackets,
+        fields: normalized_fields,
         updated_by: context.updated_by
       )
 
@@ -31,10 +29,19 @@ module RateTables
 
     private
 
-    def parse_json(raw)
-      return nil if raw.blank?
+    def normalized_brackets
+      Array(context.brackets).filter_map { |row| normalize_row(row) }
+    end
 
-      JSON.parse(raw)
+    def normalize_row(row)
+      normalized = row.to_h.transform_values { |value| value.presence && value.to_f }
+      return nil if normalized.values.all?(&:nil?)
+
+      normalized
+    end
+
+    def normalized_fields
+      context.fields.to_h.filter_map { |key, value| [ key, value.to_f ] if value.present? }.to_h
     end
   end
 end

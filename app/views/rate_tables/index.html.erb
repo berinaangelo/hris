@@ -1,37 +1,121 @@
-<h1>Rate Tables</h1>
-<p>Statutory deduction tables — SSS, PhilHealth, Pag-IBIG, BIR withholding. Editing here changes what future payroll runs look up; it never recomputes an already-finalized payslip.</p>
+<% content_for :title, "Rate Tables" %>
 
-<div class="card">
-  <table>
-    <thead>
-      <tr>
-        <th>Agency</th>
-        <th>Effective date</th>
-        <th>Last updated</th>
-        <th></th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      <% @rate_tables.each do |rate_table| %>
-        <tr>
-          <td><%= rate_table.display_name %></td>
-          <td><%= rate_table.effective_date %></td>
-          <td>
-            <% if rate_table.updated_by %>
-              <%= rate_table.updated_by.full_name %> · <%= time_ago_in_words(rate_table.updated_at) %> ago
-            <% else %>
-              Never
+<%# Landing cards + edit drawer — see
+    kos/decisions/ui/rate-tables-landing-cards-edit-drawer.md and
+    kos/decisions/ux-pages/rate-tables.html (Option 3, chosen). Each
+    card's drawer is directly editable (no view/edit toggle) since
+    opening it already signals intent to edit. %>
+<div class="rate-tables-page">
+  <div class="greet-block">
+    <div>
+      <h2>Rate Tables</h2>
+      <p>Statutory deduction tables — SSS, PhilHealth, Pag-IBIG, BIR withholding.</p>
+    </div>
+  </div>
+
+  <div class="stat-strip">
+    <div class="stat-tile">
+      <span class="num"><%= @rate_tables.size %></span>
+      <span class="lbl">Statutory tables</span>
+    </div>
+    <div class="stat-tile">
+      <span class="num"><%= @rate_tables_updated_within_year %></span>
+      <span class="lbl">Updated within a year</span>
+    </div>
+    <div class="stat-tile <%= "dot-caution" if @oldest_rate_table&.stale? %>">
+      <span class="num"><%= @oldest_rate_table ? time_ago_in_words(@oldest_rate_table.updated_at) : "—" %></span>
+      <span class="lbl">Oldest update<%= " (#{@oldest_rate_table.display_name})" if @oldest_rate_table %></span>
+    </div>
+  </div>
+
+  <div class="notice-band">
+    <%= lucide_icon(:"alert-triangle") %>
+    <p>Editing here changes what every future payroll run looks up — nothing is recomputed retroactively for already-finalized payslips.</p>
+  </div>
+
+  <div class="agency-grid">
+    <% @rate_tables.each do |rate_table| %>
+      <% shape = if rate_table.bir? then "bir"
+                 elsif rate_table.philhealth? then nil
+                 else "shares"
+                 end
+         bracket_headers = rate_table.bir? ? [ "From", "To", "Base Tax", "% Over Excess" ] : [ "From", "To", "Employee Share", "Employer Share" ]
+         content_count = case rate_table.agency
+                          when "philhealth" then pluralize(rate_table.fields.to_h.size, "rate field")
+                          when "pagibig" then "#{pluralize(rate_table.brackets.to_a.size, "bracket")} + cap"
+                          else pluralize(rate_table.brackets.to_a.size, "bracket")
+                          end %>
+      <div class="agency-card" data-controller="modal" data-modal-open-value="<%= rate_table.errors.any? %>">
+        <span class="ic"><%= lucide_icon(:building) %></span>
+        <h4><%= rate_table.display_name %></h4>
+        <div class="rt-meta"><span>Effective <%= rate_table.effective_date&.strftime("%b %-d, %Y") || "not set" %></span></div>
+        <div class="rt-meta">
+          <% if rate_table.updated_by %>
+            <span class="<%= "stale" if rate_table.stale? %>">Updated by <%= rate_table.updated_by.full_name %> · <%= time_ago_in_words(rate_table.updated_at) %> ago</span>
+          <% else %>
+            <span>Never updated</span>
+          <% end %>
+        </div>
+        <p class="cnt"><%= content_count %> on file</p>
+        <% if rate_table.stale? %>
+          <span class="badge badge-caution">Not reviewed in over a year</span>
+        <% end %>
+        <div class="card-foot">
+          <button type="button" class="btn-ghost" data-action="modal#open"><%= lucide_icon(:pencil) %>Edit rates</button>
+        </div>
+
+        <%= render "shared/drawer", title: rate_table.display_name do %>
+          <%= form_with model: rate_table, url: rate_table_path(rate_table), method: :patch, local: true do |f| %>
+            <div class="tt-drawer-field">
+              <%= f.label :effective_date, "Effective date" %>
+              <%= f.date_field :effective_date, required: true, class: "plain-input" %>
+            </div>
+
+            <% if shape %>
+              <div class="tt-drawer-section" data-controller="dynamic-rows" data-dynamic-rows-min-value="1" data-dynamic-rows-max-value="60">
+                <h5>Brackets</h5>
+                <div class="table-wrap">
+                  <table class="bracket-table">
+                    <thead>
+                      <tr><% bracket_headers.each do |h| %><th><%= h %></th><% end %><th></th></tr>
+                    </thead>
+                    <tbody data-dynamic-rows-target="rows">
+                      <% (rate_table.brackets.presence || [ {} ]).each do |bracket| %>
+                        <%= render "rate_tables/bracket_row_fields", bracket: bracket, shape: shape %>
+                      <% end %>
+                    </tbody>
+                  </table>
+                </div>
+                <template data-dynamic-rows-target="template">
+                  <%= render "rate_tables/bracket_row_fields", bracket: {}, shape: shape %>
+                </template>
+                <button type="button" class="add-row-btn" data-action="dynamic-rows#add" data-dynamic-rows-target="addButton"><%= lucide_icon(:plus) %>Add bracket</button>
+              </div>
             <% end %>
-          </td>
-          <td>
-            <% if rate_table.stale? %>
-              <span class="badge badge-caution">Not reviewed in over a year</span>
+
+            <% fields = rate_table.fields.to_h %>
+            <% if rate_table.philhealth? %>
+              <div class="tt-drawer-section">
+                <h5>Rate config</h5>
+                <div class="tt-drawer-field"><%= label_tag "rate_table_fields_employee_share_percent", "Employee share (%)" %><%= number_field_tag "rate_table[fields][employee_share_percent]", fields["employee_share_percent"], step: 0.01, class: "plain-input" %></div>
+                <div class="tt-drawer-field"><%= label_tag "rate_table_fields_employer_share_percent", "Employer share (%)" %><%= number_field_tag "rate_table[fields][employer_share_percent]", fields["employer_share_percent"], step: 0.01, class: "plain-input" %></div>
+                <div class="tt-drawer-field"><%= label_tag "rate_table_fields_income_floor", "Income floor" %><%= number_field_tag "rate_table[fields][income_floor]", fields["income_floor"], step: 0.01, class: "plain-input" %></div>
+                <div class="tt-drawer-field"><%= label_tag "rate_table_fields_income_ceiling", "Income ceiling" %><%= number_field_tag "rate_table[fields][income_ceiling]", fields["income_ceiling"], step: 0.01, class: "plain-input" %></div>
+              </div>
+            <% elsif rate_table.pagibig? %>
+              <div class="tt-drawer-section">
+                <h5>Cap</h5>
+                <div class="tt-drawer-field"><%= label_tag "rate_table_fields_compensation_cap", "Max compensation used for computation" %><%= number_field_tag "rate_table[fields][compensation_cap]", fields["compensation_cap"], step: 0.01, class: "plain-input" %></div>
+              </div>
             <% end %>
-          </td>
-          <td><%= link_to "Edit rates", edit_rate_table_path(rate_table), class: "btn btn-ghost" %></td>
-        </tr>
-      <% end %>
-    </tbody>
-  </table>
+
+            <div class="tt-drawer-foot">
+              <%= f.submit "Save changes", class: "btn-primary" %>
+              <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+            </div>
+          <% end %>
+        <% end %>
+      </div>
+    <% end %>
+  </div>
 </div>

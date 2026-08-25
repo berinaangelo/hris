@@ -72,60 +72,74 @@
   </div>
 
   <div class="table-wrap">
-    <table class="cptable">
-      <thead><tr><th>Employee</th><th>Certification</th><th>Expiry</th><th>Status</th><th></th></tr></thead>
-      <tbody>
-        <% @certifications.each do |certification| %>
-          <% days = (certification.expiry_date - Date.current).to_i %>
-          <tr>
-            <td>
-              <div class="who">
-                <span class="avatar"><%= certification.employee.first_name.first %><%= certification.employee.last_name.first %></span>
-                <div>
-                  <h4><%= certification.employee.full_name %></h4>
-                  <p><%= certification.employee.job_title %></p>
+    <% if @certifications.any? %>
+      <table class="cptable">
+        <thead><tr><th>Employee</th><th>Certification</th><th>Expiry</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          <% @certifications.each do |certification| %>
+            <% days = (certification.expiry_date - Date.current).to_i %>
+            <tr>
+              <td>
+                <div class="who">
+                  <span class="avatar"><%= certification.employee.first_name.first %><%= certification.employee.last_name.first %></span>
+                  <div>
+                    <h4><%= certification.employee.full_name %></h4>
+                    <p><%= certification.employee.job_title %></p>
+                  </div>
                 </div>
-              </div>
-            </td>
-            <td class="muted"><%= certification.cert_name %></td>
-            <td>
-              <div class="expiry-cell <%= "is-negative" if certification.expired? %> <%= "is-caution" if certification.expiring_soon? %>">
-                <span class="mono"><%= certification.expiry_date.strftime("%b %-d, %Y") %></span>
-                <% if certification.expired? %>
-                  <span class="rel">Expired <%= -days %> days ago</span>
-                <% elsif certification.expiring_soon? %>
-                  <span class="rel">Expires in <%= days %> days</span>
-                <% end %>
-              </div>
-            </td>
-            <td>
-              <% if certification.status == "valid" %>
-                <span class="muted">—</span>
-              <% else %>
-                <% badge = BadgePresenter.new(certification.status) %>
-                <span class="<%= badge.css_class %>"><%= badge.label %></span>
-              <% end %>
-            </td>
-            <td>
-              <span data-controller="modal" data-modal-open-value="<%= certification.errors.any? %>">
-                <button type="button" class="btn-ghost" data-action="modal#open"><%= lucide_icon(:pencil) %>Edit</button>
-                <%= render "shared/drawer", title: "Edit certification" do %>
-                  <p class="tt-drawer-note"><%= certification.employee.full_name %> · <%= certification.employee.job_title %></p>
-                  <%= form_with model: certification, url: certification_path(certification), local: true do |f| %>
-                    <%= render "form", f: f %>
-                    <div class="save-row">
-                      <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
-                      <%= f.submit "Save changes", class: "btn-primary" %>
-                    </div>
+              </td>
+              <td class="muted"><%= certification.cert_name %></td>
+              <td>
+                <div class="expiry-cell <%= "is-negative" if certification.expired? %> <%= "is-caution" if certification.expiring_soon? %>">
+                  <span class="mono"><%= certification.expiry_date.strftime("%b %-d, %Y") %></span>
+                  <% if certification.expired? %>
+                    <span class="rel">Expired <%= -days %> days ago</span>
+                  <% elsif certification.expiring_soon? %>
+                    <span class="rel">Expires in <%= days %> days</span>
                   <% end %>
-                  <%= button_to "Delete certification", certification_path(certification), method: :delete, class: "btn-danger-ghost", data: { turbo_confirm: "Delete this certification?" } %>
+                </div>
+              </td>
+              <td>
+                <% if certification.status == "valid" %>
+                  <span class="muted">—</span>
+                <% else %>
+                  <% badge = BadgePresenter.new(certification.status) %>
+                  <span class="<%= badge.css_class %>"><%= badge.label %></span>
                 <% end %>
-              </span>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-    <p class="muted">Showing <%= pluralize(@certifications.size, "certification") %>.</p>
+              </td>
+              <td>
+                <span data-controller="modal" data-modal-open-value="<%= certification.errors.any? %>">
+                  <button type="button" class="btn-ghost" data-action="modal#open"><%= lucide_icon(:pencil) %>Edit</button>
+                  <%= render "shared/drawer", title: "Edit certification" do %>
+                    <p class="tt-drawer-note"><%= certification.employee.full_name %> · <%= certification.employee.job_title %></p>
+                    <%= form_with model: certification, url: certification_path(certification), local: true do |f| %>
+                      <%= render "form", f: f %>
+                      <div class="save-row">
+                        <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+                        <%= f.submit "Save changes", class: "btn-primary" %>
+                      </div>
+                    <% end %>
+                    <%= button_to "Delete certification", certification_path(certification), method: :delete, class: "btn-danger-ghost", data: { turbo_confirm: "Delete this certification?" } %>
+                  <% end %>
+                </span>
+              </td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+      <p class="muted">Showing <%= pluralize(@certifications.size, "certification") %>.</p>
+    <% elsif params[:q].present? || params[:status].present? %>
+      <div class="empty-state">
+        <%= lucide_icon(:search, class: "icon") %>
+        <h3>No certifications match</h3>
+        <p>Try a different search term, or <%= link_to "clear filters", certifications_path %>.</p>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <%= lucide_icon(:"shield-check", class: "icon") %>
+        <h3>No certifications on record</h3>
+        <p>Once a cert is added for an employee, it'll show up here sorted by expiry date.</p>
+      </div>
+    <% end %>
   </div>
 </div>

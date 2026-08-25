@@ -1,8 +1,13 @@
 import { Controller } from "@hotwired/stimulus"
 
-// Dynamic 3-5 KPI row add/remove for the Team Reviews open-cycle and
-// attach-KPIs forms. Client-side min/max are UX guardrails only — the
-// real gate is ReviewCycles::CreateKpiEntries' own count check.
+// Generic add/remove-row controller for any table backed by a
+// `field[][subfield]` array-of-hashes param — clone a <template> row,
+// remove a row, keep min/max bounds. First use: 3-5 KPI rows on the Team
+// Reviews open-cycle/attach-KPIs forms (client-side min/max are UX
+// guardrails only there — the real gate is
+// ReviewCycles::CreateKpiEntries' own count check). Reused for Rate
+// Tables' bracket rows — see
+// kos/decisions/ui/rate-tables-landing-cards-edit-drawer.md.
 export default class extends Controller {
   static targets = ["rows", "template", "addButton", "removeButton"]
   static values = { min: Number, max: Number }

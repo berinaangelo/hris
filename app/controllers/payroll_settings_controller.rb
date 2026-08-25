@@ -2,6 +2,9 @@ class PayrollSettingsController < ApplicationController
   def show
     authorize :payroll_settings, :show?
     @company = current_employee.company
+    @employees_covered = @company.employees.active.count
+    @rate_tables_stale_count = @company.rate_tables.select(&:stale?).size
+    @rate_tables_total_count = @company.rate_tables.size
   end
 
   def update

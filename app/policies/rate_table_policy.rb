@@ -9,10 +9,6 @@ class RateTablePolicy < ApplicationPolicy
     user.admin? && record.company_id == user.company_id
   end
 
-  def edit?
-    update?
-  end
-
   class Scope < Scope
     def resolve
       return scope.none unless user.admin?
