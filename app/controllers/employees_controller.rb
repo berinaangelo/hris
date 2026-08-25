@@ -9,6 +9,7 @@ class EmployeesController < ApplicationController
     # kos/decisions/ui/people-directory-card-grid-with-list-toggle.md.
     @employees = @employees.where.not(status: :offboarded) unless params[:show_offboarded].present?
     @departments = policy_scope(Employee).distinct.pluck(:department).compact.sort
+    @pagy, @employees = pagy(@employees)
   end
 
   def new

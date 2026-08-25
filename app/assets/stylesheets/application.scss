@@ -1079,6 +1079,36 @@ dialog.app-modal.app-drawer::backdrop { background: rgba(27, 42, 74, 0.45); }
   }
 }
 
+// ---------- Attendance Edit Sign-offs (queue cards) ----------
+// See kos/decisions/ui/attendance-edit-signoffs-queue-cards.md — 2nd
+// reuse of Team Approvals' own queue-live/req-item mechanic (same
+// "admin reviews a small pending queue" shape); Reject opens the
+// shared drawer for a confirm step instead of Team Approvals' note
+// textarea, since RejectEdit takes no decision-note field.
+
+.attendance-edit-approvals-page {
+  .greet-block { @include greet-block; }
+
+  .queue-live { display: flex; flex-direction: column; }
+  .req-item {
+    display: flex; align-items: center; gap: 1rem; padding: 1rem 0; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+    &:last-child { border-bottom: none; }
+    .who {
+      h4 { font-size: 0.9375rem; font-weight: 700; }
+      p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.1rem; }
+    }
+    .mid {
+      flex: 1; min-width: 220px;
+      .edit-line { font-size: 0.875rem; color: var(--ink-light); b { color: var(--ink); font-weight: 600; } }
+      .times { font-size: 0.8125rem; margin-top: 0.15rem; }
+    }
+    .actions {
+      display: flex; align-items: center; gap: 0.5rem; flex: 0 0 auto;
+      .btn-primary { display: inline-flex; align-items: center; gap: 0.4rem; svg { width: 15px; height: 15px; } }
+    }
+  }
+}
+
 // ---------- Team Calendar (week agenda) ----------
 // See kos/decisions/ui/team-calendar-week-agenda.md.
 
@@ -1359,6 +1389,14 @@ dialog.app-modal.app-drawer::backdrop { background: rgba(27, 42, 74, 0.45); }
   .who h4 { font-size: 0.875rem; font-weight: 700; }
   .muted { color: var(--neutral); }
 }
+
+// Reusable pagination footer — first used by People Directory, shared by
+// any future paginated list per kos/decisions/rails-datatable-pagy-turbo-frame-pattern.md.
+.pagination-bar {
+  display: flex; align-items: center; justify-content: space-between; padding-top: 1.25rem; gap: 1rem; flex-wrap: wrap;
+  p { font-size: 0.8125rem; color: var(--neutral); }
+}
+.pagination-controls { display: flex; gap: 0.4rem; }
 
 // ---------- People Directory (photo-forward card grid + list toggle) ----------
 // See kos/decisions/ui/people-directory-card-grid-with-list-toggle.md.
@@ -1730,3 +1768,57 @@ $role-chip-states: employee, manager, admin;
 }
 
 .save-row { display: flex; gap: 0.6rem; justify-content: flex-end; padding-top: 0.25rem; }
+
+// ============================================================
+// Compliance / Certifications — "Pinned attention + full list" (Option
+// 3) plus its Add/Edit drawer, folded into this page rather than
+// separate new/edit routes. See
+// kos/decisions/ui/compliance-certifications-pinned-attention-full-list.md,
+// kos/decisions/ui/compliance-certification-form-right-side-drawer.md,
+// and kos/decisions/ux-pages/compliance-certifications.html. Everything
+// else this page needs (toolbar/search/chip filters, .btn-primary,
+// drawer chrome, .plain-input/.plain-select, .fixed-note, .save-row) is
+// already global from earlier batches.
+// ============================================================
+
+.certifications-page {
+  .greet-block { @include greet-block; }
+
+  .attn-panel {
+    background: var(--caution-bg); border: 1px solid var(--caution-text); border-radius: var(--radius);
+    padding: 1rem 1.1rem; margin-bottom: 1.25rem;
+  }
+  .attn-panel-head {
+    display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.75rem;
+    svg { width: 16px; height: 16px; color: var(--caution-text); flex: 0 0 auto; }
+    h3 { font-size: 0.8125rem; font-weight: 700; color: var(--caution-text); }
+  }
+  .attn-strip { display: flex; gap: 0.6rem; overflow-x: auto; padding-bottom: 0.15rem; }
+  .attn-chip {
+    flex: 0 0 auto; display: flex; align-items: center; gap: 0.55rem; background: var(--white);
+    border: 1px solid var(--border); border-radius: 8px; padding: 0.55rem 0.75rem; min-width: 200px;
+    .avatar { width: 28px; height: 28px; font-size: 0.6875rem; }
+    .txt {
+      h5 { font-size: 0.75rem; font-weight: 700; white-space: nowrap; }
+      p { font-size: 0.6875rem; color: var(--neutral); white-space: nowrap; margin-top: 0.1rem; }
+    }
+    &.is-negative .txt p { color: var(--negative-text); }
+    &.is-caution .txt p { color: var(--caution-text); }
+  }
+
+  .cptable {
+    @include data-table($td-padding: 0.75rem, $zebra: false, $hover-highlight: true, $min-width: 640px);
+    .who {
+      display: flex; align-items: center; gap: 0.65rem;
+      h4 { font-size: 0.875rem; font-weight: 700; }
+      p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.05rem; }
+    }
+    .muted { color: var(--neutral); font-size: 0.8125rem; }
+  }
+  .expiry-cell {
+    display: flex; flex-direction: column; gap: 0.15rem;
+    .rel { font-size: 0.75rem; color: var(--neutral); }
+    &.is-negative .rel { color: var(--negative-text); }
+    &.is-caution .rel { color: var(--caution-text); }
+  }
+}

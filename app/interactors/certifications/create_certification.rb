@@ -10,10 +10,12 @@ module Certifications
 
       certification = Certification.new(context.certification_params)
       certification.employee = context.employee
+      # Set before save (not only on success) so a failed create still
+      # hands the controller back the validated, error-carrying instance
+      # to re-render with — same fix as Employees::CreateRecord.
+      context.certification = certification
 
-      if certification.save
-        context.certification = certification
-      else
+      unless certification.save
         context.fail!(message: certification.errors.full_messages.to_sentence)
       end
     end

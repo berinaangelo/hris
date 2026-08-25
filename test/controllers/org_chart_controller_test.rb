@@ -11,6 +11,17 @@ class OrgChartControllerTest < ActionDispatch::IntegrationTest
     assert_select "a[href=?]", employee_path(employees(:manager_jane))
   end
 
+  test "offboarded employees don't appear on the chart" do
+    sign_in employees(:admin_amy)
+    offboarded = employees(:worker_bob)
+    offboarded.update!(status: :offboarded, last_working_day: 1.week.ago)
+
+    get org_chart_path
+
+    assert_response :success
+    assert_select "a[href=?]", employee_path(offboarded), count: 0
+  end
+
   test "a manager is forbidden from viewing the org chart" do
     sign_in employees(:manager_jane)
 

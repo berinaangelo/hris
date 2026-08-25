@@ -88,4 +88,21 @@
       </table>
     </div>
   </div>
+
+  <div class="pagination-bar">
+    <p>Showing <%= @pagy.from %>–<%= @pagy.to %> of <%= @pagy.count %></p>
+    <div class="pagination-controls">
+      <% pagination_params = { q: params[:q], department: params[:department], show_offboarded: params[:show_offboarded] } %>
+      <% if @pagy.previous %>
+        <%= link_to "Prev", employees_path(pagination_params.merge(page: @pagy.previous)), class: "btn-ghost" %>
+      <% else %>
+        <button class="btn-ghost" type="button" disabled>Prev</button>
+      <% end %>
+      <% if @pagy.next %>
+        <%= link_to "Next", employees_path(pagination_params.merge(page: @pagy.next)), class: "btn-ghost" %>
+      <% else %>
+        <button class="btn-ghost" type="button" disabled>Next</button>
+      <% end %>
+    </div>
+  </div>
 </div>

@@ -86,7 +86,7 @@ Rails.application.routes.draw do
     end
     resources :line_items, only: [ :create, :update, :destroy ], controller: "payslips/line_items"
   end
-  resources :certifications, only: [ :index, :new, :create, :edit, :update, :destroy ]
+  resources :certifications, only: [ :index, :create, :update, :destroy ]
   resources :company_review_cycles, only: [ :index, :new, :create, :show ]
   get "reports", to: "reports#index"
   get "reports/:id", to: "reports#show", as: :report

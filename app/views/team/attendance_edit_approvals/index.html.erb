@@ -1,44 +1,83 @@
-<h1>Attendance edit sign-offs</h1>
+<% content_for :title, "Attendance Sign-offs" %>
 
-<div class="card">
-  <% if @pending.any? %>
-    <table>
-      <thead><tr><th>Employee</th><th>Date</th><th>Clock in</th><th>Clock out</th><th>Edited by</th><th></th></tr></thead>
-      <tbody>
+<%# Queue cards — 2nd reuse of Team Approvals' own queue-live/req-item
+    mechanic (same "admin reviews a small pending queue" shape). See
+    kos/decisions/ui/attendance-edit-signoffs-queue-cards.md and
+    kos/decisions/ux-pages/attendance-edit-signoffs.html. %>
+<div class="attendance-edit-approvals-page">
+  <div class="greet-block">
+    <h2>Attendance edit sign-offs</h2>
+    <p><%= pluralize(@pending.size, "edit") %> waiting on you</p>
+  </div>
+
+  <div class="card">
+    <% if @pending.any? %>
+      <div class="queue-live">
         <% @pending.each do |record| %>
-          <tr>
-            <td><%= record.employee.full_name %></td>
-            <td><%= record.date %></td>
-            <td><%= record.clock_in_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
-            <td><%= record.clock_out_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
-            <td><%= record.edited_by.full_name %></td>
-            <td>
-              <%= button_to "Approve", approve_team_attendance_edit_approval_path(record), method: :patch, class: "btn btn-primary" %>
-              <%= button_to "Reject", reject_team_attendance_edit_approval_path(record), method: :patch, class: "btn btn-danger-outline" %>
-            </td>
-          </tr>
+          <div class="req-item">
+            <span class="avatar"><%= record.employee.first_name.first %><%= record.employee.last_name.first %></span>
+            <div class="who">
+              <h4><%= record.employee.full_name %></h4>
+              <p><%= record.employee.job_title %></p>
+            </div>
+            <div class="mid">
+              <p class="edit-line">Edited by <b><%= record.edited_by.full_name %></b> · <%= record.date.strftime("%b %-d, %Y") %></p>
+              <p class="times mono">
+                <%= record.clock_in_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p")&.strip || "—" %>
+                – <%= record.clock_out_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p")&.strip || "—" %>
+              </p>
+            </div>
+            <div class="actions">
+              <%= button_to approve_team_attendance_edit_approval_path(record), method: :patch, class: "btn-primary" do %>
+                <%= lucide_icon(:"circle-check") %>Approve
+              <% end %>
+              <span data-controller="modal">
+                <button type="button" class="btn-danger-ghost" data-action="modal#open">
+                  <%= lucide_icon(:x) %>Reject
+                </button>
+                <%= render "shared/drawer", title: "Reject #{record.employee.full_name}'s edit" do %>
+                  <p class="tt-drawer-note">
+                    Edited by <%= record.edited_by.full_name %> · <%= record.date.strftime("%b %-d, %Y") %> ·
+                    <%= record.clock_in_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p")&.strip || "—" %>
+                    – <%= record.clock_out_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p")&.strip || "—" %>.
+                    This can't be undone from here, and it won't change the punch itself — a new edit does that.
+                  </p>
+                  <div class="tt-drawer-foot">
+                    <%= button_to "Reject edit", reject_team_attendance_edit_approval_path(record), method: :patch, class: "btn-danger-ghost" %>
+                    <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+                  </div>
+                <% end %>
+              </span>
+            </div>
+          </div>
         <% end %>
-      </tbody>
-    </table>
-  <% else %>
-    <p>You're all caught up.</p>
+      </div>
+    <% else %>
+      <div class="empty-state">
+        <%= lucide_icon(:"circle-check", class: "icon") %>
+        <h3>You're all caught up</h3>
+        <p>No pending sign-offs right now.</p>
+      </div>
+    <% end %>
+  </div>
+
+  <% if @decided.any? %>
+    <div class="card">
+      <div class="list-head"><h3>Recently decided</h3></div>
+      <div class="table-wrap">
+        <table class="dectable">
+          <thead><tr><th>Employee</th><th>Date</th><th>Status</th></tr></thead>
+          <tbody>
+            <% @decided.each do |record| %>
+              <tr>
+                <td><%= record.employee.full_name %></td>
+                <td class="mono"><%= record.date.strftime("%b %-d, %Y") %></td>
+                <td><% badge = BadgePresenter.new(record.edit_approval_status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
   <% end %>
 </div>
-
-<% if @decided.any? %>
-  <div class="card">
-    <h2>Recently decided</h2>
-    <table>
-      <thead><tr><th>Employee</th><th>Date</th><th>Status</th></tr></thead>
-      <tbody>
-        <% @decided.each do |record| %>
-          <tr>
-            <td><%= record.employee.full_name %></td>
-            <td><%= record.date %></td>
-            <td><% badge = BadgePresenter.new(record.edit_approval_status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-  </div>
-<% end %>

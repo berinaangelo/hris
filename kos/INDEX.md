@@ -485,6 +485,16 @@ structure below. Read this first; open only the files you actually need.
   validation demo are taken straight from the real form/model; built
   directly, no three-option comparison; mockup at
   [decisions/ux-pages/attendance-corrections.html](decisions/ux-pages/attendance-corrections.html)
+- [attendance-edit-signoffs-queue-cards](decisions/ui/attendance-edit-signoffs-queue-cards.md)
+  — Attendance Edit Sign-offs (Company, HR-Admin only), the oversight
+  inbox for manager-made manual attendance edits; the feature shipped
+  fully wired without ever getting a mockup, closed that gap; 2nd reuse
+  of Team Approvals' own queue-live/req-item mechanic, Approve one
+  click, Reject opens the shared drawer for a confirm step (no
+  decision-note field — none exists on the real interactor), chosen
+  over a properly-styled flat table and a split list + detail drawer;
+  mockup at
+  [decisions/ux-pages/attendance-edit-signoffs.html](decisions/ux-pages/attendance-edit-signoffs.html)
 
 ## Schema
 - [core-v1-schema](decisions/schema/core-v1-schema.md) — companies,

@@ -15,9 +15,6 @@ class CertificationsControllerTest < ActionDispatch::IntegrationTest
     get certifications_path
     assert_redirected_to root_path
 
-    get new_certification_path
-    assert_redirected_to root_path
-
     post certifications_path, params: { certification: { employee_id: employees(:worker_bob).id, cert_name: "Test", expiry_date: 1.year.from_now.to_date } }
     assert_redirected_to root_path
   end
@@ -51,6 +48,16 @@ class CertificationsControllerTest < ActionDispatch::IntegrationTest
     assert_response :unprocessable_entity
   end
 
+  test "adding a certification fails validation with no employee selected" do
+    sign_in employees(:admin_amy)
+
+    assert_no_difference "Certification.count" do
+      post certifications_path, params: { certification: { employee_id: "", cert_name: "Safety Officer", expiry_date: 1.year.from_now.to_date } }
+    end
+
+    assert_response :unprocessable_entity
+  end
+
   test "admin can update a certification" do
     sign_in employees(:admin_amy)
     certification = certifications(:carol_forklift_expiring_soon)
@@ -74,8 +81,9 @@ class CertificationsControllerTest < ActionDispatch::IntegrationTest
 
   test "admin cannot reach another company's certification" do
     sign_in employees(:admin_gary)
+    certification = certifications(:carol_forklift_expiring_soon)
 
-    get edit_certification_path(certifications(:carol_forklift_expiring_soon))
+    patch certification_path(certification), params: { certification: { employee_id: certification.employee_id, cert_name: certification.cert_name, expiry_date: 2.years.from_now.to_date } }
 
     assert_response :not_found
   end

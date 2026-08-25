@@ -1,0 +1,595 @@
+<title>HRIS Attendance Edit Sign-offs</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Work+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+
+<style>
+  /* Single-theme by design, mirroring the product's own decided palette —
+     see decisions/ui/color-palette-ink-and-amber.md — dark mode is
+     explicitly deferred for v1 (decisions/ui/dark-mode-deferred-tokenize-colors-now.md). */
+
+  :root {
+    --ink: #1B2A4A;
+    --ink-light: #3E5378;
+    --accent: #E8630A;
+    --accent-hover: #CB550A;
+    --neutral: #697488;
+    --surface: #F6F7F9;
+    --white: #FFFFFF;
+    --danger: #DC2626;
+    --border: #E1E5EB;
+    --shadow-card: 0 1px 2px rgba(27, 42, 74, 0.06), 0 12px 28px -10px rgba(27, 42, 74, 0.22);
+    --font-display: 'Archivo', 'Helvetica Neue', Arial, sans-serif;
+    --font-body: 'Work Sans', 'Helvetica Neue', Arial, sans-serif;
+    --font-mono: 'IBM Plex Mono', ui-monospace, SFMono-Regular, monospace;
+    --radius: 10px;
+    --t: 180ms ease;
+
+    /* badge system — decisions/ui/badge-system-four-categories.md */
+    --badge-positive-bg: #E7F6EC; --badge-positive-fg: #14532D;
+    --badge-caution-bg:  #FEF3E2; --badge-caution-fg:  #78350F;
+    --badge-negative-bg: #FCE8E8; --badge-negative-fg: #7F1D1D;
+    --badge-neutral-bg:  #E9ECF1; --badge-neutral-fg:  #24344C;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { margin: 0; background: var(--surface); color: var(--ink); font-family: var(--font-body); -webkit-font-smoothing: antialiased; }
+  h1, h2, h3 { font-family: var(--font-display); margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: inherit; }
+  button { font: inherit; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.001ms !important; animation-duration: 0.001ms !important; }
+  }
+
+  /* ---------- page chrome ---------- */
+
+  .page-head { background: var(--ink); color: var(--white); padding: 1.75rem 1.5rem 0; }
+  .page-head-inner { max-width: 1200px; margin: 0 auto; }
+  .eyebrow { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #A9B4CB; }
+  .page-head h1 { font-size: clamp(1.5rem, 1.1rem + 1.5vw, 2rem); font-weight: 800; margin-top: 0.4rem; }
+  .page-head p.sub { font-size: 0.9375rem; color: #C7CEDE; max-width: 68ch; margin-top: 0.6rem; line-height: 1.5; }
+
+  .assumptions {
+    max-width: 1200px; margin: 1.1rem auto 0; padding: 0.9rem 1rem;
+    background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.14);
+    border-radius: 8px; font-size: 0.8125rem; line-height: 1.55; color: #D6DBE8;
+  }
+  .assumptions b { color: var(--white); font-weight: 600; }
+
+  .tabbar { max-width: 1200px; margin: 1.1rem auto 0; display: flex; gap: 0.4rem; overflow-x: auto; padding-bottom: 1.1rem; }
+  .tabbar label {
+    flex: 0 0 auto; display: flex; align-items: baseline; gap: 0.4rem; padding: 0.55rem 0.95rem;
+    border-radius: 999px; font-size: 0.8125rem; font-weight: 600; color: #C7CEDE; cursor: pointer;
+    transition: background var(--t), color var(--t); white-space: nowrap;
+  }
+  .tabbar label .n { font-family: var(--font-display); font-weight: 800; opacity: 0.65; }
+  .tabbar label:hover { background: rgba(255,255,255,0.08); }
+  .chosen-badge {
+    font-size: 0.6875rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase;
+    color: var(--white); background: var(--accent); padding: 0.1rem 0.4rem; border-radius: 999px;
+  }
+  input.tab, input.state { position: absolute; opacity: 0; pointer-events: none; }
+  #tab1:checked ~ .page .tabbar label[for="tab1"],
+  #tab2:checked ~ .page .tabbar label[for="tab2"],
+  #tab3:checked ~ .page .tabbar label[for="tab3"] { background: var(--white); color: var(--ink); }
+  #tab1:checked ~ .page .tabbar label[for="tab1"] .n,
+  #tab2:checked ~ .page .tabbar label[for="tab2"] .n,
+  #tab3:checked ~ .page .tabbar label[for="tab3"] .n { color: var(--accent); opacity: 1; }
+
+  .stage { padding: 2.25rem 1.5rem 4rem; display: flex; justify-content: center; }
+  .frame-shell { width: 100%; max-width: 1200px; display: none; }
+  .frame { display: flex; flex-direction: column; gap: 1.25rem; }
+  #tab1:checked ~ .page .stage .frame-shell[data-n="1"],
+  #tab2:checked ~ .page .stage .frame-shell[data-n="2"],
+  #tab3:checked ~ .page .stage .frame-shell[data-n="3"] { display: block; }
+
+  .device { background: var(--white); border-radius: 14px; box-shadow: var(--shadow-card); border: 1px solid var(--border); overflow: hidden; position: relative; }
+
+  .rationale {
+    background: var(--white); border-left: 3px solid var(--accent); border-radius: 0 8px 8px 0;
+    padding: 1rem 1.15rem; display: grid; gap: 0.75rem; grid-template-columns: 1fr;
+  }
+  @media (min-width: 720px) { .rationale { grid-template-columns: 1fr 1fr; } }
+  .rationale h3 { font-size: 0.75rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--accent); margin-bottom: 0.35rem; }
+  .rationale p { font-size: 0.875rem; line-height: 1.55; color: var(--ink-light); }
+
+  /* ---------- shared app nav (Company active, Andrea Cruz — HR Admin) ---------- */
+
+  .app-nav { background: var(--ink); color: var(--white); display: flex; align-items: center; gap: 1.25rem; padding: 0 1.25rem; height: 52px; }
+  .wordmark { font-family: var(--font-display); font-weight: 800; font-size: 1rem; display: inline-flex; align-items: center; gap: 0.4rem; }
+  .wordmark .mark { width: 20px; height: 20px; border-radius: 6px; background: var(--accent); display: inline-flex; align-items: center; justify-content: center; color: var(--white); flex: 0 0 auto; }
+  .wordmark .mark svg { width: 12px; height: 12px; }
+  .nav-tabs { display: flex; align-items: center; gap: 0.3rem; }
+  .nav-tabs a { display: inline-flex; align-items: center; gap: 0.4rem; padding: 0.4rem 0.75rem; border-radius: 999px; font-size: 0.8125rem; font-weight: 600; text-decoration: none; color: #B9C2D6; }
+  .nav-tabs a.active { background: rgba(255,255,255,0.14); color: var(--white); }
+  .nav-spacer { flex: 1; }
+  .nav-avatar { width: 28px; height: 28px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-size: 0.75rem; font-weight: 600; }
+
+  /* ---------- badges ---------- */
+
+  .badge { display: inline-flex; align-items: center; padding: 0.22rem 0.55rem; border-radius: 999px; font-family: var(--font-mono); font-size: 0.6875rem; font-weight: 500; letter-spacing: 0.03em; text-transform: uppercase; }
+  .badge-positive { background: var(--badge-positive-bg); color: var(--badge-positive-fg); }
+  .badge-caution  { background: var(--badge-caution-bg);  color: var(--badge-caution-fg); }
+  .badge-negative { background: var(--badge-negative-bg); color: var(--badge-negative-fg); }
+  .badge-neutral  { background: var(--badge-neutral-bg);  color: var(--badge-neutral-fg); }
+
+  /* ---------- buttons ---------- */
+
+  .btn-primary {
+    background: var(--accent); color: var(--white); border: none; border-radius: 8px; padding: 0.6rem 0.95rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; display: inline-flex; align-items: center;
+    justify-content: center; gap: 0.4rem; transition: background var(--t), transform 80ms ease; white-space: nowrap;
+  }
+  .btn-primary:hover { background: var(--accent-hover); }
+  .btn-primary:active { transform: translateY(1px); }
+  .btn-primary svg { width: 14px; height: 14px; }
+
+  .btn-ghost {
+    background: none; border: 1px solid var(--border); color: var(--ink); border-radius: 8px; padding: 0.6rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: border-color var(--t), background var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-ghost:hover { background: var(--surface); }
+
+  .btn-danger-ghost {
+    background: var(--white); border: 1px solid #F3C6C6; color: var(--danger); border-radius: 8px; padding: 0.6rem 0.9rem;
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: background var(--t), border-color var(--t);
+    display: inline-flex; align-items: center; gap: 0.4rem;
+  }
+  .btn-danger-ghost:hover { background: var(--badge-negative-bg); }
+  .btn-danger-ghost svg { width: 14px; height: 14px; }
+
+  .icon-btn { width: 26px; height: 26px; border-radius: 6px; border: 1px solid var(--border); background: var(--white); color: var(--neutral); display: inline-flex; align-items: center; justify-content: center; cursor: pointer; flex: 0 0 auto; transition: background var(--t), color var(--t); }
+  .icon-btn svg { width: 13px; height: 13px; }
+  .icon-btn:hover { background: var(--surface); color: var(--ink); }
+
+  /* ---------- shared avatar / list head / toolbar ---------- */
+
+  .avatar { width: 36px; height: 36px; border-radius: 999px; background: var(--ink-light); color: var(--white); display: inline-flex; align-items: center; justify-content: center; font-family: var(--font-display); font-weight: 700; font-size: 0.8125rem; flex: 0 0 auto; }
+  .avatar-lg { width: 44px; height: 44px; font-size: 0.9375rem; }
+
+  .greet-block { padding: 1.75rem 2rem 0; }
+  .greet-block h2 { font-size: 1.35rem; font-weight: 700; }
+  .greet-block p { font-size: 0.875rem; color: var(--neutral); margin-top: 0.35rem; }
+
+  .list-head { display: flex; align-items: center; justify-content: space-between; padding: 1.5rem 2rem 1rem; gap: 1rem; flex-wrap: wrap; }
+  .list-head h3 { font-size: 1rem; font-weight: 700; }
+  .toolbar-count { font-size: 0.8125rem; color: var(--neutral); white-space: nowrap; }
+
+  .empty-row { padding: 2.5rem 2rem; text-align: center; color: var(--neutral); font-size: 0.875rem; }
+
+  /* ---------- shared "who edited it" line ---------- */
+
+  .edit-line { font-size: 0.8125rem; color: var(--ink-light); }
+  .edit-line b { color: var(--ink); font-weight: 600; }
+  .times mono, .mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; }
+
+  /* ---------- table (shared "recently decided" + Option 1's pending table) ---------- */
+
+  .table-wrap { overflow-x: auto; }
+  .dirtable { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 640px; }
+  .dirtable th { text-align: left; font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--neutral); padding: 0.6rem 0.75rem; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .dirtable td { padding: 0 0.75rem; height: 50px; border-bottom: 1px solid var(--border); vertical-align: middle; white-space: nowrap; }
+  .dirtable tbody tr:nth-child(even) { background: var(--surface); }
+  .dirtable tr:last-child td { border-bottom: none; }
+  .dirtable .who { display: flex; align-items: center; gap: 0.6rem; }
+  .dirtable .who h4 { font-size: 0.875rem; font-weight: 700; }
+  .dirtable .mono { color: var(--ink); }
+  .dirtable .actions-cell { display: flex; gap: 0.5rem; padding-top: 0.5rem; padding-bottom: 0.5rem; }
+
+  /* ---------- Option 2: queue cards (Team Approvals mechanic) ---------- */
+
+  .queue-live { display: flex; flex-direction: column; }
+  .req-item { display: flex; align-items: center; gap: 1rem; padding: 1rem 2rem; border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+  .req-item .who h4 { font-size: 0.9375rem; font-weight: 700; }
+  .req-item .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.1rem; }
+  .req-item .mid { flex: 1; min-width: 240px; }
+  .req-item .mid .line1 { font-size: 0.875rem; }
+  .req-item .times { font-size: 0.8125rem; color: var(--ink-light); margin-top: 0.15rem; }
+  .req-item .actions { display: flex; gap: 0.5rem; flex: 0 0 auto; }
+
+  /* ---------- drawer mechanic (shared across the app: Shift Templates,
+     Edit/Review, Rate Tables, Loan Ledger... 14th reuse here) ---------- */
+
+  .tt-scrim { display: none; position: absolute; inset: 0; background: rgba(27,42,74,0.32); z-index: 4; }
+  .tt-drawer { display: none; position: absolute; top: 0; right: 0; bottom: 0; width: min(340px, 90%); background: var(--white); border-left: 1px solid var(--border); box-shadow: var(--shadow-card); z-index: 5; flex-direction: column; overflow-y: auto; }
+  .tt-drawer-head { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; padding: 1.1rem 1.1rem 0.9rem; border-bottom: 1px solid var(--border); }
+  .tt-drawer-head h3 { font-size: 0.9375rem; font-weight: 700; }
+  .tt-drawer-body { padding: 1rem 1.1rem 1.25rem; display: flex; flex-direction: column; gap: 0.9rem; flex: 1; }
+  .tt-drawer-note { font-size: 0.8125rem; color: var(--neutral); line-height: 1.55; }
+  .tt-drawer-foot { display: flex; gap: 0.6rem; padding: 0.9rem 1.1rem 1.1rem; border-top: 1px solid var(--border); justify-content: flex-end; }
+
+  .who-strip { display: flex; align-items: center; gap: 0.75rem; }
+  .who-strip h4 { font-size: 1rem; font-weight: 700; }
+  .who-strip p { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.1rem; }
+
+  .fact-list { display: flex; flex-direction: column; gap: 0.6rem; border: 1px solid var(--border); border-radius: 8px; padding: 0.75rem 0.85rem; }
+  .fact-list .row { display: flex; justify-content: space-between; font-size: 0.8125rem; }
+  .fact-list .row .k { color: var(--neutral); }
+  .fact-list .row .v { color: var(--ink); font-weight: 500; }
+
+  #drawerM:checked ~ .page .frame-shell[data-n="3"] .tt-scrim-m, #drawerM:checked ~ .page .frame-shell[data-n="3"] .tt-drawer-m { display: flex; }
+  #drawerM:checked ~ .page .frame-shell[data-n="3"] .tt-scrim-m { display: block; }
+  #drawerD:checked ~ .page .frame-shell[data-n="3"] .tt-scrim-d, #drawerD:checked ~ .page .frame-shell[data-n="3"] .tt-drawer-d { display: flex; }
+  #drawerD:checked ~ .page .frame-shell[data-n="3"] .tt-scrim-d { display: block; }
+  #drawerI:checked ~ .page .frame-shell[data-n="3"] .tt-scrim-i, #drawerI:checked ~ .page .frame-shell[data-n="3"] .tt-drawer-i { display: flex; }
+  #drawerI:checked ~ .page .frame-shell[data-n="3"] .tt-scrim-i { display: block; }
+  #rejectDrawer:checked ~ .page .frame-shell[data-n="2"] .tt-scrim-reject, #rejectDrawer:checked ~ .page .frame-shell[data-n="2"] .tt-drawer-reject { display: flex; }
+  #rejectDrawer:checked ~ .page .frame-shell[data-n="2"] .tt-scrim-reject { display: block; }
+
+  .list-row-3 { display: flex; align-items: center; gap: 1rem; padding: 0.9rem 2rem; border-bottom: 1px solid var(--border); cursor: pointer; transition: background var(--t); }
+  .list-row-3:last-child { border-bottom: none; }
+  .list-row-3:hover { background: var(--surface); }
+  .list-row-3 .who { display: flex; align-items: center; gap: 0.7rem; flex: 1; min-width: 200px; }
+  .list-row-3 .who h4 { font-size: 0.9375rem; font-weight: 700; }
+  .list-row-3 .who p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.1rem; }
+  .list-row-3 .edited { font-size: 0.8125rem; color: var(--ink-light); }
+  .list-row-3 .chev { width: 15px; height: 15px; color: var(--neutral); flex: 0 0 auto; }
+
+  @media (max-width: 480px) {
+    .list-head, .greet-block, .table-wrap, .req-item, .list-row-3 { padding-left: 1.25rem; padding-right: 1.25rem; }
+  }
+</style>
+
+<input class="tab" type="radio" name="tab" id="tab1" />
+<input class="tab" type="radio" name="tab" id="tab2" checked />
+<input class="tab" type="radio" name="tab" id="tab3" />
+<input class="state" type="checkbox" id="rejectDrawer" />
+<input class="state" type="checkbox" id="drawerM" />
+<input class="state" type="checkbox" id="drawerD" />
+<input class="state" type="checkbox" id="drawerI" />
+
+<div class="page">
+
+  <header class="page-head">
+    <div class="page-head-inner">
+      <p class="eyebrow">HRIS · ux-pages</p>
+      <h1>Attendance Edit Sign-offs</h1>
+      <p class="sub">
+        The admin-only inbox for the optional oversight step on manager-made
+        manual attendance edits — Company → Attendance Sign-offs
+        (<code>team_attendance_edit_approvals_path</code>). Approve/Reject
+        is audit-only: the edit already took effect the moment the manager
+        saved it, this screen never gates payroll or reverts a punch.
+      </p>
+      <div class="assumptions">
+        <b>Reused, not reinvented:</b> fields match
+        <code>Team::AttendanceEditApprovalsController</code> exactly —
+        employee, date, the edited clock in/out, who edited it, and (for
+        decided items) the four-category status badge. No before/after
+        diff exists to show (the record only stores its current values),
+        and no decision-note field exists on <code>RejectEdit</code> — not
+        invented here. Only reaches this inbox when a manager's edit and
+        the company has <code>attendance_approvers_enabled</code> on; an
+        admin's own edits never need sign-off. See
+        decisions/time-attendance-correction-request-and-manual-edit.md.
+      </div>
+    </div>
+
+    <div class="tabbar">
+      <label for="tab1"><span class="n">01</span> Flat table + inline actions</label>
+      <label for="tab2"><span class="n">02</span> Queue cards <span class="chosen-badge">Chosen</span></label>
+      <label for="tab3"><span class="n">03</span> Split list + detail drawer</label>
+    </div>
+  </header>
+
+  <main class="stage">
+
+    <!-- ============ OPTION 1: flat table + inline actions ============ -->
+    <div class="frame-shell" data-n="1">
+      <div class="frame">
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a href="#">Me</a><a class="active" href="#">Company</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>Attendance edit sign-offs</h2>
+            <p>Oversight only — approving or rejecting doesn't change the punch itself.</p>
+          </div>
+
+          <div class="list-head">
+            <h3>Pending sign-offs</h3>
+            <span class="toolbar-count mono">3 pending</span>
+          </div>
+          <div class="table-wrap">
+            <table class="dirtable">
+              <thead><tr><th>Employee</th><th>Date</th><th>Clock in</th><th>Clock out</th><th>Edited by</th><th></th></tr></thead>
+              <tbody>
+                <tr>
+                  <td><div class="who"><span class="avatar">MS</span><h4>Mikaela Santos</h4></div></td>
+                  <td class="mono">Aug 24, 2026</td>
+                  <td class="mono">9:05 AM</td>
+                  <td class="mono">6:10 PM</td>
+                  <td>Ramon Dela Cruz</td>
+                  <td>
+                    <div class="actions-cell">
+                      <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approve</button>
+                      <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><div class="who"><span class="avatar">DR</span><h4>Diego Reyes</h4></div></td>
+                  <td class="mono">Aug 23, 2026</td>
+                  <td class="mono">8:58 AM</td>
+                  <td class="mono">5:32 PM</td>
+                  <td>Ramon Dela Cruz</td>
+                  <td>
+                    <div class="actions-cell">
+                      <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approve</button>
+                      <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+                    </div>
+                  </td>
+                </tr>
+                <tr>
+                  <td><div class="who"><span class="avatar">IT</span><h4>Isabel Torres</h4></div></td>
+                  <td class="mono">Aug 22, 2026</td>
+                  <td class="mono">—</td>
+                  <td class="mono">4:45 PM</td>
+                  <td>Ferdinand Ocampo</td>
+                  <td>
+                    <div class="actions-cell">
+                      <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approve</button>
+                      <button class="btn-danger-ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</button>
+                    </div>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="list-head"><h3>Recently decided</h3></div>
+          <div class="table-wrap">
+            <table class="dirtable">
+              <thead><tr><th>Employee</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="avatar">CB</span><h4>Carlo Bautista</h4></div></td><td class="mono">Aug 20, 2026</td><td><span class="badge badge-positive">Approved</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">GL</span><h4>Grace Lim</h4></div></td><td class="mono">Aug 19, 2026</td><td><span class="badge badge-negative">Rejected</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Reuses the exact table+badge shape already used everywhere else in this app (People Directory, Attendance Corrections, Team Attendance's own history table) — zero new interaction to learn, fastest to scan a short queue, fastest to build.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>The admin already works from tables and wants minimum friction per decision. Weaker fit if Reject ever needs a confirm step — right now it's a single click with no "are you sure," even though the underlying action is audit-only and never reverses data.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 2: queue cards ============ -->
+    <div class="frame-shell" data-n="2">
+      <div class="frame">
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a href="#">Me</a><a class="active" href="#">Company</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>Attendance edit sign-offs</h2>
+            <p>3 edits waiting on you</p>
+          </div>
+
+          <div class="queue-live">
+            <div class="req-item">
+              <span class="avatar">MS</span>
+              <div class="who"><h4>Mikaela Santos</h4><p>Software Engineer</p></div>
+              <div class="mid">
+                <p class="line1"><span class="edit-line">Edited by <b>Ramon Dela Cruz</b> · Aug 24, 2026</span></p>
+                <p class="times mono">9:05 AM – 6:10 PM</p>
+              </div>
+              <div class="actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approve</button>
+                <label class="btn-danger-ghost" for="rejectDrawer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</label>
+              </div>
+            </div>
+            <div class="req-item">
+              <span class="avatar">DR</span>
+              <div class="who"><h4>Diego Reyes</h4><p>Backend Developer</p></div>
+              <div class="mid">
+                <p class="line1"><span class="edit-line">Edited by <b>Ramon Dela Cruz</b> · Aug 23, 2026</span></p>
+                <p class="times mono">8:58 AM – 5:32 PM</p>
+              </div>
+              <div class="actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approve</button>
+                <label class="btn-danger-ghost" for="rejectDrawer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</label>
+              </div>
+            </div>
+            <div class="req-item">
+              <span class="avatar">IT</span>
+              <div class="who"><h4>Isabel Torres</h4><p>Finance Associate</p></div>
+              <div class="mid">
+                <p class="line1"><span class="edit-line">Edited by <b>Ferdinand Ocampo</b> · Aug 22, 2026</span></p>
+                <p class="times mono">— – 4:45 PM</p>
+              </div>
+              <div class="actions">
+                <button class="btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>Approve</button>
+                <label class="btn-danger-ghost" for="rejectDrawer"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg>Reject</label>
+              </div>
+            </div>
+          </div>
+
+          <div class="list-head"><h3>Recently decided</h3></div>
+          <div class="table-wrap">
+            <table class="dirtable">
+              <thead><tr><th>Employee</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="avatar">CB</span><h4>Carlo Bautista</h4></div></td><td class="mono">Aug 20, 2026</td><td><span class="badge badge-positive">Approved</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">GL</span><h4>Grace Lim</h4></div></td><td class="mono">Aug 19, 2026</td><td><span class="badge badge-negative">Rejected</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tt-scrim tt-scrim-reject"></div>
+          <div class="tt-drawer tt-drawer-reject">
+            <div class="tt-drawer-head">
+              <h3>Reject Mikaela Santos's edit</h3>
+              <label for="rejectDrawer" class="icon-btn" title="Close" style="cursor:pointer;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+            </div>
+            <div class="tt-drawer-body">
+              <p class="tt-drawer-note">Edited by Ramon Dela Cruz · Aug 24, 2026 · 9:05 AM – 6:10 PM. This can't be undone from here, and it won't change the punch itself — a new edit does that.</p>
+            </div>
+            <div class="tt-drawer-foot">
+              <button class="btn-danger-ghost">Reject edit</button>
+              <label class="btn-ghost" for="rejectDrawer">Cancel</label>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Mirrors Team Approvals — the app's closest sibling to this exact shape (single-level admin reviewing a small pending queue). Approve stays one click; Reject gets a light confirm step via the same drawer mechanic Team Approvals already uses, guarding against a mis-click on a decision with no undo.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>The queue stays short — a handful of pending edits at a time, true today. Gives more per-item context (who edited it, when) than a dense table row can, at the cost of more vertical space per item than Option 1.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ============ OPTION 3: split list + detail drawer ============ -->
+    <div class="frame-shell" data-n="3">
+      <div class="frame">
+        <div class="device">
+          <nav class="app-nav">
+            <span class="wordmark"><span class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 21V7a2 2 0 0 1 2-2h4v16"/><path d="M14 21V11a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v10"/><path d="M9 9h.01M9 13h.01M9 17h.01"/></svg></span>HRIS</span>
+            <div class="nav-tabs"><a href="#">Me</a><a class="active" href="#">Company</a></div>
+            <div class="nav-spacer"></div>
+            <span class="nav-avatar">AC</span>
+          </nav>
+
+          <div class="greet-block">
+            <h2>Attendance edit sign-offs</h2>
+            <p>Click a row to review and decide.</p>
+          </div>
+
+          <div class="list-head">
+            <h3>Pending sign-offs</h3>
+            <span class="toolbar-count mono">3 pending</span>
+          </div>
+          <div>
+            <label class="list-row-3" for="drawerM">
+              <div class="who"><span class="avatar">MS</span><div><h4>Mikaela Santos</h4><p>Aug 24, 2026</p></div></div>
+              <span class="edited">Edited by <b>Ramon Dela Cruz</b></span>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </label>
+            <label class="list-row-3" for="drawerD">
+              <div class="who"><span class="avatar">DR</span><div><h4>Diego Reyes</h4><p>Aug 23, 2026</p></div></div>
+              <span class="edited">Edited by <b>Ramon Dela Cruz</b></span>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </label>
+            <label class="list-row-3" for="drawerI">
+              <div class="who"><span class="avatar">IT</span><div><h4>Isabel Torres</h4><p>Aug 22, 2026</p></div></div>
+              <span class="edited">Edited by <b>Ferdinand Ocampo</b></span>
+              <svg class="chev" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+            </label>
+          </div>
+
+          <div class="list-head"><h3>Recently decided</h3></div>
+          <div class="table-wrap">
+            <table class="dirtable">
+              <thead><tr><th>Employee</th><th>Date</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td><div class="who"><span class="avatar">CB</span><h4>Carlo Bautista</h4></div></td><td class="mono">Aug 20, 2026</td><td><span class="badge badge-positive">Approved</span></td></tr>
+                <tr><td><div class="who"><span class="avatar">GL</span><h4>Grace Lim</h4></div></td><td class="mono">Aug 19, 2026</td><td><span class="badge badge-negative">Rejected</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="tt-scrim tt-scrim-m"></div>
+          <div class="tt-drawer tt-drawer-m">
+            <div class="tt-drawer-head">
+              <h3>Review edit</h3>
+              <label for="drawerM" class="icon-btn" title="Close" style="cursor:pointer;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+            </div>
+            <div class="tt-drawer-body">
+              <div class="who-strip"><span class="avatar avatar-lg">MS</span><div><h4>Mikaela Santos</h4><p>Software Engineer</p></div></div>
+              <div class="fact-list">
+                <div class="row"><span class="k">Date</span><span class="v mono">Aug 24, 2026</span></div>
+                <div class="row"><span class="k">Clock in</span><span class="v mono">9:05 AM</span></div>
+                <div class="row"><span class="k">Clock out</span><span class="v mono">6:10 PM</span></div>
+                <div class="row"><span class="k">Edited by</span><span class="v">Ramon Dela Cruz</span></div>
+              </div>
+            </div>
+            <div class="tt-drawer-foot">
+              <button class="btn-danger-ghost">Reject</button>
+              <button class="btn-primary">Approve</button>
+            </div>
+          </div>
+
+          <div class="tt-scrim tt-scrim-d"></div>
+          <div class="tt-drawer tt-drawer-d">
+            <div class="tt-drawer-head">
+              <h3>Review edit</h3>
+              <label for="drawerD" class="icon-btn" title="Close" style="cursor:pointer;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+            </div>
+            <div class="tt-drawer-body">
+              <div class="who-strip"><span class="avatar avatar-lg">DR</span><div><h4>Diego Reyes</h4><p>Backend Developer</p></div></div>
+              <div class="fact-list">
+                <div class="row"><span class="k">Date</span><span class="v mono">Aug 23, 2026</span></div>
+                <div class="row"><span class="k">Clock in</span><span class="v mono">8:58 AM</span></div>
+                <div class="row"><span class="k">Clock out</span><span class="v mono">5:32 PM</span></div>
+                <div class="row"><span class="k">Edited by</span><span class="v">Ramon Dela Cruz</span></div>
+              </div>
+            </div>
+            <div class="tt-drawer-foot">
+              <button class="btn-danger-ghost">Reject</button>
+              <button class="btn-primary">Approve</button>
+            </div>
+          </div>
+
+          <div class="tt-scrim tt-scrim-i"></div>
+          <div class="tt-drawer tt-drawer-i">
+            <div class="tt-drawer-head">
+              <h3>Review edit</h3>
+              <label for="drawerI" class="icon-btn" title="Close" style="cursor:pointer;"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 6 6 18M6 6l12 12"/></svg></label>
+            </div>
+            <div class="tt-drawer-body">
+              <div class="who-strip"><span class="avatar avatar-lg">IT</span><div><h4>Isabel Torres</h4><p>Finance Associate</p></div></div>
+              <div class="fact-list">
+                <div class="row"><span class="k">Date</span><span class="v mono">Aug 22, 2026</span></div>
+                <div class="row"><span class="k">Clock in</span><span class="v mono">—</span></div>
+                <div class="row"><span class="k">Clock out</span><span class="v mono">4:45 PM</span></div>
+                <div class="row"><span class="k">Edited by</span><span class="v">Ferdinand Ocampo</span></div>
+              </div>
+            </div>
+            <div class="tt-drawer-foot">
+              <button class="btn-danger-ghost">Reject</button>
+              <button class="btn-primary">Approve</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rationale">
+          <div>
+            <h3>Why this one</h3>
+            <p>Keeps the list itself scannable — one line per pending edit — while still giving the admin full context before deciding. Reuses the drawer mechanic already used a dozen-plus times elsewhere in this exact page area (Time & Attendance's own Edit/Review drawers), so it costs nothing new to learn.</p>
+          </div>
+          <div>
+            <h3>Best when</h3>
+            <p>Each sign-off genuinely needs a closer look rather than a rubber stamp, or the queue could grow past what a dense table stays comfortable showing inline. Costs one extra click per decision versus Options 1/2's inline buttons.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>

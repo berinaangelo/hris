@@ -1,12 +1,13 @@
-<div class="field">
+<div class="tt-drawer-field">
   <%= f.label :employee_id, "Employee" %>
-  <%= f.select :employee_id, @employees.map { |employee| [ employee.full_name, employee.id ] }, include_blank: "Select an employee" %>
+  <%= f.select :employee_id, @employees.map { |employee| [ employee.full_name, employee.id ] }, { include_blank: "Select an employee" }, class: "plain-select" %>
 </div>
-<div class="field">
+<div class="tt-drawer-field">
   <%= f.label :cert_name, "Certification name" %>
-  <%= f.text_field :cert_name, required: true %>
+  <%= f.text_field :cert_name, required: true, class: "plain-input" %>
 </div>
-<div class="field">
+<div class="tt-drawer-field">
   <%= f.label :expiry_date %>
-  <%= f.date_field :expiry_date, required: true %>
+  <%= f.date_field :expiry_date, required: true, class: "plain-input" %>
+  <p class="tt-drawer-note">Drives the Status badge automatically — Expiring soon inside 30 days, Expired once past.</p>
 </div>
