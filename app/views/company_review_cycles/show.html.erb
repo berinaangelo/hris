@@ -2,36 +2,53 @@
     id (app/views/company_review_cycles/index.html.erb); also works as
     a normal full-page fallback when visited directly / without JS. %>
 <%= turbo_frame_tag "company_review_modal" do %>
-  <h1><%= @employee.full_name %>'s reviews</h1>
-  <p><%= @employee.job_title %> · <%= @employee.department %></p>
+  <h3><%= @employee.full_name %>'s reviews</h3>
+  <p class="muted"><%= @employee.job_title %> · <%= @employee.department %></p>
 
   <% if @review_cycles.empty? %>
-    <div class="card"><p>No review cycles yet.</p></div>
+    <div class="empty-state">
+      <p>No review cycles yet.</p>
+    </div>
   <% else %>
     <% @review_cycles.each do |cycle| %>
       <div class="card">
-        <h2><%= cycle.start_date %> – <%= cycle.end_date %> (<%= cycle.pip? ? "PIP" : "Regular" %>)</h2>
+        <div class="cr-cycle-head">
+          <h4><%= cycle.start_date.strftime("%b %Y") %>–<%= cycle.end_date.strftime("%b %Y") %> (<%= cycle.pip? ? "PIP" : "Regular" %>)</h4>
+          <% unless cycle.published? %>
+            <% badge = BadgePresenter.new(cycle.status) %>
+            <span class="<%= badge.css_class %>"><%= badge.label %></span>
+          <% end %>
+        </div>
 
         <% if cycle.published? %>
-          <% if cycle.overall_rating %>
-            <p>Overall rating: <strong><%= cycle.overall_rating.round(1) %>/5</strong></p>
-          <% end %>
+          <div class="rating-hero">
+            <div>
+              <p class="card-label" style="color:#A9B4CB;">
+                <%= cycle.start_date.strftime("%b %Y") %>–<%= cycle.end_date.strftime("%b %Y") %> · <%= cycle.pip? ? "PIP" : "Overall rating" %>
+              </p>
+              <p class="num"><%= cycle.overall_rating ? cycle.overall_rating.round(1) : "—" %> <span class="denom">/ 5</span></p>
+            </div>
+            <span class="sub">Published <%= cycle.updated_at.to_date.to_fs(:long) %></span>
+          </div>
+
           <% if cycle.pip? && cycle.outcome %>
             <% badge = BadgePresenter.new(cycle.outcome) %>
             <p>Outcome: <span class="<%= badge.css_class %>"><%= badge.label %></span></p>
           <% end %>
+
           <%= render "review_cycles/kpi_table", kpi_entries: cycle.kpi_entries %>
+
           <% if cycle.manager_comment.present? %>
-            <p><strong>Manager's comment:</strong> <%= cycle.manager_comment %></p>
+            <p class="manager-comment"><b>Manager's comment:</b> <%= cycle.manager_comment %></p>
           <% end %>
         <% else %>
-          <% badge = BadgePresenter.new(cycle.status) %>
-          <p><span class="<%= badge.css_class %>"><%= badge.label %></span></p>
-          <%= render "review_cycles/kpi_table", kpi_entries: cycle.kpi_entries, scores_hidden: true %>
+          <%# Renders its own KPI table (scores hidden) and the PIP-vs-
+              regular icon/copy split. %>
+          <%= render "team/review_cycles/in_progress_note", cycle: cycle %>
         <% end %>
       </div>
     <% end %>
   <% end %>
 
-  <%= link_to "Back to roster", company_review_cycles_path, class: "btn btn-ghost" %>
+  <%= link_to "Back to roster", company_review_cycles_path, class: "btn-ghost" %>
 <% end %>

@@ -1,27 +1,44 @@
-<h1>Open a payroll run</h1>
-<p>Generates a draft payslip for every employee not yet offboarded, off their basic salary, active loans, and current rate tables. Nothing is final until you finalize the run.</p>
+<% content_for :title, "Open a Payroll Run" %>
 
-<div class="card">
-  <%= form_with url: payroll_runs_path, local: true do %>
-    <div class="field">
-      <label><input type="radio" name="run_type" value="regular" checked> Regular</label>
-      <% if current_employee.company.thirteenth_month_pay_enabled? %>
-        <label><input type="radio" name="run_type" value="thirteenth_month"> 13th Month Pay</label>
-      <% end %>
-    </div>
-    <div class="field">
-      <label for="period_start">Period start</label>
-      <input type="date" name="period_start" id="period_start" required>
-    </div>
-    <div class="field">
-      <label for="period_end">Period end</label>
-      <input type="date" name="period_end" id="period_end" required>
-    </div>
-    <div class="field">
-      <label for="pay_date">Pay date</label>
-      <input type="date" name="pay_date" id="pay_date" required>
-    </div>
-    <button type="submit" class="btn btn-primary">Open run</button>
-    <%= link_to "Cancel", payroll_runs_path, class: "btn btn-ghost" %>
+<%# No dedicated mockup for this specific form — the chosen Payroll Runs
+    option shows it disabled/absent since a run is already open in that
+    scenario. Baseline app styling only, same layout/copy as before. %>
+<div class="payroll-runs-page">
+  <%= link_to payroll_runs_path, class: "back-link" do %>
+    <%= lucide_icon(:"chevron-left") %>Back to Payroll
   <% end %>
+
+  <div class="card">
+    <h3>Open a payroll run</h3>
+    <p class="muted">Generates a draft payslip for every employee not yet offboarded, off their basic salary, active loans, and current rate tables. Nothing is final until you finalize the run.</p>
+
+    <%= form_with url: payroll_runs_path, local: true do %>
+      <div class="field-grid">
+        <div class="field">
+          <label>Run type</label>
+          <label class="checkbox-inline"><input type="radio" name="run_type" value="regular" checked> Regular</label>
+          <% if current_employee.company.thirteenth_month_pay_enabled? %>
+            <label class="checkbox-inline"><input type="radio" name="run_type" value="thirteenth_month"> 13th Month Pay</label>
+          <% end %>
+        </div>
+        <div class="field">
+          <%= label_tag :period_start, "Period start" %>
+          <%= date_field_tag :period_start, nil, required: true, class: "plain-input" %>
+        </div>
+        <div class="field">
+          <%= label_tag :period_end, "Period end" %>
+          <%= date_field_tag :period_end, nil, required: true, class: "plain-input" %>
+        </div>
+        <div class="field">
+          <%= label_tag :pay_date, "Pay date" %>
+          <%= date_field_tag :pay_date, nil, required: true, class: "plain-input" %>
+        </div>
+      </div>
+
+      <div class="form-actions">
+        <%= link_to "Cancel", payroll_runs_path, class: "btn-ghost" %>
+        <button type="submit" class="btn-primary">Open run</button>
+      </div>
+    <% end %>
+  </div>
 </div>

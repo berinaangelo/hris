@@ -25,6 +25,45 @@ class CompanyReviewCyclesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
   end
 
+  test "roster is paginated" do
+    sign_in employees(:admin_amy)
+
+    get company_review_cycles_path
+
+    assert_response :success
+    assert_match "pagination-bar", response.body
+  end
+
+  test "roster can be filtered by status" do
+    sign_in employees(:admin_amy)
+
+    get company_review_cycles_path, params: { status: "needs_scoring" }
+
+    assert_response :success
+    assert_match "Alice OptedOut", response.body
+    assert_no_match "Bob Worker", response.body
+  end
+
+  test "roster shows the previous published rating for employees needing scoring" do
+    sign_in employees(:admin_amy)
+
+    get company_review_cycles_path, params: { status: "needs_scoring" }
+
+    assert_response :success
+    assert_match "4.0/5", response.body
+  end
+
+  test "new cycle form renders with every scope's fields present" do
+    sign_in employees(:admin_amy)
+
+    get new_company_review_cycle_path
+
+    assert_response :success
+    assert_match "Select an employee", response.body
+    assert_match "Select a department", response.body
+    assert_match "every active employee company-wide", response.body
+  end
+
   test "admin can view an employee's review detail" do
     sign_in employees(:admin_amy)
 

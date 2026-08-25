@@ -22,6 +22,8 @@ class BadgePresenter
     "awaiting_scoring" => :caution,
     "open" => :positive,
     "closed" => :neutral,
+    "finalized" => :positive,
+    "voided" => :negative,
     "active" => :neutral,
     "paid_off" => :positive,
     "submitted" => :neutral,

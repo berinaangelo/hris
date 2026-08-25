@@ -1,24 +1,73 @@
-<h1>Start a new review cycle</h1>
+<%# Loads into the modal on the roster page via a matching turbo-frame
+    id (app/views/company_review_cycles/index.html.erb); also works as
+    a normal full-page fallback when visited directly / without JS. All
+    three scope field-groups render at once — scope_fields_controller.js
+    shows/hides them instantly on Scope change instead of the old
+    GET-scope-select-then-reload flow. See
+    kos/decisions/ui/company-reviews-roster-filterable-grid-list.md. %>
+<%= turbo_frame_tag "company_review_new_cycle_modal" do %>
+  <h3>Start a new review cycle</h3>
 
-<div class="card">
-  <%= form_with url: new_company_review_cycle_path, method: :get, local: true do %>
-    <div class="field">
-      <%= label_tag :scope, "Scope" %>
-      <select name="scope" onchange="this.form.submit()">
-        <option value="individual" <%= "selected" if @scope == "individual" %>>Individual employee</option>
-        <option value="department" <%= "selected" if @scope == "department" %>>Whole department</option>
-        <option value="company" <%= "selected" if @scope == "company" %>>Company-wide</option>
-      </select>
+  <%= form_with url: company_review_cycles_path, method: :post, local: true, data: { controller: "scope-fields" } do %>
+    <div class="field-grid">
+      <div class="field">
+        <%= label_tag :scope, "Scope" %>
+        <select name="scope" class="plain-input" data-action="scope-fields#toggle">
+          <option value="individual" <%= "selected" if @scope == "individual" %>>Individual employee</option>
+          <option value="department" <%= "selected" if @scope == "department" %>>Whole department</option>
+          <option value="company" <%= "selected" if @scope == "company" %>>Company-wide</option>
+        </select>
+      </div>
+
+      <div class="field" data-scope-fields-target="individualFields" <%= "hidden" unless @scope == "individual" %>>
+        <%= label_tag "review_cycle_employee_id", "Employee" %>
+        <%= select_tag "review_cycle[employee_id]", options_from_collection_for_select(@employees, :id, :full_name),
+                        include_blank: "Select an employee", class: "plain-input" %>
+      </div>
+
+      <div class="field" data-scope-fields-target="departmentFields" <%= "hidden" unless @scope == "department" %>>
+        <%= label_tag "review_cycle_department", "Department" %>
+        <%= select_tag "review_cycle[department]", options_for_select(@departments),
+                        include_blank: "Select a department", class: "plain-input" %>
+      </div>
+
+      <div class="field">
+        <%= label_tag "review_cycle_cycle_type", "Cycle type" %>
+        <%= select_tag "review_cycle[cycle_type]", options_for_select([ [ "Regular", "regular" ], [ "PIP", "pip" ] ]), class: "plain-input" %>
+      </div>
+    </div>
+
+    <p class="tt-drawer-note" data-scope-fields-target="companyFields" <%= "hidden" unless @scope == "company" %>>
+      This opens a cycle for every active employee company-wide.
+    </p>
+
+    <div class="row2">
+      <div class="field">
+        <%= label_tag "review_cycle_start_date", "Start date" %>
+        <%= date_field_tag "review_cycle[start_date]", Date.current, class: "plain-input" %>
+      </div>
+      <div class="field">
+        <%= label_tag "review_cycle_end_date", "End date" %>
+        <%= date_field_tag "review_cycle[end_date]", 6.months.from_now.to_date, class: "plain-input" %>
+      </div>
+    </div>
+
+    <div data-scope-fields-target="individualFields" <%= "hidden" unless @scope == "individual" %>>
+      <h4>KPIs (3–5)</h4>
+      <% 5.times do %>
+        <div class="kpi-entry-row">
+          <%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name", class: "plain-input" %>
+          <%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target", class: "plain-input" %>
+        </div>
+      <% end %>
+    </div>
+
+    <p data-scope-fields-target="departmentFields companyFields" class="tt-drawer-note" <%= "hidden" if @scope == "individual" %>>
+      KPIs aren't set here — each employee's manager adds them from Team Reviews once the cycle opens.
+    </p>
+
+    <div class="form-actions">
+      <button type="submit" class="btn-primary"><%= @scope == "individual" ? "Open cycle" : "Open cycles" %></button>
     </div>
   <% end %>
-</div>
-
-<div class="card">
-  <%= form_with url: company_review_cycles_path, method: :post, local: true do %>
-    <input type="hidden" name="scope" value="<%= @scope %>">
-    <%= render "form", scope: @scope, employees: @employees, departments: @departments %>
-    <button type="submit" class="btn btn-primary">
-      <%= @scope == "individual" ? "Open cycle" : "Open cycles" %>
-    </button>
-  <% end %>
-</div>
+<% end %>

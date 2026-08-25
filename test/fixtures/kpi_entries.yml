@@ -24,6 +24,14 @@ bob_kpi_3:
   score: 5
   position: 3
 
+alice_earlier_kpi_1:
+  review_cycle: alice_published_earlier
+  kpi_name: Reduce bug backlog
+  target: Under 10 open bugs
+  actual: Down to 6 open bugs
+  score: 4
+  position: 1
+
 alice_kpi_1:
   review_cycle: alice_awaiting_scoring
   kpi_name: Reduce bug backlog

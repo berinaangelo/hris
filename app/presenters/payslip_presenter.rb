@@ -55,6 +55,14 @@ class PayslipPresenter
     sum_for("loan_repayment")
   end
 
+  # Net signed total of manually-added adjustments (bonus/overtime/cash
+  # advance/other deduction) — earnings add, deductions subtract. Base
+  # salary/loan/statutory are their own columns on Payroll Run Detail's
+  # master table, so excluded here via source rather than by name.
+  def adjustments_total
+    line_items.select(&:manual?).sum { |item| item.earning? ? item.amount : -item.amount }
+  end
+
   def statutory_deductions
     line_items.select { |item| item.line_type.start_with?("statutory_") }.sum(&:amount)
   end

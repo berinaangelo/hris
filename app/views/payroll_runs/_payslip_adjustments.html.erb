@@ -1,0 +1,72 @@
+<%# Payroll Run Detail's per-row edit drawer body — Adjustments is the
+    only editable section (reuses Payslips::LineItemsController as-is,
+    same routes/params the existing unstyled Payslip Detail form
+    already posts to); Loan and Statutory are auto-added/looked-up and
+    shown read-only. See
+    kos/decisions/ui/payroll-run-detail-master-table-edit-drawer.md. %>
+<%
+  presenter = PayslipPresenter.new(payslip)
+  adjustment_types = %w[bonus overtime cash_advance other_deduction]
+  manual_items = payslip.payslip_line_items.select(&:manual?)
+  loan_items = payslip.payslip_line_items.select { |item| item.line_type == "loan_repayment" }
+  statutory_items = payslip.payslip_line_items.select { |item| item.line_type.start_with?("statutory_") }
+%>
+
+<div class="tt-drawer-section">
+  <h5>Adjustments</h5>
+  <% if manual_items.empty? %>
+    <p class="tt-drawer-note">No adjustments this cutoff.</p>
+  <% end %>
+  <% manual_items.each do |item| %>
+    <div class="line-row">
+      <%= form_with model: item, url: payslip_line_item_path(payslip, item), method: :patch, local: true do |f| %>
+        <div class="tt-drawer-field"><%= f.label :line_type, "Type" %><%= f.select :line_type, adjustment_types.map { |t| [ t.humanize, t ] }, {}, class: "plain-select" %></div>
+        <div class="tt-drawer-field"><%= f.label :direction, "Direction" %><%= f.select :direction, PayslipLineItem.directions.keys.map { |d| [ d.humanize, d ] }, {}, class: "plain-select" %></div>
+        <div class="tt-drawer-field"><%= f.label :description, "Description" %><%= f.text_field :description, class: "plain-input" %></div>
+        <div class="tt-drawer-field"><%= f.label :amount, "Amount" %><%= f.number_field :amount, step: 0.01, min: 0.01, required: true, class: "plain-input" %></div>
+        <%= f.submit "Save", class: "btn-ghost btn-sm" %>
+      <% end %>
+      <%= button_to "Remove", payslip_line_item_path(payslip, item), method: :delete, class: "btn-ghost danger btn-sm", form: { style: "display:inline" } %>
+    </div>
+  <% end %>
+
+  <p class="tt-drawer-form-head">Add line item</p>
+  <%= form_with model: PayslipLineItem.new, url: payslip_line_items_path(payslip), method: :post, local: true do |f| %>
+    <div class="tt-drawer-field"><%= f.label :line_type, "Type" %><%= f.select :line_type, adjustment_types.map { |t| [ t.humanize, t ] }, {}, class: "plain-select" %></div>
+    <div class="tt-drawer-field"><%= f.label :direction, "Direction" %><%= f.select :direction, PayslipLineItem.directions.keys.map { |d| [ d.humanize, d ] }, {}, class: "plain-select" %></div>
+    <div class="tt-drawer-field"><%= f.label :description, "Description" %><%= f.text_field :description, class: "plain-input", placeholder: "Optional" %></div>
+    <div class="tt-drawer-field"><%= f.label :amount, "Amount" %><%= f.number_field :amount, step: 0.01, min: 0.01, required: true, class: "plain-input" %></div>
+    <%= f.submit "+ Add line item", class: "line-add" %>
+  <% end %>
+</div>
+
+<div class="tt-drawer-section">
+  <h5>Loan</h5>
+  <% if loan_items.empty? %>
+    <p class="tt-drawer-note">No active loan.</p>
+  <% else %>
+    <% loan_items.each do |item| %>
+      <p class="tt-drawer-note"><%= presenter.line_item_label(item) %> − <%= number_to_currency(item.amount, unit: "₱") %></p>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="tt-drawer-section">
+  <h5>Statutory</h5>
+  <% if statutory_items.empty? %>
+    <p class="tt-drawer-note">Not yet computed.</p>
+  <% else %>
+    <% statutory_items.each do |item| %>
+      <p class="tt-drawer-note"><%= presenter.line_item_label(item) %> − <%= number_to_currency(item.amount, unit: "₱") %></p>
+    <% end %>
+  <% end %>
+</div>
+
+<div class="detail-net">
+  <span>Net pay</span>
+  <span class="mono"><%= number_to_currency(payslip.net_pay, unit: "₱") %></span>
+</div>
+
+<div class="tt-drawer-foot">
+  <button type="button" class="btn-ghost" data-action="modal#close">Close</button>
+</div>

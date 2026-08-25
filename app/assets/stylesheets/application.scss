@@ -2068,3 +2068,157 @@ $stage-select-states: positive, caution, negative, neutral;
   .up { color: var(--success); }
   .down { color: var(--danger); }
 }
+
+// ============================================================
+// Company Reviews UX pass (2026-08-25) — "Company roster, filterable"
+// (Option 1, chosen). See kos/decisions/ux-pages/company-reviews.html
+// and kos/decisions/ui/company-reviews-roster-filterable-grid-list.md.
+// Reuses .people-grid/.person-card/.pagination-bar/.search-wrap/
+// .chip-filter/.chip-row/.view-toggle/.cptable/.dept-tag/.btn-primary/
+// .btn-ghost/dialog.app-modal/.field-grid/.plain-input/.kpitable/
+// .empty-state as-is (all already global from earlier batches) — only
+// what's genuinely new to this page is added here. .rating-hero/
+// .inprogress-note/.manager-comment/.card-label are each duplicated
+// per page rather than shared, same precedent as .my-reviews-page and
+// .team-reviews-page.
+// ============================================================
+
+.company-review-cycles-page {
+  .greet-block { @include greet-block; display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
+  .inline-modal-scope { display: contents; }
+
+  .cptable {
+    .who {
+      display: flex; align-items: center; gap: 0.65rem;
+      h4 { font-size: 0.875rem; font-weight: 700; }
+    }
+  }
+
+  .status-cell {
+    display: flex; flex-direction: column; gap: 0.3rem; align-items: flex-start;
+    .last { font-size: 0.75rem; color: var(--neutral); }
+  }
+
+  .last-mini { font-size: 0.75rem; color: var(--neutral); margin-top: 0.3rem; }
+
+  .cr-cycle-head {
+    display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; margin-bottom: 0.85rem;
+    h4 { font-size: 0.9375rem; font-weight: 700; }
+  }
+
+  .rating-hero {
+    @include gradient-hero($radius: var(--radius), $padding: 1.1rem 1.35rem);
+    margin-bottom: 1rem;
+
+    .num {
+      font-family: var(--font-mono); font-size: 1.9rem; font-weight: 500; line-height: 1;
+      .denom { font-size: 1rem; font-family: var(--font-body); color: #C7CEDE; }
+    }
+    .sub { font-size: 0.75rem; color: #C7CEDE; }
+  }
+
+  .inprogress-note {
+    display: flex; align-items: center; gap: 0.6rem; font-size: 0.8125rem; color: var(--caution-text);
+    background: var(--caution-bg); border-radius: 8px; padding: 0.7rem 0.95rem; margin-bottom: 1rem;
+    svg { width: 16px; height: 16px; flex: 0 0 auto; }
+  }
+
+  .manager-comment {
+    background: var(--surface); border-radius: 8px; padding: 0.85rem 1rem; font-size: 0.8125rem;
+    color: var(--ink-light); line-height: 1.55; margin-top: 0.9rem;
+    b { color: var(--ink); }
+  }
+
+  .card-label { @include uppercase-label; }
+
+  .field-grid label, .row2 label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--ink-light); margin-bottom: 0.3rem; }
+}
+
+// ============================================================
+// Payroll Runs + Payroll Run Detail UX pass (2026-08-25) — "Pinned
+// open run + full history" and "Master table + edit drawer" (both
+// chosen). See kos/decisions/ux-pages/{payroll-runs,payroll-run-detail}.html
+// and kos/decisions/ui/{payroll-runs-pinned-open-run,
+// payroll-run-detail-master-table-edit-drawer}.md. Missing-OT
+// tracking/blocking deliberately not built (see the plan's Context).
+// Reuses .cptable/.mono/.badge-*/.btn-primary/.btn-ghost/.btn-sm/
+// .pagination-bar/dialog.app-modal/.app-drawer/.tt-drawer-field/
+// .tt-drawer-note/.tt-drawer-form-head/.tt-drawer-foot/.plain-input/
+// .plain-select/.icon-btn/.back-link/.card-label/.form-actions/
+// .checkbox-inline as-is — only what's genuinely new is added here.
+// ============================================================
+
+.payroll-runs-page, .payroll-run-detail-page {
+  .card-label { @include uppercase-label; margin: 1.5rem 0 0.75rem; }
+
+  .stat-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px;
+    background: var(--border); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 1.25rem;
+  }
+  .stat-tile {
+    background: var(--white); padding: 0.95rem 1.1rem; display: flex; flex-direction: column; gap: 0.3rem;
+    .num { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1; }
+    .lbl { font-size: 0.75rem; color: var(--neutral); }
+  }
+
+  .cptable {
+    .num-col { text-align: right; }
+    .is-open td:first-child { box-shadow: inset 3px 0 0 var(--accent); }
+  }
+}
+
+.payroll-runs-page {
+  .run-hero {
+    @include gradient-hero($radius: var(--radius), $padding: 1.35rem 1.5rem);
+    margin-bottom: 1.5rem;
+  }
+  .run-hero-top {
+    display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: 1.1rem;
+    .eyebrow2 { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #C7CEDE; }
+    .period { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; margin-top: 0.2rem; }
+    .sub { font-size: 0.8125rem; color: #C7CEDE; margin-top: 0.3rem; display: flex; align-items: center; gap: 0.5rem; }
+  }
+  .run-hero-stats {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1.25rem;
+    .num { font-family: var(--font-mono); font-size: 1.25rem; font-weight: 500; }
+    .lbl { font-size: 0.75rem; color: #C7CEDE; margin-top: 0.15rem; }
+  }
+}
+
+.payroll-run-detail-page {
+  .run-detail-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin: 1rem 0 1.25rem; }
+  .run-detail-title { display: flex; align-items: center; gap: 0.6rem; h2 { font-size: 1.35rem; font-weight: 700; } }
+  .run-detail-sub { font-size: 0.8125rem; color: var(--neutral); margin-top: 0.3rem; }
+  .run-detail-actions { display: flex; align-items: center; gap: 0.6rem; }
+
+  .emp-cell {
+    display: flex; align-items: center; gap: 0.65rem;
+    h4 { font-size: 0.875rem; font-weight: 700; a { color: inherit; text-decoration: none; &:hover { color: var(--accent); } } }
+    p { font-size: 0.75rem; color: var(--neutral); margin-top: 0.05rem; }
+  }
+
+  .tt-drawer-section {
+    padding: 1rem 0; border-top: 1px solid var(--border);
+    &:first-child { padding-top: 0; border-top: none; }
+    h5 { font-size: 0.8125rem; font-weight: 700; margin-bottom: 0.6rem; }
+  }
+
+  .line-row {
+    display: flex; align-items: flex-end; gap: 0.5rem; flex-wrap: wrap; padding: 0.6rem 0; border-bottom: 1px solid var(--border);
+    form { display: flex; align-items: flex-end; gap: 0.5rem; flex-wrap: wrap; flex: 1; }
+    .tt-drawer-field { margin-bottom: 0; min-width: 100px; flex: 1; }
+  }
+
+  .line-add {
+    border: 1px dashed var(--border); border-radius: 8px; padding: 0.55rem; text-align: center; color: var(--neutral);
+    font-weight: 600; font-size: 0.8125rem; cursor: pointer; background: none; width: 100%; margin-top: 0.5rem;
+    transition: border-color var(--t), color var(--t);
+    &:hover { border-color: var(--accent); color: var(--accent); }
+  }
+
+  .detail-net {
+    display: flex; align-items: center; justify-content: space-between; font-size: 0.9375rem; font-weight: 700;
+    padding: 0.85rem 0; border-top: 1px solid var(--border); margin-top: 0.25rem;
+  }
+}

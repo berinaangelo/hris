@@ -19,6 +19,22 @@ bob_philhealth:
   source: statutory
   amount: 800.00
 
+# Manual adjustments — exercises PayslipPresenter#adjustments_total's
+# signed net sum (Payroll Run Detail's master table Adjustments column).
+bob_bonus:
+  payslip: bob_september_payslip
+  line_type: bonus
+  direction: earning
+  source: manual
+  amount: 2000.00
+
+bob_cash_advance_repayment:
+  payslip: bob_september_payslip
+  line_type: cash_advance
+  direction: deduction
+  source: manual
+  amount: 500.00
+
 carol_base_salary:
   payslip: carol_september_payslip
   line_type: base_salary

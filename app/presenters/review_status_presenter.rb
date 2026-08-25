@@ -6,6 +6,7 @@ class ReviewStatusPresenter
   def initialize(employee)
     @employee = employee
     @current_cycle = employee.review_cycles.max_by(&:start_date)
+    @earlier_cycles = employee.review_cycles.sort_by(&:start_date).reverse - [ @current_cycle ]
   end
 
   # A bulk-opened "shell" cycle (see ReviewCycles::OpenCycle's
@@ -48,5 +49,23 @@ class ReviewStatusPresenter
     return :neutral if @current_cycle.nil?
 
     nil # published, steady state — no badge
+  end
+
+  # The employee's most recently *published* cycle before the current
+  # one — context for On PIP / Needs Scoring rows on Company Reviews'
+  # roster ("last: 4.3/5 · H1 2026"), per
+  # kos/decisions/ui/company-reviews-roster-filterable-grid-list.md. Nil
+  # when there's no prior published cycle with a rating.
+  def previous_rating
+    previous_cycle = @earlier_cycles.find { |cycle| cycle.published? && cycle.overall_rating }
+    return nil unless previous_cycle
+
+    { rating: previous_cycle.overall_rating.round(1), period_label: half_year_label(previous_cycle.start_date) }
+  end
+
+  private
+
+  def half_year_label(date)
+    "H#{date.month <= 6 ? 1 : 2} #{date.year}"
   end
 end

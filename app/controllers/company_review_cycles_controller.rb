@@ -9,9 +9,15 @@ class CompanyReviewCyclesController < ApplicationController
   def index
     authorize :company_review_cycle, :index?
 
-    @employees = Employees::CompanyReviewRoster.call(
+    employees = Employees::CompanyReviewRoster.call(
       viewer: current_employee, department: params[:department], status: params[:status], search: params[:q]
     )
+    @roster_stats = {
+      total: employees.size,
+      on_pip: employees.count { |employee| ReviewStatusPresenter.new(employee).on_pip? },
+      needs_scoring: employees.count { |employee| ReviewStatusPresenter.new(employee).needs_scoring? }
+    }
+    @pagy, @employees = pagy(employees)
     @departments = policy_scope(Employee).distinct.pluck(:department).compact.sort
   end
 

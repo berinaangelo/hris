@@ -1,37 +1,90 @@
-<h1>Payroll</h1>
+<% content_for :title, "Payroll" %>
 
-<% if @open_run %>
-  <div class="card">
-    <h2>Currently open</h2>
-    <p>
-      <%= @open_run.period_start %> – <%= @open_run.period_end %> · Pay date <%= @open_run.pay_date %>
-      <span class="badge badge-neutral">Open</span>
-    </p>
-    <p><%= @open_run.payslips.count %> employees · Gross so far ₱<%= @open_run.payslips.sum(:gross_pay) %></p>
-    <%= link_to "Continue payroll run", payroll_run_path(@open_run), class: "btn btn-primary" %>
+<%# Pinned open-run hero + full paginated history — see
+    kos/decisions/ui/payroll-runs-pinned-open-run.md and
+    kos/decisions/ux-pages/payroll-runs.html ("Pinned open run + full
+    history", chosen). %>
+<div class="payroll-runs-page">
+  <div class="greet-block">
+    <div>
+      <h2>Payroll</h2>
+      <p>Run history and the currently open cutoff.</p>
+    </div>
   </div>
-<% else %>
-  <div class="card">
-    <p>No payroll run is currently open.</p>
-    <%= link_to "Open a payroll run", new_payroll_run_path, class: "btn btn-primary" %>
-  </div>
-<% end %>
 
-<div class="card">
-  <h2>History</h2>
-  <table>
-    <thead><tr><th>Cutoff</th><th>Pay date</th><th>Type</th><th>Employees</th><th>Gross</th><th>Net</th></tr></thead>
-    <tbody>
-      <% @history.each do |run| %>
-        <tr>
-          <td><%= link_to "#{run.period_start} – #{run.period_end}", payroll_run_path(run) %></td>
-          <td><%= run.pay_date %></td>
-          <td><%= run.run_type.humanize %></td>
-          <td><%= run.payslips.count %></td>
-          <td>₱<%= run.payslips.sum(:gross_pay) %></td>
-          <td>₱<%= run.payslips.sum(:net_pay) %></td>
-        </tr>
+  <% if @open_run %>
+    <div class="run-hero">
+      <div class="run-hero-top">
+        <div>
+          <p class="eyebrow2">Currently open</p>
+          <p class="period"><%= @open_run.period_start.strftime("%b %-d") %>–<%= @open_run.period_end.strftime("%-d, %Y") %></p>
+          <p class="sub">Pay date <%= @open_run.pay_date.strftime("%b %-d, %Y") %> · <span class="badge badge-neutral">Open</span></p>
+        </div>
+        <%= link_to "Continue payroll run", payroll_run_path(@open_run), class: "btn-primary" %>
+      </div>
+      <div class="run-hero-stats">
+        <div class="stat-tile">
+          <span class="num"><%= @open_run_stats[:employees] %></span>
+          <span class="lbl">Employees</span>
+        </div>
+        <div class="stat-tile">
+          <span class="num"><%= number_to_currency(@open_run_stats[:gross_so_far], unit: "₱") %></span>
+          <span class="lbl">Gross so far (provisional)</span>
+        </div>
+        <div class="stat-tile">
+          <span class="num"><%= @open_run_stats[:loan_deductions] %></span>
+          <span class="lbl">Loan deductions auto-added</span>
+        </div>
+      </div>
+    </div>
+  <% else %>
+    <div class="card">
+      <div class="empty-state">
+        <%= lucide_icon(:banknote, class: "icon") %>
+        <h3>No payroll run is currently open</h3>
+        <p>Open a cutoff to generate a draft payslip for every active employee.</p>
+        <%= link_to "Open a payroll run", new_payroll_run_path, class: "btn-primary" %>
+      </div>
+    </div>
+  <% end %>
+
+  <p class="card-label">History</p>
+  <div class="table-wrap">
+    <table class="cptable">
+      <thead>
+        <tr><th>Cutoff</th><th>Pay date</th><th>Type</th><th>Status</th><th class="num-col">Employees</th><th class="num-col">Gross</th><th class="num-col">Net</th><th></th></tr>
+      </thead>
+      <tbody>
+        <% @history.each do |run| %>
+          <% status_badge = BadgePresenter.new(run.status) %>
+          <tr>
+            <td><%= run.period_start.strftime("%b %-d") %>–<%= run.period_end.strftime("%-d, %Y") %></td>
+            <td><%= run.pay_date.strftime("%b %-d, %Y") %></td>
+            <td><%= run.thirteenth_month? ? content_tag(:span, "13th Month", class: "badge badge-neutral") : "Regular" %></td>
+            <td><span class="<%= status_badge.css_class %>"><%= status_badge.label %></span></td>
+            <td class="num-col mono"><%= run.payslips.count %></td>
+            <td class="num-col mono"><%= number_to_currency(run.payslips.sum(:gross_pay), unit: "₱") %></td>
+            <td class="num-col mono"><%= number_to_currency(run.payslips.sum(:net_pay), unit: "₱") %></td>
+            <td><%= link_to "View", payroll_run_path(run), class: "btn-ghost" %></td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="pagination-bar">
+    <p>Showing <%= @pagy.from %>–<%= @pagy.to %> of <%= @pagy.count %></p>
+    <div class="pagination-controls">
+      <% if @pagy.previous %>
+        <%= link_to "Prev", payroll_runs_path(page: @pagy.previous), class: "btn-ghost" %>
+      <% else %>
+        <button class="btn-ghost" type="button" disabled>Prev</button>
       <% end %>
-    </tbody>
-  </table>
+      <% if @pagy.next %>
+        <%= link_to "Next", payroll_runs_path(page: @pagy.next), class: "btn-ghost" %>
+      <% else %>
+        <button class="btn-ghost" type="button" disabled>Next</button>
+      <% end %>
+    </div>
+  </div>
 </div>

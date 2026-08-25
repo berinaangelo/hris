@@ -1,8 +1,11 @@
+require "csv"
+
 class PayrollRunsController < ApplicationController
   def index
     authorize PayrollRun
     @open_run = policy_scope(PayrollRun).open.first
-    @history = policy_scope(PayrollRun).finalized.order(period_start: :desc)
+    @open_run_stats = run_stats(@open_run) if @open_run
+    @pagy, @history = pagy(policy_scope(PayrollRun).finalized.order(period_start: :desc))
   end
 
   def new
@@ -31,6 +34,12 @@ class PayrollRunsController < ApplicationController
   def show
     @payroll_run = policy_scope(PayrollRun).includes(payslips: [ :employee, :payslip_line_items ]).find(params[:id])
     authorize @payroll_run
+    @stats = run_stats(@payroll_run)
+
+    respond_to do |format|
+      format.html
+      format.csv { send_data run_csv, filename: "payroll-run-#{@payroll_run.period_start}-#{@payroll_run.period_end}.csv" }
+    end
   end
 
   def finalize
@@ -43,6 +52,32 @@ class PayrollRunsController < ApplicationController
       redirect_to payroll_run_path(@payroll_run), notice: "Payroll run finalized."
     else
       redirect_to payroll_run_path(@payroll_run), alert: result.message
+    end
+  end
+
+  private
+
+  # Employees / gross so far / loan deductions auto-added — the pinned
+  # hero (index) and the stat strip (show) both need the same 3 tallies
+  # for whichever run they're looking at.
+  def run_stats(payroll_run)
+    {
+      employees: payroll_run.payslips.count,
+      gross_so_far: payroll_run.payslips.sum(:gross_pay),
+      loan_deductions: PayslipLineItem.where(payslip: payroll_run.payslips, line_type: :loan_repayment).count
+    }
+  end
+
+  def run_csv
+    CSV.generate do |csv|
+      csv << [ "Employee", "Base Salary", "Adjustments", "Loan", "Statutory", "Net Pay", "Status" ]
+      @payroll_run.payslips.each do |payslip|
+        presenter = PayslipPresenter.new(payslip)
+        csv << [
+          payslip.employee.full_name, presenter.base_salary, presenter.adjustments_total,
+          presenter.loan_deductions, presenter.statutory_deductions, payslip.net_pay, payslip.status
+        ]
+      end
     end
   end
 end

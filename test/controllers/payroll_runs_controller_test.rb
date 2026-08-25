@@ -23,6 +23,28 @@ class PayrollRunsControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
   end
 
+  test "run history is paginated" do
+    sign_in employees(:admin_amy)
+
+    get payroll_runs_path
+
+    assert_response :success
+    assert_match "pagination-bar", response.body
+  end
+
+  test "admin can export a run as csv" do
+    sign_in employees(:admin_amy)
+
+    get payroll_run_path(payroll_runs(:acme_september_2026), format: :csv)
+
+    assert_response :success
+    assert_equal "text/csv", response.media_type
+    assert_match "Bob Worker", response.body
+    # Bob's fixture adjustments: +2000 bonus, -500 cash advance = net 1500 —
+    # exercises PayslipPresenter#adjustments_total's signed sum.
+    assert_match "1500.0", response.body
+  end
+
   test "admin can open a payroll run" do
     sign_in employees(:admin_amy)
 

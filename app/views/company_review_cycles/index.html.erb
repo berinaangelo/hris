@@ -1,81 +1,144 @@
 <% content_for :title, "Company Reviews" %>
 
-<div class="company-review-cycles" data-controller="view-toggle">
-<div class="toolbar bulma-is-flex bulma-is-flex-direction-row bulma-is-align-items-start">
-  <div class="bulma-is-flex bulma-is-flex-direction-row bulma-is-align-items-start">
-    <div class="field">
-      <%= form_with url: company_review_cycles_path, method: :get, local: true do %>
-        <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name">
-      <% end %>
+<%# Company-wide, read-only review roster — People-Directory-style
+    card/list toggle with department + status filters, per
+    kos/decisions/ui/company-reviews-roster-filterable-grid-list.md and
+    kos/decisions/ux-pages/company-reviews.html ("Company roster,
+    filterable", chosen). Reuses the .person-card/.people-grid/.cptable/
+    .pagination-bar shapes People Directory already established. %>
+<div class="company-review-cycles-page" data-controller="view-toggle">
+  <div class="greet-block">
+    <div>
+      <h2>Performance reviews</h2>
+      <p>
+        <%= pluralize(@roster_stats[:total], "employee") %> ·
+        <%= @roster_stats[:on_pip] %> on PIP ·
+        <%= @roster_stats[:needs_scoring] %> awaiting scoring
+      </p>
     </div>
+    <%# Own data-controller="modal" scope, separate from the roster's
+        below — the shared modal_controller.js resolves a single
+        `dialogTarget` per controller instance, so two <dialog>s can't
+        share one scope without the second becoming unreachable. %>
+    <div class="inline-modal-scope" data-controller="modal">
+      <%= link_to new_company_review_cycle_path, class: "btn-primary", data: { action: "modal#open", turbo_frame: "company_review_new_cycle_modal" } do %>
+        <%= lucide_icon(:plus) %>Start new cycle
+      <% end %>
+      <%= render "shared/modal", frame_id: "company_review_new_cycle_modal" %>
+    </div>
+  </div>
 
-    <div class="chip-row pl-3">
-      <%= link_to "All", company_review_cycles_path(q: params[:q], show_offboarded: params[:show_offboarded]),
+  <div class="toolbar">
+    <%= form_with url: company_review_cycles_path, method: :get, local: true, html: { class: "search-wrap" } do %>
+      <%= lucide_icon(:search) %>
+      <input class="search-input" type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name...">
+      <% if params[:department].present? %><input type="hidden" name="department" value="<%= params[:department] %>"><% end %>
+      <% if params[:status].present? %><input type="hidden" name="status" value="<%= params[:status] %>"><% end %>
+    <% end %>
+
+    <div class="chip-row">
+      <%= link_to "All depts", company_review_cycles_path(q: params[:q], status: params[:status]),
             class: "chip-filter #{"is-active" unless params[:department].present?}" %>
       <% @departments.each do |department| %>
-        <%= link_to department, company_review_cycles_path(department: department, q: params[:q], show_offboarded: params[:show_offboarded]),
+        <%= link_to department, company_review_cycles_path(department: department, q: params[:q], status: params[:status]),
               class: "chip-filter #{"is-active" if params[:department] == department}" %>
       <% end %>
     </div>
+
+    <div class="chip-row">
+      <%= link_to "All statuses", company_review_cycles_path(q: params[:q], department: params[:department]),
+            class: "chip-filter #{"is-active" unless params[:status].present?}" %>
+      <%= link_to "On PIP", company_review_cycles_path(status: "on_pip", q: params[:q], department: params[:department]),
+            class: "chip-filter #{"is-active" if params[:status] == "on_pip"}" %>
+      <%= link_to "Needs scoring", company_review_cycles_path(status: "needs_scoring", q: params[:q], department: params[:department]),
+            class: "chip-filter #{"is-active" if params[:status] == "needs_scoring"}" %>
+    </div>
+
+    <div class="toolbar-spacer"></div>
+
+    <div class="view-toggle">
+      <button type="button" class="view-toggle-btn" data-action="view-toggle#showCards" data-view-toggle-target="cardsBtn" title="Card view"><%= lucide_icon(:grid) %></button>
+      <button type="button" class="view-toggle-btn is-active" data-action="view-toggle#showList" data-view-toggle-target="listBtn" title="List view"><%= lucide_icon(:list) %></button>
+    </div>
   </div>
 
-  <div class="bulma-is-flex-grow-1 bulma-is-flex bulma-is-justify-content-flex-end bulma-is-align-items-center bulma-is-gap-1">
-    <button type="button" data-action="btn view-toggle#showList" class="view-toggle-btn is-bordered is-active" data-view-toggle-target="listBtn"><%= lucide_icon(:list) %></button>
-    <button type="button" data-action="btn view-toggle#showCards" class="view-toggle-btn is-bordered" data-view-toggle-target="cardsBtn"><%= lucide_icon(:grid) %></button>
-  </div>
-</div>
+  <div data-controller="modal">
+    <div data-view-toggle-target="list">
+      <div class="table-wrap">
+        <table class="cptable">
+          <thead><tr><th>Employee</th><th>Department</th><th>Manager</th><th>Current cycle status</th><th></th></tr></thead>
+          <tbody>
+            <% @employees.each do |employee| %>
+              <% presenter = ReviewStatusPresenter.new(employee) %>
+              <tr>
+                <td class="who"><span class="avatar"><%= employee.first_name.first %><%= employee.last_name.first %></span><h4><%= employee.full_name %></h4></td>
+                <td><span class="dept-tag"><%= employee.department %></span></td>
+                <td class="muted"><%= employee.manager&.full_name || "—" %></td>
+                <td>
+                  <div class="status-cell">
+                    <% if (category = presenter.badge_category(scope: :company)) %>
+                      <span class="badge badge-<%= category %>"><%= presenter.label %></span>
+                    <% else %>
+                      <span><%= presenter.label %></span>
+                    <% end %>
+                    <% if (previous = presenter.previous_rating) %>
+                      <span class="last mono">last: <%= previous[:rating] %>/5 · <%= previous[:period_label] %></span>
+                    <% end %>
+                  </div>
+                </td>
+                <td>
+                  <%= link_to "View", company_review_cycle_path(employee), class: "btn-ghost",
+                               data: { action: "modal#open", turbo_frame: "company_review_modal" } %>
+                </td>
+              </tr>
+            <% end %>
+          </tbody>
+        </table>
+      </div>
+    </div>
 
-<div data-controller="modal">
-  <div class="card">
-    <table data-view-toggle-target="list">
-      <thead><tr><th>Employee</th><th>Department</th><th>Status</th><th></th></tr></thead>
-      <tbody>
+    <div data-view-toggle-target="cards" hidden>
+      <div class="people-grid">
         <% @employees.each do |employee| %>
           <% presenter = ReviewStatusPresenter.new(employee) %>
-          <tr>
-            <td><%= employee.full_name %></td>
-            <td><%= employee.department %></td>
-            <td>
+          <%= link_to company_review_cycle_path(employee), class: "person-card",
+                       data: { action: "modal#open", turbo_frame: "company_review_modal" } do %>
+            <span class="avatar"><%= employee.first_name.first %><%= employee.last_name.first %></span>
+            <h4><%= employee.full_name %></h4>
+            <p class="role"><%= employee.job_title %></p>
+            <div class="foot">
+              <span class="dept-tag"><%= employee.department %></span>
               <% if (category = presenter.badge_category(scope: :company)) %>
                 <span class="badge badge-<%= category %>"><%= presenter.label %></span>
               <% else %>
-                <%= presenter.label %>
+                <span class="muted"><%= presenter.label %></span>
               <% end %>
-            </td>
-            <td>
-              <%= link_to "View", company_review_cycle_path(employee), class: "btn btn-ghost",
-                           data: { action: "modal#open", turbo_frame: "company_review_modal" } %>
-            </td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
-
-    <div class="review-cycles-card-grid" data-view-toggle-target="cards" hidden>
-      <% @employees.each do |employee| %>
-        <% presenter = ReviewStatusPresenter.new(employee) %>
-        <%= link_to company_review_cycle_path(employee), class: "card",
-                     data: { action: "modal#open", turbo_frame: "company_review_modal" } do %>
-          <strong><%= employee.full_name %></strong><br>
-          <span><%= employee.department %></span><br>
-          <% if (category = presenter.badge_category(scope: :company)) %>
-            <span class="badge badge-<%= category %>"><%= presenter.label %></span>
-          <% else %>
-            <span><%= presenter.label %></span>
+            </div>
+            <% if (previous = presenter.previous_rating) %>
+              <p class="last-mini mono">Last: <%= previous[:rating] %>/5 · <%= previous[:period_label] %></p>
+            <% end %>
           <% end %>
         <% end %>
-      <% end %>
+      </div>
     </div>
 
-    <p>
-      Showing 1–<%= @employees.size %> of <%= @employees.size %>
-      <button type="button" class="btn btn-ghost" disabled>Prev</button>
-      <button type="button" class="btn btn-ghost" disabled>Next</button>
-    </p>
+    <%= render "shared/modal", frame_id: "company_review_modal" %>
   </div>
 
-  <%= render "shared/modal", frame_id: "company_review_modal" %>
-</div>
-
-<%= link_to "Start new cycle", new_company_review_cycle_path, class: "btn btn-primary" %>
+  <div class="pagination-bar">
+    <p>Showing <%= @pagy.from %>–<%= @pagy.to %> of <%= @pagy.count %></p>
+    <div class="pagination-controls">
+      <% pagination_params = { q: params[:q], department: params[:department], status: params[:status] } %>
+      <% if @pagy.previous %>
+        <%= link_to "Prev", company_review_cycles_path(pagination_params.merge(page: @pagy.previous)), class: "btn-ghost" %>
+      <% else %>
+        <button class="btn-ghost" type="button" disabled>Prev</button>
+      <% end %>
+      <% if @pagy.next %>
+        <%= link_to "Next", company_review_cycles_path(pagination_params.merge(page: @pagy.next)), class: "btn-ghost" %>
+      <% else %>
+        <button class="btn-ghost" type="button" disabled>Next</button>
+      <% end %>
+    </div>
+  </div>
 </div>

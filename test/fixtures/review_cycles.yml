@@ -23,6 +23,18 @@ alice_awaiting_scoring:
   start_date: <%= 6.months.ago.to_date %>
   end_date: <%= 1.day.ago.to_date %>
 
+# Alice's prior cycle, published — exercises
+# ReviewStatusPresenter#previous_rating (Company Reviews' "last: X/5"
+# roster sub-line for On PIP/Needs Scoring rows).
+alice_published_earlier:
+  employee: worker_optout
+  cycle_type: regular
+  status: published
+  start_date: <%= 12.months.ago.to_date %>
+  end_date: <%= 7.months.ago.to_date %>
+  manager_comment: Good quarter overall.
+  published_at: <%= 7.months.ago %>
+
 carol_in_progress:
   employee: worker_carol
   cycle_type: regular

@@ -19,14 +19,14 @@
       <tbody>
         <% @payslip.payslip_line_items.each do |item| %>
           <tr>
-            <%= form_with model: [ @payslip, item ], local: true do |f| %>
+            <%= form_with model: item, url: payslip_line_item_path(@payslip, item), method: :patch, local: true do |f| %>
               <td><%= f.select :line_type, PayslipLineItem.line_types.keys.map { |t| [ t.humanize, t ] } %></td>
               <td><%= f.select :direction, PayslipLineItem.directions.keys.map { |d| [ d.humanize, d ] } %></td>
               <td><%= f.text_field :description %></td>
               <td><%= f.number_field :amount, step: 0.01, min: 0.01 %></td>
               <td>
                 <%= f.submit "Save", class: "btn btn-ghost" %>
-                <%= button_to "Remove", [ @payslip, item ], method: :delete, class: "btn btn-danger-outline", form: { style: "display:inline" } %>
+                <%= button_to "Remove", payslip_line_item_path(@payslip, item), method: :delete, class: "btn btn-danger-outline", form: { style: "display:inline" } %>
               </td>
             <% end %>
           </tr>
@@ -35,7 +35,7 @@
     </table>
 
     <h3>Add a line item</h3>
-    <%= form_with model: [ @payslip, PayslipLineItem.new ], local: true do |f| %>
+    <%= form_with model: PayslipLineItem.new, url: payslip_line_items_path(@payslip), method: :post, local: true do |f| %>
       <div class="field">
         <%= f.label :line_type %>
         <%= f.select :line_type, PayslipLineItem.line_types.keys.map { |t| [ t.humanize, t ] } %>
