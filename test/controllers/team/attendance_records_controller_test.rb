@@ -30,6 +30,51 @@ module Team
       assert_response :success
     end
 
+    test "status chip narrows the table but not the stat strip counts" do
+      sign_in employees(:admin_amy)
+
+      get team_attendance_records_path(start_date: "2026-08-01", end_date: "2026-08-31", status: "late")
+
+      assert_response :success
+      # Scoped to the attendance table itself — both employees also show up
+      # in the unrelated "Correction requests" card via other fixtures, so
+      # a whole-response_body check would give a false pass/fail here.
+      assert_select "table.cptable h4", text: employees(:worker_bob).full_name
+      assert_select "table.cptable h4", text: employees(:worker_carol).full_name, count: 0
+      # carol_ontime is filtered out of the table above, but the stat strip
+      # still counts it — stats reflect the whole period, not the filter.
+      assert_select ".stat-tile.dot-positive .num", text: "1"
+    end
+
+    test "search narrows the table by employee name" do
+      sign_in employees(:admin_amy)
+
+      get team_attendance_records_path(start_date: "2026-08-01", end_date: "2026-08-31", q: "carol")
+
+      assert_response :success
+      assert_select "table.cptable h4", text: employees(:worker_carol).full_name
+      assert_select "table.cptable h4", text: employees(:worker_bob).full_name, count: 0
+    end
+
+    test "period chips mark today/this week/this period active based on the resolved dates" do
+      sign_in employees(:manager_jane)
+
+      get team_attendance_records_path(start_date: Date.current, end_date: Date.current)
+
+      assert_response :success
+      assert_select "a.chip-filter.is-active", text: "Today"
+    end
+
+    test "on-time rows render as plain text, not a badge" do
+      sign_in employees(:admin_amy)
+
+      get team_attendance_records_path(start_date: "2026-08-01", end_date: "2026-08-31")
+
+      assert_response :success
+      assert_select "span.muted", text: "On time"
+      assert_select "span.badge-positive", count: 0
+    end
+
     test "an employee (non-manager, non-admin) is forbidden" do
       sign_in employees(:worker_bob)
 
@@ -167,8 +212,13 @@ module Team
       sign_in employees(:manager_jane)
       record = attendance_records(:bob_late)
 
+      # Explicit range covering the fixture's date — the default 14-day
+      # trailing window drifts past 2026-08-10 as "today" advances, which
+      # would silently drop this record out of the reopened index and fail
+      # the assertion below for a reason unrelated to what's under test.
       patch team_attendance_record_path(record), params: {
-        attendance_record: { clock_out_at: "2026-08-10T08:00:00" }
+        attendance_record: { clock_out_at: "2026-08-10T08:00:00" },
+        start_date: "2026-08-01", end_date: "2026-08-31"
       }
 
       assert_response :unprocessable_entity

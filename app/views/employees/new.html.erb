@@ -31,7 +31,7 @@
             <% if @employee.errors[:last_name].any? %><p class="field-error"><%= @employee.errors[:last_name].first %></p><% end %>
           </div>
           <div class="field">
-            <%= f.label :personal_email do %>Personal email <span class="opt">— for the account-setup invite</span><% end %>
+            <%= f.label :personal_email %>
             <%= f.email_field :personal_email, class: "plain-input" %>
           </div>
           <div class="field">

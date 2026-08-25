@@ -1,7 +1,7 @@
 <%# One shift template within the "Shift templates" drawer — display row
     plus an inline-edit form, same display<->form toggle mechanic as
     Employee Detail's sections (data-controller="inline-edit"). %>
-<div class="tt-drawer-row" data-controller="inline-edit">
+<div class="tt-drawer-row" data-controller="inline-edit" data-inline-edit-open-value="<%= shift_template.errors.any? %>">
   <div class="name-row" data-inline-edit-target="display">
     <h4><%= shift_template.name %></h4>
     <button type="button" class="icon-btn" title="Edit" data-action="inline-edit#edit"><%= lucide_icon(:pencil) %></button>
@@ -11,25 +11,30 @@
   </p>
   <p class="assigned" data-inline-edit-target="display"><%= pluralize(shift_template.employees.size, "employee") %> assigned</p>
 
-  <%= form_with model: shift_template, url: team_shift_template_path(shift_template), method: :patch, local: true, html: { data: { "inline-edit-target": "form" }, hidden: true } do |f| %>
+  <%= form_with model: shift_template, url: team_shift_template_path(shift_template), method: :patch,
+        html: { id: dom_id(shift_template, :edit_form), data: { "inline-edit-target": "form" }, hidden: true } do |f| %>
+    <div class="tt-drawer-form-head">
+      <button type="button" class="icon-btn" title="Cancel" data-action="inline-edit#cancel"><%= lucide_icon(:x) %></button>
+    </div>
     <div class="tt-drawer-field">
       <%= f.label :name %>
       <%= f.text_field :name, class: "plain-input", required: true %>
     </div>
-    <div class="tt-drawer-field">
-      <%= f.label :start_time, "Start" %>
-      <%= f.time_field :start_time, class: "plain-input", required: true %>
-    </div>
-    <div class="tt-drawer-field">
-      <%= f.label :end_time, "End" %>
-      <%= f.time_field :end_time, class: "plain-input", required: true %>
-    </div>
-    <div class="tt-drawer-foot">
-      <%= f.submit "Save", class: "btn-primary" %>
-      <button type="button" class="btn-ghost" data-action="inline-edit#cancel">Cancel</button>
+    <div class="row2">
+      <div class="tt-drawer-field">
+        <%= f.label :start_time, "Start" %>
+        <%= f.time_field :start_time, class: "plain-input", required: true %>
+      </div>
+      <div class="tt-drawer-field">
+        <%= f.label :end_time, "End" %>
+        <%= f.time_field :end_time, class: "plain-input", required: true %>
+      </div>
     </div>
   <% end %>
 
-  <%= button_to "Delete", team_shift_template_path(shift_template), method: :delete, class: "btn-ghost danger",
-        data: { turbo_confirm: "Delete #{shift_template.name}? This can't be undone." } %>
+  <div class="tt-drawer-foot tt-drawer-foot--float" data-inline-edit-target="form" hidden>
+    <button type="submit" form="<%= dom_id(shift_template, :edit_form) %>" class="btn-primary">Save</button>
+    <%= button_to "Delete", team_shift_template_path(shift_template), method: :delete, class: "btn-ghost danger",
+          data: { turbo_confirm: "Delete #{shift_template.name}? This can't be undone." } %>
+  </div>
 </div>

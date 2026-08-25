@@ -50,7 +50,8 @@ class CompanyReviewCyclesControllerTest < ActionDispatch::IntegrationTest
         review_cycle: { employee_id: employee.id, cycle_type: "regular", start_date: Date.current, end_date: 6.months.from_now.to_date },
         kpi_entries: [
           { kpi_name: "Ship feature X", target: "By Q3" },
-          { kpi_name: "Reduce bugs", target: "Under 5 open" }
+          { kpi_name: "Reduce bugs", target: "Under 5 open" },
+          { kpi_name: "Mentor a junior", target: "Weekly 1:1s" }
         ]
       }
     end

@@ -1,11 +1,16 @@
 class AttendanceCorrectionRequestsController < ApplicationController
   def index
     authorize AttendanceCorrectionRequest
-    @correction_requests = policy_scope(AttendanceCorrectionRequest).order(created_at: :desc)
+    load_history
+    @correction_request ||= AttendanceCorrectionRequest.new
   end
 
   def new
     authorize AttendanceCorrectionRequest
+    load_history
+    @correction_request = AttendanceCorrectionRequest.new
+    @open_request_modal = true
+    render :index
   end
 
   def create
@@ -22,12 +27,18 @@ class AttendanceCorrectionRequestsController < ApplicationController
     if result.success?
       redirect_to attendance_correction_requests_path, notice: "Correction requested."
     else
-      flash.now[:alert] = result.message
-      render :new, status: :unprocessable_entity
+      load_history
+      @correction_request = result.correction_request || AttendanceCorrectionRequest.new(correction_request_params)
+      @open_request_modal = true
+      render :index, status: :unprocessable_entity
     end
   end
 
   private
+
+  def load_history
+    @correction_requests = policy_scope(AttendanceCorrectionRequest).order(created_at: :desc)
+  end
 
   def correction_request_params
     params.require(:attendance_correction_request)

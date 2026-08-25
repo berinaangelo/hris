@@ -167,6 +167,12 @@ $spacing-values: ("0": 0, "1": 0.25rem, "2": 0.5rem, "3": 0.75rem, "4": 1rem, "5
 }
 
 * { box-sizing: border-box; }
+// Every kos mockup's own reset zeroes <p> margin and lets each component's
+// gap/padding own spacing instead — this app never carried that reset over,
+// so bare <p> tags (e.g. .tt-drawer-row's .hours/.assigned) pick up the
+// browser's default margin: 1em 0 on top of their container's intended gap.
+// Nothing in the app relies on that default margin for spacing.
+p { margin: 0; }
 // Stimulus toggles visibility by setting the `hidden` HTML
 // attribute/property (inline-edit, tabs, tree-node, view-toggle
 // controllers). The UA's own `[hidden]{display:none}` default rule is
@@ -604,6 +610,8 @@ input.pref:checked ~ .toggle-track .thumb { transform: translateX(18px); }
   text-decoration: none; transition: background var(--t), color var(--t);
 
   &:hover { background: var(--surface); color: var(--ink); }
+  &:disabled { opacity: 0.4; cursor: not-allowed; }
+  &:disabled:hover { background: var(--white); color: var(--ink-light); }
   svg { width: 15px; height: 15px; }
 }
 
@@ -641,6 +649,12 @@ textarea.plain-input { resize: vertical; min-height: 64px; font-family: var(--fo
 .modal-form { display: flex; flex-direction: column; gap: 1rem; }
 .save-bar { display: flex; gap: 0.6rem; justify-content: flex-end; padding-top: 1rem; margin-top: 0.25rem; border-top: 1px dashed var(--border); }
 
+// Two-field inline row (e.g. start/end date pairs) — originally scoped to
+// .reqform only; promoted here once the Team Reviews open-cycle form needed
+// the same layout, same trick as .btn-primary/.avatar becoming shared.
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
+@media (max-width: 480px) { .row2 { grid-template-columns: 1fr; } }
+
 // ============================================================
 // Batch 2 — Me tab UX pass. Home Dashboard, My Payslips, My Reviews,
 // Time Off — see kos/decisions/ux-pages/{home-dashboard,my-payslips,
@@ -656,6 +670,11 @@ textarea.plain-input { resize: vertical; min-height: 64px; font-family: var(--fo
 // .review-cycles-layout is untouched.
 
 .my-reviews-page {
+  // Global h1/h2/h3 reset zeroes the browser's default h1 margin;
+  // nothing filled it back in, so the heading ran straight into the
+  // card below it.
+  h1 { margin-bottom: 1rem; }
+
   .review-cycles-layout {
     background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow-card);
     overflow: hidden; gap: 0; align-items: stretch;
@@ -880,9 +899,7 @@ textarea.plain-input { resize: vertical; min-height: 64px; font-family: var(--fo
 
 .reqform {
   display: flex; flex-direction: column; gap: 1rem;
-  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0.85rem; }
 }
-@media (max-width: 480px) { .reqform .row2 { grid-template-columns: 1fr; } }
 .plain-select, .plain-textarea {
   width: 100%; padding: 0.55rem 0.7rem; border: 1px solid var(--border); border-radius: 8px;
   font-family: var(--font-body); font-size: 0.9375rem; color: var(--ink); background: var(--white);
@@ -902,6 +919,19 @@ textarea.plain-input { resize: vertical; min-height: 64px; font-family: var(--fo
   display: flex; align-items: center; gap: 0.6rem; font-size: 0.8125rem; color: var(--ink-light);
   svg { width: 16px; height: 16px; flex: 0 0 auto; color: var(--neutral); }
   b { color: var(--ink); }
+}
+
+// ---------- Attendance Corrections (employee self-service; list + modal form) ----------
+// See kos/decisions/ui/attendance-corrections-list-plus-modal.md. Same
+// "list + modal form" shape as Time Off above, reusing its .reqform/
+// .field-edit/.plain-input/.approver-note classes verbatim — only the
+// page-scope wrapper and the .reqtable's .reason column are new here.
+.attendance-corrections-page {
+  .greet-block { @include greet-block; }
+  .reqtable {
+    @include data-table($row-height: 46px, $min-width: 620px);
+    .reason { color: var(--ink-light); max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  }
 }
 
 // ============================================================
@@ -930,12 +960,13 @@ textarea.plain-input { resize: vertical; min-height: 64px; font-family: var(--fo
   &:hover { background: var(--negative-bg); }
 }
 .btn-danger-ghost {
-  background: var(--white); border: 1px solid #F3C6C6; color: var(--danger); border-radius: 6px; padding: 0.55rem 0.9rem;
-  font-weight: 600; font-size: 0.8125rem; cursor: pointer; transition: background var(--t), border-color var(--t);
-  display: inline-flex; align-items: center; gap: 0.4rem;
+  background: var(--white); border: 1px solid #F3C6C6; color: var(--danger); border-radius: 8px; padding: 0.65rem 1rem;
+  font-weight: 600; font-size: 0.875rem; cursor: pointer; transition: background var(--t), border-color var(--t);
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.5rem;
 
   &:hover { background: var(--negative-bg); }
-  svg { width: 14px; height: 14px; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  svg { width: 15px; height: 15px; }
 }
 
 // Reusable table styled like the my-reviews/team-approvals "recently
@@ -976,11 +1007,21 @@ dialog.app-modal.app-drawer::backdrop { background: rgba(27, 42, 74, 0.45); }
     display: flex; align-items: center; justify-content: space-between;
     h4 { font-size: 0.875rem; font-weight: 700; }
   }
+  .hours { font-size: 0.8125rem; color: var(--ink-light); }
   .assigned { font-size: 0.75rem; color: var(--neutral); }
+}
+.tt-drawer-add {
+  border: 1px dashed var(--border); border-radius: 8px; padding: 0.65rem; text-align: center; color: var(--neutral);
+  font-weight: 600; font-size: 0.8125rem; cursor: pointer; background: none; width: 100%;
+  transition: border-color var(--t), color var(--t);
+
+  &:hover { border-color: var(--accent); color: var(--accent); }
 }
 .tt-drawer-field label { display: block; font-size: 0.75rem; font-weight: 600; color: var(--ink-light); margin-bottom: 0.3rem; }
 .tt-drawer-note { font-size: 0.75rem; color: var(--neutral); line-height: 1.5; }
+.tt-drawer-form-head { display: flex; justify-content: flex-end; margin-bottom: -0.2rem; }
 .tt-drawer-foot { display: flex; gap: 0.6rem; }
+.tt-drawer-foot--float { justify-content: flex-end; }
 .tt-compare {
   display: flex; gap: 0.75rem;
   > div { flex: 1; border: 1px solid var(--border); border-radius: 8px; padding: 0.6rem 0.7rem; }
@@ -1011,15 +1052,11 @@ dialog.app-modal.app-drawer::backdrop { background: rgba(27, 42, 74, 0.45); }
     }
     .actions {
       display: flex; align-items: center; gap: 0.5rem; flex: 0 0 auto;
-      form { display: flex; align-items: center; gap: 0.4rem; margin: 0; }
       .btn-primary {
         display: inline-flex; align-items: center; gap: 0.4rem;
         svg { width: 15px; height: 15px; }
       }
     }
-  }
-  .inline-reject-form input[type="text"] {
-    width: 140px; padding: 0.45rem 0.6rem; border: 1px solid var(--border); border-radius: 6px; font-size: 0.8125rem;
   }
 
   .balance-chip {
@@ -1138,8 +1175,9 @@ dialog.app-modal.app-drawer::backdrop { background: rgba(27, 42, 74, 0.45); }
     width: 100%; border-collapse: collapse; font-size: 0.875rem;
     td { padding: 0.35rem 0.5rem 0.35rem 0; vertical-align: top; }
     td:first-child { width: 58%; }
+    td:last-child { width: 34px; padding-right: 0; text-align: center; }
   }
-  .draftkpi-wrap { display: flex; flex-direction: column; gap: 0.5rem; }
+  .draftkpi-wrap { display: flex; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
   .score-edit-cell { display: flex; align-items: center; gap: 0.5rem; }
 }
 
@@ -1149,6 +1187,23 @@ dialog.app-modal.app-drawer::backdrop { background: rgba(27, 42, 74, 0.45); }
 
 .team-attendance-page {
   .greet-block { @include greet-block; }
+
+  .period-row { display: flex; align-items: center; gap: 0.6rem; padding-bottom: 1rem; flex-wrap: wrap; }
+  .today-label { font-family: var(--font-mono); font-size: 0.8125rem; color: var(--neutral); margin-left: 0.15rem; }
+
+  .stat-strip {
+    display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1px;
+    background: var(--border); border: 1px solid var(--border); border-radius: var(--radius);
+    overflow: hidden; margin-bottom: 1.25rem;
+  }
+  .stat-tile {
+    background: var(--white); padding: 0.95rem 1.1rem; display: flex; flex-direction: column; gap: 0.3rem;
+    .num { font-family: var(--font-mono); font-size: 1.5rem; font-weight: 500; line-height: 1; }
+    .lbl { font-size: 0.75rem; color: var(--neutral); }
+    &.dot-positive .num { color: var(--positive-text); }
+    &.dot-caution .num { color: var(--caution-text); }
+    &.dot-negative .num { color: var(--negative-text); }
+  }
 
   .settings-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; margin-bottom: 1.5rem; }
   .settings-row {

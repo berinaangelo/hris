@@ -39,30 +39,37 @@
   <% end %>
 
   <% if @shift_templates %>
-    <div class="templates-trigger-row" data-controller="modal">
-      <button type="button" class="btn-ghost" data-action="modal#open">Manage shift templates</button>
+    <% new_shift_template = @shift_template&.new_record? ? @shift_template : ShiftTemplate.new %>
+    <div class="templates-trigger-row" data-controller="modal"
+         data-modal-open-value="<%= params[:open_shift_templates].present? || @open_shift_templates.present? %>">
+      <button type="button" class="btn-ghost mb-3" data-action="modal#open">Manage shift templates</button>
       <%= render "shared/drawer", title: "Shift templates" do %>
         <% @shift_templates.each do |shift_template| %>
-          <%= render "shift_template_card", shift_template: shift_template %>
+          <% shift_template = @shift_template if @reopen_shift_template_id == shift_template.id %>
+          <%= render "team/attendance_records/shift_template_card", shift_template: shift_template %>
         <% end %>
-        <div class="tt-drawer-row" data-controller="inline-edit">
+        <div class="tt-drawer-row" data-controller="inline-edit" data-inline-edit-open-value="<%= new_shift_template.errors.any? %>">
           <button type="button" class="tt-drawer-add" data-action="inline-edit#edit" data-inline-edit-target="display">+ Add shift template</button>
-          <%= form_with model: ShiftTemplate.new, url: team_shift_templates_path, method: :post, local: true, html: { data: { "inline-edit-target": "form" }, hidden: true } do |f| %>
-            <div class="tt-drawer-field">
+          <%= form_with model: new_shift_template, url: team_shift_templates_path, method: :post, html: { data: { "inline-edit-target": "form" }, hidden: true } do |f| %>
+            <div class="tt-drawer-form-head">
+              <button type="button" class="icon-btn" title="Cancel" data-action="inline-edit#cancel"><%= lucide_icon(:x) %></button>
+            </div>
+            <div class="tt-drawer-field mb-3">
               <%= f.label :name %>
               <%= f.text_field :name, class: "plain-input", required: true %>
             </div>
-            <div class="tt-drawer-field">
-              <%= f.label :start_time, "Start" %>
-              <%= f.time_field :start_time, class: "plain-input", required: true %>
+            <div class="row2 mb-3">
+              <div class="tt-drawer-field">
+                <%= f.label :start_time, "Start" %>
+                <%= f.time_field :start_time, class: "plain-input", required: true %>
+              </div>
+              <div class="tt-drawer-field">
+                <%= f.label :end_time, "End" %>
+                <%= f.time_field :end_time, class: "plain-input", required: true %>
+              </div>
             </div>
-            <div class="tt-drawer-field">
-              <%= f.label :end_time, "End" %>
-              <%= f.time_field :end_time, class: "plain-input", required: true %>
-            </div>
-            <div class="tt-drawer-foot">
+            <div class="tt-drawer-foot tt-drawer-foot--float">
               <%= f.submit "Add template", class: "btn-primary" %>
-              <button type="button" class="btn-ghost" data-action="inline-edit#cancel">Cancel</button>
             </div>
           <% end %>
         </div>
@@ -84,7 +91,7 @@
             <%= render "shared/drawer", title: "Review correction request" do %>
               <div class="tt-drawer-row">
                 <div class="name-row"><h4><%= correction_request.employee.full_name %></h4><span class="badge badge-caution">Pending</span></div>
-                <p class="assigned"><%= correction_request.reason %> — <%= correction_request.date %></p>
+                <p class="assigned"><%= correction_request.reason %> — <%= correction_request.date.strftime("%b %-d, %Y") %></p>
               </div>
               <div class="tt-compare">
                 <div>
@@ -124,7 +131,7 @@
             <% @correction_decided.each do |correction_request| %>
               <tr>
                 <td><%= correction_request.employee.full_name %></td>
-                <td class="mono"><%= correction_request.date %></td>
+                <td class="mono"><%= correction_request.date.strftime("%b %-d, %Y") %></td>
                 <td><% badge = BadgePresenter.new(correction_request.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
               </tr>
             <% end %>
@@ -135,7 +142,43 @@
   <% end %>
 
   <div class="card">
+    <div class="period-row">
+      <%= link_to "Today", team_attendance_records_path(start_date: Date.current, end_date: Date.current),
+            class: "chip-filter#{" is-active" if @active_period == :today}" %>
+      <%= link_to "This week", team_attendance_records_path(start_date: Date.current.beginning_of_week, end_date: Date.current.end_of_week),
+            class: "chip-filter#{" is-active" if @active_period == :this_week}" %>
+      <%= link_to "This period", team_attendance_records_path,
+            class: "chip-filter#{" is-active" if @active_period == :this_period}" %>
+      <span class="today-label"><%= Date.current.to_fs(:long) %></span>
+    </div>
+
+    <div class="stat-strip">
+      <div class="stat-tile dot-positive"><span class="num"><%= @status_counts[:on_time] %></span><span class="lbl">On time</span></div>
+      <div class="stat-tile dot-caution"><span class="num"><%= @status_counts[:late] %></span><span class="lbl">Late</span></div>
+      <div class="stat-tile dot-caution"><span class="num"><%= @status_counts[:undertime] %></span><span class="lbl">Undertime</span></div>
+      <div class="stat-tile dot-negative"><span class="num"><%= @status_counts[:absent] %></span><span class="lbl">Absent</span></div>
+    </div>
+
+    <div class="toolbar">
+      <%= form_with url: team_attendance_records_path, method: :get, local: true, html: { class: "search-wrap" } do %>
+        <%= lucide_icon(:search) %>
+        <input class="search-input" type="text" name="q" value="<%= params[:q] %>" placeholder="Search employee…">
+        <input type="hidden" name="start_date" value="<%= @start_date %>">
+        <input type="hidden" name="end_date" value="<%= @end_date %>">
+      <% end %>
+      <div class="chip-row">
+        <%= link_to "All", team_attendance_records_path(start_date: @start_date, end_date: @end_date, q: params[:q]),
+              class: "chip-filter#{" is-active" unless params[:status].present?}" %>
+        <% %w[late undertime absent].each do |status| %>
+          <%= link_to status.humanize, team_attendance_records_path(start_date: @start_date, end_date: @end_date, q: params[:q], status: status),
+                class: "chip-filter#{" is-active" if params[:status] == status}" %>
+        <% end %>
+      </div>
+    </div>
+
     <%= form_with url: team_attendance_records_path, method: :get, local: true, html: { class: "filter-row" } do %>
+      <input type="hidden" name="q" value="<%= params[:q] %>">
+      <input type="hidden" name="status" value="<%= params[:status] %>">
       <div class="field">
         <label>From</label>
         <input type="date" name="start_date" value="<%= @start_date %>">
@@ -163,10 +206,12 @@
               <td class="mono"><%= attendance_record.clock_in_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
               <td class="mono"><%= attendance_record.clock_out_at&.in_time_zone(current_employee.company.timezone)&.strftime("%l:%M %p") || "—" %></td>
               <td>
-                <% if attendance_record.status %>
-                  <% badge = BadgePresenter.new(attendance_record.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
-                <% else %>
+                <% if attendance_record.status.nil? %>
                   <span class="muted">—</span>
+                <% elsif attendance_record.status_on_time? %>
+                  <span class="muted">On time</span>
+                <% else %>
+                  <% badge = BadgePresenter.new(attendance_record.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span>
                 <% end %>
               </td>
               <td>

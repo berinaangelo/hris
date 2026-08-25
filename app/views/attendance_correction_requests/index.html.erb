@@ -1,34 +1,53 @@
-<div class="mb-3">
-  <h2>Attendance Corrections</h2>
-</div>
+<% content_for :title, "Attendance corrections" %>
 
-<div class="card">
+<div class="attendance-corrections-page" data-controller="modal" data-modal-open-value="<%= @open_request_modal ? "true" : "false" %>">
+  <div class="greet-block">
+    <h2>Attendance corrections</h2>
+    <p>
+      <%= pluralize(@correction_requests.count(&:pending?), "request") %> pending
+      · <%= pluralize(@correction_requests.size, "request") %> on file
+    </p>
+  </div>
+
+  <div class="list-head">
+    <h3>Request history</h3>
+    <button type="button" class="btn btn-primary" data-action="modal#open">
+      <%= lucide_icon(:plus, stroke_width: 2) %>
+      Request a correction
+    </button>
+  </div>
+
   <% if @correction_requests.any? %>
-    <table>
-      <thead>
-        <tr>
-          <th>Date</th>
-          <th>Requested clock in</th>
-          <th>Requested clock out</th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        <% @correction_requests.each do |request| %>
-          <tr>
-            <td><%= request.date %></td>
-            <td><%= request.requested_clock_in_at || "—" %></td>
-            <td><%= request.requested_clock_out_at || "—" %></td>
-            <td><% badge = BadgePresenter.new(request.status) %><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
-          </tr>
-        <% end %>
-      </tbody>
-    </table>
+    <div class="table-wrap">
+      <table class="reqtable">
+        <thead><tr><th>Date</th><th>Requested clock in</th><th>Requested clock out</th><th>Reason</th><th>Status</th></tr></thead>
+        <tbody>
+          <% @correction_requests.each do |request| %>
+            <% badge = BadgePresenter.new(request.status) %>
+            <tr>
+              <td class="mono"><%= request.date.strftime("%b %-d, %Y") %></td>
+              <td class="mono"><%= request.requested_clock_in_at&.strftime("%-l:%M %p") || "—" %></td>
+              <td class="mono"><%= request.requested_clock_out_at&.strftime("%-l:%M %p") || "—" %></td>
+              <td class="reason"><%= request.reason %></td>
+              <td><span class="<%= badge.css_class %>"><%= badge.label %></span></td>
+            </tr>
+          <% end %>
+        </tbody>
+      </table>
+    </div>
   <% else %>
-    <p>No correction requests yet.</p>
+    <p class="muted">No correction requests yet.</p>
   <% end %>
-</div>
 
-<div class='pt-3'>
-<%= link_to "Request a correction", new_attendance_correction_request_path, class: "btn btn-primary" %>
+  <dialog class="app-modal" data-modal-target="dialog" data-action="click->modal#closeOnBackdrop">
+    <div class="app-modal-content">
+      <div class="modal-box-head">
+        <h3>Request a correction</h3>
+        <button type="button" class="modal-close" data-action="modal#close" aria-label="Close">
+          <%= lucide_icon(:x, stroke_width: 2) %>
+        </button>
+      </div>
+      <%= render "form" %>
+    </div>
+  </dialog>
 </div>

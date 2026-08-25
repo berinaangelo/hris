@@ -3,15 +3,20 @@
 </p>
 
 <%= form_with url: attach_kpis_team_review_cycle_path(cycle), method: :patch, local: true do %>
-  <div class="draftkpi-wrap">
+  <div class="draftkpi-wrap" data-controller="kpi-rows" data-kpi-rows-min-value="3" data-kpi-rows-max-value="5">
     <table class="draftkpi">
-      <% 5.times do %>
-        <tr>
-          <td><%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name", class: "plain-input compact" %></td>
-          <td><%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target", class: "plain-input compact" %></td>
-        </tr>
-      <% end %>
+      <tbody data-kpi-rows-target="rows">
+        <% 3.times do %>
+          <%= render "team/review_cycles/kpi_row_fields" %>
+        <% end %>
+      </tbody>
     </table>
+    <template data-kpi-rows-target="template">
+      <%= render "team/review_cycles/kpi_row_fields" %>
+    </template>
+    <button type="button" class="icon-btn" data-action="kpi-rows#add" data-kpi-rows-target="addButton" aria-label="Add KPI">
+      <%= lucide_icon(:plus) %>
+    </button>
   </div>
 
   <div class="form-actions">

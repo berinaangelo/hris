@@ -13,14 +13,15 @@ module ReviewCycles
           review_cycle: review_cycle,
           kpi_entries_params: [
             { kpi_name: "Ship feature X", target: "By Q3" },
-            { kpi_name: "Reduce bugs", target: "Under 5 open" }
+            { kpi_name: "Reduce bugs", target: "Under 5 open" },
+            { kpi_name: "Mentor a junior", target: "Weekly 1:1s" }
           ]
         )
 
         assert result.success?
       end
 
-      assert_equal 2, review_cycle.kpi_entries.count
+      assert_equal 3, review_cycle.kpi_entries.count
     end
   end
 end

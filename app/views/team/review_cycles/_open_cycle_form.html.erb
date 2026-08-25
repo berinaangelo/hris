@@ -1,9 +1,10 @@
 <% if local_assigns[:first_cycle] %>
   <p class="card-label" style="text-transform:none;letter-spacing:normal;font-weight:400;color:var(--neutral);">
-    This will be <%= employee.first_name %>'s first review cycle. Set a few KPIs to open it.
+    This will be <%= employee.first_name %>'s first review cycle. Set 3–5 KPIs to open it.
   </p>
 <% else %>
   <p class="card-label">Start the next cycle</p>
+  <p class="muted">Set 3–5 KPIs to open it.</p>
 <% end %>
 
 <%= form_with url: team_review_cycles_path, method: :post, local: true do %>
@@ -12,27 +13,34 @@
   <% unless local_assigns[:first_cycle] %>
     <div class="tt-drawer-field">
       <%= label_tag "review_cycle_cycle_type", "Cycle type" %>
-      <%= select_tag "review_cycle[cycle_type]", options_for_select([ [ "Regular", "regular" ], [ "PIP", "pip" ] ]), class: "plain-input compact" %>
+      <%= select_tag "review_cycle[cycle_type]", options_for_select([ [ "Regular", "regular" ], [ "PIP", "pip" ] ]), class: "plain-input" %>
     </div>
   <% end %>
-  <div class="tt-drawer-field">
-    <%= label_tag "review_cycle_start_date", "Start date" %>
-    <%= date_field_tag "review_cycle[start_date]", Date.current, class: "plain-input compact" %>
-  </div>
-  <div class="tt-drawer-field">
-    <%= label_tag "review_cycle_end_date", "End date" %>
-    <%= date_field_tag "review_cycle[end_date]", 6.months.from_now.to_date, class: "plain-input compact" %>
+  <div class="row2">
+    <div class="tt-drawer-field">
+      <%= label_tag "review_cycle_start_date", "Start date" %>
+      <%= date_field_tag "review_cycle[start_date]", Date.current, class: "plain-input" %>
+    </div>
+    <div class="tt-drawer-field">
+      <%= label_tag "review_cycle_end_date", "End date" %>
+      <%= date_field_tag "review_cycle[end_date]", 6.months.from_now.to_date, class: "plain-input" %>
+    </div>
   </div>
 
-  <div class="draftkpi-wrap">
+  <div class="draftkpi-wrap" data-controller="kpi-rows" data-kpi-rows-min-value="3" data-kpi-rows-max-value="5">
     <table class="draftkpi">
-      <% 5.times do %>
-        <tr>
-          <td><%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name", class: "plain-input compact" %></td>
-          <td><%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target", class: "plain-input compact" %></td>
-        </tr>
-      <% end %>
+      <tbody data-kpi-rows-target="rows">
+        <% 3.times do %>
+          <%= render "team/review_cycles/kpi_row_fields" %>
+        <% end %>
+      </tbody>
     </table>
+    <template data-kpi-rows-target="template">
+      <%= render "team/review_cycles/kpi_row_fields" %>
+    </template>
+    <button type="button" class="icon-btn" data-action="kpi-rows#add" data-kpi-rows-target="addButton" aria-label="Add KPI">
+      <%= lucide_icon(:plus) %>
+    </button>
   </div>
 
   <div class="form-actions">

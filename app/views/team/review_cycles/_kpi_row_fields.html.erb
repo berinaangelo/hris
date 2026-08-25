@@ -1,0 +1,5 @@
+<tr>
+  <td><%= text_field_tag "kpi_entries[][kpi_name]", nil, placeholder: "KPI name", class: "plain-input compact" %></td>
+  <td><%= text_field_tag "kpi_entries[][target]", nil, placeholder: "Target", class: "plain-input compact" %></td>
+  <td><button type="button" class="icon-btn" data-action="kpi-rows#remove" data-kpi-rows-target="removeButton" aria-label="Remove KPI"><%= lucide_icon(:x) %></button></td>
+</tr>

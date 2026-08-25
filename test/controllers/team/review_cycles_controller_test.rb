@@ -27,13 +27,14 @@ module Team
           review_cycle: { employee_id: employee.id, cycle_type: "regular", start_date: Date.current, end_date: 6.months.from_now.to_date },
           kpi_entries: [
             { kpi_name: "Ship feature X", target: "By Q3" },
-            { kpi_name: "Reduce bugs", target: "Under 5 open" }
+            { kpi_name: "Reduce bugs", target: "Under 5 open" },
+            { kpi_name: "Mentor a junior", target: "Weekly 1:1s" }
           ]
         }
       end
 
       assert_redirected_to team_review_cycles_path(employee_id: employee.id)
-      assert_equal 2, ReviewCycle.last.kpi_entries.count
+      assert_equal 3, ReviewCycle.last.kpi_entries.count
     end
 
     test "manager cannot open a cycle for someone who isn't their direct report" do

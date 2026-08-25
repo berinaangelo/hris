@@ -41,6 +41,62 @@ class EmployeesControllerTest < ActionDispatch::IntegrationTest
     assert_redirected_to root_path
   end
 
+  test "admin can add a new employee" do
+    sign_in employees(:admin_amy)
+
+    assert_difference -> { Employee.count } => 1 do
+      post employees_path, params: {
+        employee: {
+          first_name: "Nina", last_name: "Cruz", work_email: "nina.cruz@example.com",
+          password: "password123", job_title: "QA Engineer", department: "Engineering",
+          start_date: Date.current, employment_type: "full_time"
+        }
+      }
+    end
+
+    created = Employee.find_by(work_email: "nina.cruz@example.com")
+    assert_redirected_to employee_path(created)
+    assert_equal companies(:acme), created.company
+    assert_match(/\AEMP-\d{4}\z/, created.employee_number)
+    assert_equal 3, created.checklist_items.onboarding.count
+  end
+
+  test "invalid create re-renders new with errors" do
+    sign_in employees(:admin_amy)
+
+    assert_no_difference -> { Employee.count } do
+      post employees_path, params: {
+        employee: {
+          first_name: "", last_name: "Cruz", work_email: "nina.cruz@example.com",
+          password: "password123", job_title: "QA Engineer", department: "Engineering",
+          start_date: Date.current, employment_type: "full_time"
+        }
+      }
+    end
+
+    assert_response :unprocessable_entity
+    assert_select ".field-error", text: "can't be blank"
+  end
+
+  test "manager is forbidden from adding an employee" do
+    sign_in employees(:manager_jane)
+
+    get new_employee_path
+    assert_redirected_to root_path
+
+    assert_no_difference -> { Employee.count } do
+      post employees_path, params: {
+        employee: {
+          first_name: "Nina", last_name: "Cruz", work_email: "nina.cruz@example.com",
+          password: "password123", job_title: "QA Engineer", department: "Engineering",
+          start_date: Date.current, employment_type: "full_time"
+        }
+      }
+    end
+
+    assert_redirected_to root_path
+  end
+
   test "admin sees an employee's Profile, Loan Ledger, and Benefits tabs" do
     sign_in employees(:admin_amy)
     employee = employees(:worker_bob)

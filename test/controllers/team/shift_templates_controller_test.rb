@@ -9,7 +9,7 @@ module Team
         shift_template: { name: "Mid Shift", start_time: "16:00", end_time: "22:00" }
       }
 
-      assert_redirected_to team_attendance_records_path
+      assert_redirected_to team_attendance_records_path(open_shift_templates: true)
       created = ShiftTemplate.order(:created_at).last
       assert_equal "Mid Shift", created.name
       assert_equal companies(:acme), created.company
@@ -21,7 +21,7 @@ module Team
 
       patch team_shift_template_path(shift_template), params: { shift_template: { name: "Graveyard" } }
 
-      assert_redirected_to team_attendance_records_path
+      assert_redirected_to team_attendance_records_path(open_shift_templates: true)
       assert_equal "Graveyard", shift_template.reload.name
     end
 
@@ -31,7 +31,7 @@ module Team
 
       delete team_shift_template_path(shift_template)
 
-      assert_redirected_to team_attendance_records_path
+      assert_redirected_to team_attendance_records_path(open_shift_templates: true)
       assert_not ShiftTemplate.exists?(shift_template.id)
     end
 
@@ -41,9 +41,31 @@ module Team
 
       delete team_shift_template_path(shift_template)
 
-      assert_redirected_to team_attendance_records_path
+      assert_redirected_to team_attendance_records_path(open_shift_templates: true)
       assert ShiftTemplate.exists?(shift_template.id)
       assert_not_nil flash[:alert]
+    end
+
+    test "creating a shift template with a blank name re-renders the index with the drawer open" do
+      sign_in employees(:admin_amy)
+
+      post team_shift_templates_path, params: {
+        shift_template: { name: "", start_time: "16:00", end_time: "22:00" }
+      }
+
+      assert_response :unprocessable_entity
+      assert_select "[data-modal-open-value=true]"
+    end
+
+    test "updating a shift template with a blank name re-renders the index with the drawer open" do
+      sign_in employees(:admin_amy)
+      shift_template = shift_templates(:night_shift)
+
+      patch team_shift_template_path(shift_template), params: { shift_template: { name: "" } }
+
+      assert_response :unprocessable_entity
+      assert_select "[data-modal-open-value=true]"
+      assert_not_equal "", shift_template.reload.name
     end
 
     test "a manager is forbidden from creating a shift template" do

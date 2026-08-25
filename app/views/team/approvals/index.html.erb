@@ -39,10 +39,28 @@
               <%= button_to approve_team_approval_path(request), method: :patch, class: "btn-primary" do %>
                 <%= lucide_icon(:"circle-check") %>Approve
               <% end %>
-              <%= form_with url: reject_team_approval_path(request), method: :patch, local: true, class: "inline-reject-form" do %>
-                <input type="text" name="decision_note" placeholder="Reason (optional)">
-                <button type="submit" class="btn-danger-ghost"><%= lucide_icon(:x) %>Reject</button>
-              <% end %>
+              <span data-controller="modal">
+                <button type="button" class="btn-danger-ghost" data-action="modal#open">
+                  <%= lucide_icon(:x) %>Reject
+                </button>
+                <%= render "shared/drawer", title: "Reject #{request.employee.full_name}'s request" do %>
+                  <p class="tt-drawer-note">
+                    <%= request.leave_type.name %> ·
+                    <%= request.start_date == request.end_date ? request.start_date.to_fs(:long) : "#{request.start_date.strftime('%b %-d')}–#{request.end_date.strftime('%b %-d, %Y')}" %>
+                    · <%= pluralize(request.days_requested, "day") %>. This can't be undone from here.
+                  </p>
+                  <%= form_with url: reject_team_approval_path(request), method: :patch, local: true do %>
+                    <div class="tt-drawer-field">
+                      <label for="reject-note-<%= request.id %>">Reason (optional)</label>
+                      <textarea class="plain-input" id="reject-note-<%= request.id %>" name="decision_note" rows="3" placeholder="Let them know why, if useful"></textarea>
+                    </div>
+                    <div class="tt-drawer-foot">
+                      <button type="submit" class="btn-danger-ghost">Reject request</button>
+                      <button type="button" class="btn-ghost" data-action="modal#close">Cancel</button>
+                    </div>
+                  <% end %>
+                <% end %>
+              </span>
             </div>
           </div>
         <% end %>

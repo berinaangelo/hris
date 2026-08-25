@@ -1,6 +1,6 @@
 <div class="op2-detail-panel">
   <% if cycle.nil? %>
-    <p>Select a cycle to see its details.</p>
+    <p>No review cycles yet.</p>
   <% elsif !cycle.published? %>
     <div class="inprogress-note">
       <%= lucide_icon(:clock, stroke_width: 1.75) %>

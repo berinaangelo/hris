@@ -3,7 +3,7 @@
 <div class="team-reviews-page">
   <h1>Team Reviews</h1>
 
-  <div class="card review-cycles-layout">
+  <%= turbo_frame_tag "team_review_detail", class: "card review-cycles-layout" do %>
     <div class="review-cycles-rail">
       <% if @direct_reports.empty? %>
         <p class="muted">No direct reports.</p>
@@ -11,8 +11,7 @@
       <% @direct_reports.each do |employee| %>
         <% presenter = ReviewStatusPresenter.new(employee) %>
         <%= link_to team_review_cycles_path(employee_id: employee.id),
-                     class: "review-cycle-row#{" is-selected" if @selected_employee == employee}",
-                     data: { turbo_frame: "team_review_detail" } do %>
+                     class: "review-cycle-row#{" is-selected" if @selected_employee == employee}" do %>
           <span class="avatar"><%= employee.first_name.first %><%= employee.last_name.first %></span>
           <span class="meta-col">
             <span class="name"><%= employee.full_name %></span>
@@ -28,8 +27,8 @@
       <% end %>
     </div>
 
-    <%= turbo_frame_tag "team_review_detail", class: "review-cycle-detail" do %>
+    <div class="review-cycle-detail">
       <%= render "detail", employee: @selected_employee %>
-    <% end %>
-  </div>
+    </div>
+  <% end %>
 </div>

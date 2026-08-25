@@ -5,14 +5,17 @@
 # field-only CRUD with no business-flow side effects.
 module Team
   class ShiftTemplatesController < ApplicationController
+    include LoadsAttendanceIndexData
+
     def create
       @shift_template = policy_scope(ShiftTemplate).build(shift_template_params)
       authorize @shift_template
 
       if @shift_template.save
-        redirect_to team_attendance_records_path, notice: "#{@shift_template.name} added."
+        redirect_to team_attendance_records_path(open_shift_templates: true), notice: "#{@shift_template.name} added."
       else
-        redirect_to team_attendance_records_path, alert: @shift_template.errors.full_messages.to_sentence
+        flash.now[:alert] = @shift_template.errors.full_messages.to_sentence
+        reopen_templates_drawer
       end
     end
 
@@ -25,9 +28,11 @@ module Team
       authorize @shift_template
 
       if @shift_template.update(shift_template_params)
-        redirect_to team_attendance_records_path, notice: "#{@shift_template.name} updated."
+        redirect_to team_attendance_records_path(open_shift_templates: true), notice: "#{@shift_template.name} updated."
       else
-        redirect_to team_attendance_records_path, alert: @shift_template.errors.full_messages.to_sentence
+        flash.now[:alert] = @shift_template.errors.full_messages.to_sentence
+        @reopen_shift_template_id = @shift_template.id
+        reopen_templates_drawer
       end
     end
 
@@ -36,9 +41,9 @@ module Team
       authorize @shift_template
 
       if @shift_template.destroy
-        redirect_to team_attendance_records_path, notice: "#{@shift_template.name} deleted."
+        redirect_to team_attendance_records_path(open_shift_templates: true), notice: "#{@shift_template.name} deleted."
       else
-        redirect_to team_attendance_records_path, alert: @shift_template.errors.full_messages.to_sentence
+        redirect_to team_attendance_records_path(open_shift_templates: true), alert: @shift_template.errors.full_messages.to_sentence
       end
     end
 
@@ -46,6 +51,17 @@ module Team
 
     def shift_template_params
       params.require(:shift_template).permit(:name, :start_time, :end_time)
+    end
+
+    # A failed create/update re-renders the merged Team Attendance index
+    # (this controller doesn't own a page of its own) with the "Shift
+    # templates" drawer forced back open and @shift_template still
+    # holding its validation errors — same reopen-on-error trick as
+    # Team::AttendanceRecordsController#update.
+    def reopen_templates_drawer
+      @open_shift_templates = true
+      load_index_data
+      render "team/attendance_records/index", status: :unprocessable_entity
     end
   end
 end

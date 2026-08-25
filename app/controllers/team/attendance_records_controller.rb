@@ -6,6 +6,8 @@
 # Team::AttendanceSettingsController — both just redirect back here.
 module Team
   class AttendanceRecordsController < ApplicationController
+    include LoadsAttendanceIndexData
+
     def index
       authorize AttendanceRecord
       load_index_data
@@ -40,26 +42,8 @@ module Team
 
     private
 
-    def load_index_data
-      @start_date = parse_date(params[:start_date]) || 14.days.ago.to_date
-      @end_date = parse_date(params[:end_date]) || Date.current
-      @attendance_records = AttendanceRecords::ForDateRange.call(
-        viewer: current_employee, start_date: @start_date, end_date: @end_date
-      )
-      @correction_pending = AttendanceCorrectionRequests::PendingForApprover.call(current_employee)
-      @correction_decided = AttendanceCorrectionRequest.where(reviewed_by: current_employee).where.not(status: :pending)
-                                                        .includes(:employee).order(reviewed_at: :desc).limit(10)
-      @shift_templates = policy_scope(ShiftTemplate).includes(:employees).order(:start_time) if policy(ShiftTemplate).index?
-    end
-
     def attendance_record_params
       params.require(:attendance_record).permit(:clock_in_at, :clock_out_at)
-    end
-
-    def parse_date(value)
-      value.presence&.to_date
-    rescue ArgumentError, TypeError
-      nil
     end
   end
 end

@@ -17,6 +17,15 @@ class ReviewCyclesControllerTest < ActionDispatch::IntegrationTest
     assert_response :not_found
   end
 
+  test "shows an empty state for an employee with no review cycles" do
+    sign_in employees(:worker_diane)
+
+    get review_cycles_path
+
+    assert_response :success
+    assert_match "No review cycles yet", response.body
+  end
+
   private
 
   def sign_in(employee)

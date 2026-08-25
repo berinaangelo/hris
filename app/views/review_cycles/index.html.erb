@@ -3,31 +3,37 @@
 <div class="my-reviews-page">
   <h1>My Reviews</h1>
 
-  <div class="card review-cycles-layout">
-    <div class="review-cycles-rail">
-      <% if @review_cycles.empty? %>
-        <p class="muted">No review cycles yet.</p>
-      <% end %>
-      <% @review_cycles.each do |cycle| %>
-        <%= link_to review_cycles_path(cycle_id: cycle.id),
-                     class: "review-cycle-row#{" is-selected" if @selected_cycle == cycle}",
-                     data: { turbo_frame: "review_cycle_detail" } do %>
-          <span class="period"><%= cycle.start_date.strftime("%b %Y") %>–<%= cycle.end_date.strftime("%b %Y") %></span>
-          <span class="meta">
-            <% if cycle.published? %>
-              <%= cycle.pip? ? "PIP" : "Regular" %> ·
-              <span class="rating"><%= cycle.overall_rating ? "#{cycle.overall_rating.round(1)}/5" : "—" %></span>
-            <% else %>
-              <% badge = BadgePresenter.new(cycle.status) %>
-              <span class="<%= badge.css_class %>"><%= badge.label %></span>
-            <% end %>
-          </span>
+  <% if @review_cycles.any? %>
+    <%= turbo_frame_tag "review_cycle_detail", class: "card review-cycles-layout" do %>
+      <div class="review-cycles-rail">
+        <% @review_cycles.each do |cycle| %>
+          <%= link_to review_cycles_path(cycle_id: cycle.id),
+                       class: "review-cycle-row#{" is-selected" if @selected_cycle == cycle}" do %>
+            <span class="period"><%= cycle.start_date.strftime("%b %Y") %>–<%= cycle.end_date.strftime("%b %Y") %></span>
+            <span class="meta">
+              <% if cycle.published? %>
+                <%= cycle.pip? ? "PIP" : "Regular" %> ·
+                <span class="rating"><%= cycle.overall_rating ? "#{cycle.overall_rating.round(1)}/5" : "—" %></span>
+              <% else %>
+                <% badge = BadgePresenter.new(cycle.status) %>
+                <span class="<%= badge.css_class %>"><%= badge.label %></span>
+              <% end %>
+            </span>
+          <% end %>
         <% end %>
-      <% end %>
-    </div>
+      </div>
 
-    <%= turbo_frame_tag "review_cycle_detail", class: "review-cycle-detail" do %>
-      <%= render "detail", cycle: @selected_cycle %>
+      <div class="review-cycle-detail">
+        <%= render "detail", cycle: @selected_cycle %>
+      </div>
     <% end %>
-  </div>
+  <% else %>
+    <div class="card">
+      <div class="empty-state">
+        <%= lucide_icon(:"trending-up", class: "icon") %>
+        <h3>No review cycles yet</h3>
+        <p>Your manager hasn't started a review cycle for you yet.</p>
+      </div>
+    </div>
+  <% end %>
 </div>

@@ -1,0 +1,37 @@
+<%= form_with model: @correction_request, url: attendance_correction_requests_path, scope: :attendance_correction_request,
+              html: { class: "reqform" } do |f| %>
+  <div class="field-edit">
+    <%= f.label :date %>
+    <%= f.date_field :date, required: true, class: "plain-input" %>
+  </div>
+
+  <div class="row2">
+    <div class="field-edit">
+      <%= f.label :requested_clock_in_at, "Corrected clock in (optional)" %>
+      <%= f.datetime_field :requested_clock_in_at, class: "plain-input" %>
+    </div>
+    <div class="field-edit">
+      <%= f.label :requested_clock_out_at, "Corrected clock out (optional)" %>
+      <%= f.datetime_field :requested_clock_out_at, class: "plain-input" %>
+    </div>
+  </div>
+
+  <% if @correction_request.errors[:base].any? %>
+    <p class="field-error"><%= @correction_request.errors[:base].first.capitalize %></p>
+  <% end %>
+
+  <div class="field-edit">
+    <%= f.label :reason %>
+    <%= f.text_area :reason, required: true, class: "plain-textarea" %>
+  </div>
+
+  <div class="approver-note">
+    <%= lucide_icon(:user, stroke_width: 1.75) %>
+    Goes to <b><%= current_employee.manager&.full_name || "an admin" %></b> for approval
+  </div>
+
+  <div class="save-bar">
+    <button type="button" class="btn btn-ghost" data-action="modal#close">Cancel</button>
+    <%= f.submit "Submit request", class: "btn btn-primary" %>
+  </div>
+<% end %>
