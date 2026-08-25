@@ -15,6 +15,7 @@ class EmployeesController < ApplicationController
     authorize Employee
     @employee = Employee.new
     @managers = policy_scope(Employee).where(role: [ :manager, :admin ])
+    @shift_templates = current_employee.company.shift_templates.order(:start_time)
   end
 
   def create
@@ -28,6 +29,7 @@ class EmployeesController < ApplicationController
       flash.now[:alert] = result.message
       @employee = result.employee || Employee.new(employee_params)
       @managers = policy_scope(Employee).where(role: [ :manager, :admin ])
+      @shift_templates = current_employee.company.shift_templates.order(:start_time)
       render :new, status: :unprocessable_entity
     end
   end
@@ -37,6 +39,7 @@ class EmployeesController < ApplicationController
     authorize @employee
     @onboarding_items = @employee.checklist_items.onboarding.order(:position)
     @offboarding_items = @employee.checklist_items.offboarding.order(:position)
+    @shift_templates = @employee.company.shift_templates.order(:start_time)
   end
 
   def update
@@ -53,6 +56,7 @@ class EmployeesController < ApplicationController
       @reopen_section = params[:section]
       @onboarding_items = @employee.checklist_items.onboarding.order(:position)
       @offboarding_items = @employee.checklist_items.offboarding.order(:position)
+      @shift_templates = @employee.company.shift_templates.order(:start_time)
       render :show, status: :unprocessable_entity
     end
   end
@@ -94,7 +98,7 @@ class EmployeesController < ApplicationController
   def employee_params
     params.require(:employee).permit(
       :first_name, :last_name, :personal_email, :work_email, :password,
-      :job_title, :department, :manager_id, :start_date, :employment_type
+      :job_title, :department, :manager_id, :start_date, :employment_type, :shift_template_id
     )
   end
 
@@ -104,7 +108,7 @@ class EmployeesController < ApplicationController
       :mobile_number, :home_address, :birthdate,
       :emergency_contact_name, :emergency_contact_phone,
       :job_title, :department, :manager_id, :start_date, :employment_type,
-      :basic_salary
+      :basic_salary, :shift_template_id
     )
   end
 end

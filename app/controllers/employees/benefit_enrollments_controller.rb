@@ -54,6 +54,7 @@ module Employees
     def render_benefits_show
       @onboarding_items = @employee.checklist_items.onboarding.order(:position)
       @offboarding_items = @employee.checklist_items.offboarding.order(:position)
+      @shift_templates = @employee.company.shift_templates.order(:start_time)
       render "employees/show", status: :unprocessable_entity
     end
 

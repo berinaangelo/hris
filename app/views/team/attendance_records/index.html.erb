@@ -38,6 +38,38 @@
     </div>
   <% end %>
 
+  <% if @shift_templates %>
+    <div class="templates-trigger-row" data-controller="modal">
+      <button type="button" class="btn-ghost" data-action="modal#open">Manage shift templates</button>
+      <%= render "shared/drawer", title: "Shift templates" do %>
+        <% @shift_templates.each do |shift_template| %>
+          <%= render "shift_template_card", shift_template: shift_template %>
+        <% end %>
+        <div class="tt-drawer-row" data-controller="inline-edit">
+          <button type="button" class="tt-drawer-add" data-action="inline-edit#edit" data-inline-edit-target="display">+ Add shift template</button>
+          <%= form_with model: ShiftTemplate.new, url: team_shift_templates_path, method: :post, local: true, html: { data: { "inline-edit-target": "form" }, hidden: true } do |f| %>
+            <div class="tt-drawer-field">
+              <%= f.label :name %>
+              <%= f.text_field :name, class: "plain-input", required: true %>
+            </div>
+            <div class="tt-drawer-field">
+              <%= f.label :start_time, "Start" %>
+              <%= f.time_field :start_time, class: "plain-input", required: true %>
+            </div>
+            <div class="tt-drawer-field">
+              <%= f.label :end_time, "End" %>
+              <%= f.time_field :end_time, class: "plain-input", required: true %>
+            </div>
+            <div class="tt-drawer-foot">
+              <%= f.submit "Add template", class: "btn-primary" %>
+              <button type="button" class="btn-ghost" data-action="inline-edit#cancel">Cancel</button>
+            </div>
+          <% end %>
+        </div>
+      <% end %>
+    </div>
+  <% end %>
+
   <% if @correction_pending.any? %>
     <div class="cr-card">
       <div class="cr-card-head">

@@ -1,0 +1,35 @@
+<%# One shift template within the "Shift templates" drawer — display row
+    plus an inline-edit form, same display<->form toggle mechanic as
+    Employee Detail's sections (data-controller="inline-edit"). %>
+<div class="tt-drawer-row" data-controller="inline-edit">
+  <div class="name-row" data-inline-edit-target="display">
+    <h4><%= shift_template.name %></h4>
+    <button type="button" class="icon-btn" title="Edit" data-action="inline-edit#edit"><%= lucide_icon(:pencil) %></button>
+  </div>
+  <p class="hours mono" data-inline-edit-target="display">
+    <%= shift_template.start_time.strftime("%l:%M %p") %> – <%= shift_template.end_time.strftime("%l:%M %p") %>
+  </p>
+  <p class="assigned" data-inline-edit-target="display"><%= pluralize(shift_template.employees.size, "employee") %> assigned</p>
+
+  <%= form_with model: shift_template, url: team_shift_template_path(shift_template), method: :patch, local: true, html: { data: { "inline-edit-target": "form" }, hidden: true } do |f| %>
+    <div class="tt-drawer-field">
+      <%= f.label :name %>
+      <%= f.text_field :name, class: "plain-input", required: true %>
+    </div>
+    <div class="tt-drawer-field">
+      <%= f.label :start_time, "Start" %>
+      <%= f.time_field :start_time, class: "plain-input", required: true %>
+    </div>
+    <div class="tt-drawer-field">
+      <%= f.label :end_time, "End" %>
+      <%= f.time_field :end_time, class: "plain-input", required: true %>
+    </div>
+    <div class="tt-drawer-foot">
+      <%= f.submit "Save", class: "btn-primary" %>
+      <button type="button" class="btn-ghost" data-action="inline-edit#cancel">Cancel</button>
+    </div>
+  <% end %>
+
+  <%= button_to "Delete", team_shift_template_path(shift_template), method: :delete, class: "btn-ghost danger",
+        data: { turbo_confirm: "Delete #{shift_template.name}? This can't be undone." } %>
+</div>

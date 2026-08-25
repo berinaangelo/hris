@@ -1,36 +1,32 @@
-<h1>Performance Reviews</h1>
+<% content_for :title, "Company Reviews" %>
 
-<div class="card">
-  <%= form_with url: company_review_cycles_path, method: :get, local: true do %>
+<div class="company-review-cycles" data-controller="view-toggle">
+<div class="toolbar bulma-is-flex bulma-is-flex-direction-row bulma-is-align-items-start">
+  <div class="bulma-is-flex bulma-is-flex-direction-row bulma-is-align-items-start">
     <div class="field">
-      <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name">
+      <%= form_with url: company_review_cycles_path, method: :get, local: true do %>
+        <input type="text" name="q" value="<%= params[:q] %>" placeholder="Search by name">
+      <% end %>
     </div>
-    <div class="field">
-      <select name="department" onchange="this.form.submit()">
-        <option value="">All departments</option>
-        <% @departments.each do |department| %>
-          <option value="<%= department %>" <%= "selected" if params[:department] == department %>><%= department %></option>
-        <% end %>
-      </select>
+
+    <div class="chip-row pl-3">
+      <%= link_to "All", company_review_cycles_path(q: params[:q], show_offboarded: params[:show_offboarded]),
+            class: "chip-filter #{"is-active" unless params[:department].present?}" %>
+      <% @departments.each do |department| %>
+        <%= link_to department, company_review_cycles_path(department: department, q: params[:q], show_offboarded: params[:show_offboarded]),
+              class: "chip-filter #{"is-active" if params[:department] == department}" %>
+      <% end %>
     </div>
-    <div class="field">
-      <select name="status" onchange="this.form.submit()">
-        <option value="">All statuses</option>
-        <option value="on_pip" <%= "selected" if params[:status] == "on_pip" %>>On PIP</option>
-        <option value="needs_scoring" <%= "selected" if params[:status] == "needs_scoring" %>>Needs scoring</option>
-      </select>
-    </div>
-    <button type="submit" class="btn btn-ghost">Filter</button>
-  <% end %>
+  </div>
+
+  <div class="bulma-is-flex-grow-1 bulma-is-flex bulma-is-justify-content-flex-end bulma-is-align-items-center bulma-is-gap-1">
+    <button type="button" data-action="btn view-toggle#showList" class="view-toggle-btn is-bordered is-active" data-view-toggle-target="listBtn"><%= lucide_icon(:list) %></button>
+    <button type="button" data-action="btn view-toggle#showCards" class="view-toggle-btn is-bordered" data-view-toggle-target="cardsBtn"><%= lucide_icon(:grid) %></button>
+  </div>
 </div>
 
 <div data-controller="modal">
-  <div class="card" data-controller="view-toggle">
-    <div class="view-toggle-buttons">
-      <button type="button" data-action="view-toggle#showList" class="btn btn-ghost">List</button>
-      <button type="button" data-action="view-toggle#showCards" class="btn btn-ghost">Cards</button>
-    </div>
-
+  <div class="card">
     <table data-view-toggle-target="list">
       <thead><tr><th>Employee</th><th>Department</th><th>Status</th><th></th></tr></thead>
       <tbody>
@@ -82,3 +78,4 @@
 </div>
 
 <%= link_to "Start new cycle", new_company_review_cycle_path, class: "btn btn-primary" %>
+</div>

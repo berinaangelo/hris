@@ -91,6 +91,41 @@ class EmployeesControllerTest < ActionDispatch::IntegrationTest
     assert_equal 4, employee.checklist_items.offboarding.count
   end
 
+  test "admin can assign a shift template on the org position section" do
+    sign_in employees(:admin_amy)
+    employee = employees(:worker_bob)
+
+    patch employee_path(employee), params: {
+      section: "org",
+      employee: {
+        job_title: employee.job_title, department: employee.department,
+        start_date: employee.start_date, employment_type: employee.employment_type,
+        shift_template_id: shift_templates(:night_shift).id
+      }
+    }
+
+    assert_redirected_to employee_path(employee)
+    assert_equal shift_templates(:night_shift), employee.reload.shift_template
+  end
+
+  test "leaving shift blank on org position leaves the employee unassigned" do
+    sign_in employees(:admin_amy)
+    employee = employees(:worker_optout)
+    assert employee.shift_template.present?
+
+    patch employee_path(employee), params: {
+      section: "org",
+      employee: {
+        job_title: employee.job_title, department: employee.department,
+        start_date: employee.start_date, employment_type: employee.employment_type,
+        shift_template_id: ""
+      }
+    }
+
+    assert_redirected_to employee_path(employee)
+    assert_nil employee.reload.shift_template_id
+  end
+
   test "mark_offboarded is blocked until the last working day passes and clearance is done" do
     sign_in employees(:admin_amy)
     employee = employees(:worker_offboarding)

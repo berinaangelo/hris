@@ -35,6 +35,7 @@ Rails.application.routes.draw do
     end
 
     resources :attendance_records, only: [ :index, :update ]
+    resources :shift_templates, only: [ :create, :update, :destroy ]
     resources :attendance_edit_approvals, only: [ :index ] do
       member do
         patch :approve

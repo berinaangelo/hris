@@ -49,6 +49,7 @@ module Team
       @correction_pending = AttendanceCorrectionRequests::PendingForApprover.call(current_employee)
       @correction_decided = AttendanceCorrectionRequest.where(reviewed_by: current_employee).where.not(status: :pending)
                                                         .includes(:employee).order(reviewed_at: :desc).limit(10)
+      @shift_templates = policy_scope(ShiftTemplate).includes(:employees).order(:start_time) if policy(ShiftTemplate).index?
     end
 
     def attendance_record_params

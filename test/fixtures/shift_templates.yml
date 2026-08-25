@@ -3,3 +3,17 @@ day_shift:
   name: Day Shift
   start_time: 2000-01-01 09:00:00
   end_time: 2000-01-01 18:00:00
+
+# Unused by any attendance_records/employees fixture on purpose — the
+# one destroy can legitimately succeed against.
+night_shift:
+  company: acme
+  name: Night Shift
+  start_time: 2000-01-01 22:00:00
+  end_time: 2000-01-01 06:00:00
+
+globex_shift:
+  company: globex
+  name: Globex Shift
+  start_time: 2000-01-01 08:00:00
+  end_time: 2000-01-01 17:00:00

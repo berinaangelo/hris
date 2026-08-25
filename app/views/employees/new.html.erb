@@ -74,6 +74,10 @@
             <%= f.select :employment_type, Employee.employment_types.keys.map { |t| [ t.humanize, t ] },
                   {}, class: "plain-input", data: { "live-preview-target": "employmentType" } %>
           </div>
+          <div class="field">
+            <%= f.label :shift_template_id do %>Shift <span class="opt">— optional</span><% end %>
+            <%= f.select :shift_template_id, @shift_templates.map { |s| [ s.name, s.id ] }, { include_blank: "No shift (not clock-in tracked)" }, class: "plain-input" %>
+          </div>
         </div>
       </div>
 
